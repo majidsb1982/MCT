@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Local / temp
+.grok/
+tmp/
+*.log
+
+# Old build zips — keep only GitHub Releases for archives
+MCT-v*.zip
+MCT-fixed.zip
+*.zip
+
+# Scratch
+app.js
