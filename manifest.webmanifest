@@ -1,7 +1,7 @@
 {
   "name": "My-Class-Track",
   "short_name": "MCT",
-  "description": "دستیار کلاس — ثبت حضور، شهریه، تکالیف و مدیریت اعضا",
+  "description": "دستیار کلاس هوشمند — حضور، شهریه، تکالیف، بینش و اعلان",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
