@@ -4,15 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f7fe">
-<meta name="description" content="دستیار گروه درمانی — نوبت حضور، شهریه، حامی‌ها، یادآور پشت در">
+<meta name="description" content="دستیار گروه درمانی — نسخه پایدار ۱۸">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.003/Vazirmatn-font-face.css" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%2338bdf8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M14 46V18h8l10 14 10-14h8v28h-8V31L32 44 22 31v15z' fill='%23fff'/%3E%3C/svg%3E">
-<title>My-Class-Track | گروه درمانی</title>
+<title>My-Class-Track v18</title>
 <style>
+
+
+
+
+
+
+
+
+
 
 
 
@@ -61,7 +70,7 @@ input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--ln);
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--p2);box-shadow:0 0 0 3px var(--blue-t)}
 textarea{min-height:85px;resize:vertical}
 label{display:block;font-size:.82em;color:var(--tx2);margin:8px 0 4px;font-weight:600}
-nav{position:fixed;bottom:0;right:0;left:0;z-index:60;background:color-mix(in srgb,var(--sf) 90%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--ln);display:flex;justify-content:space-around;padding:6px 0 max(8px,env(safe-area-inset-bottom))}
+nav{position:fixed;bottom:0;right:0;left:0;z-index:60;display:flex;justify-content:space-around;align-items:center;background:color-mix(in srgb,var(--sf) 90%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--ln);display:flex;justify-content:space-around;padding:6px 0 max(8px,env(safe-area-inset-bottom))}
 nav button{background:none;border:none;color:var(--tx2);font-family:inherit;font-size:.63em;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 7px;cursor:pointer;min-width:48px;border-radius:13px;transition:.15s}
 nav button.on{color:#fff;background:var(--pg);box-shadow:0 3px 12px rgba(37,99,235,.3)}
 nav svg{width:20px;height:20px;fill:currentColor}
@@ -256,6 +265,251 @@ body.dark .deadline-warn{background:#7f1d1d44;border-color:#991b1b;color:#fecaca
 .hami-tip{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:12px;padding:10px 12px;font-size:.82em;line-height:1.5;margin:8px 0}
 body.dark .hami-tip{background:#064e3b33;border-color:#065f46;color:#6ee7b7}
 
+
+/* ===== v10 Responsive: Mobile + Desktop ===== */
+:root{--content-max:640px;--rail:0px}
+html{height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{min-height:100%;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+/* Safe areas */
+header{padding-top:env(safe-area-inset-top,0)}
+nav{padding-bottom:env(safe-area-inset-bottom,0);padding-left:env(safe-area-inset-left,0);padding-right:env(safe-area-inset-right,0)}
+.page{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+
+/* Touch targets mobile */
+.btn,.chip,nav button,.hbtn{min-height:44px;touch-action:manipulation}
+.btn.sm,.chip{min-height:40px}
+input,select,textarea{font-size:16px!important} /* prevent iOS zoom */
+
+/* Wider phones */
+@media (min-width:480px){
+  :root{--content-max:520px}
+  .page{padding:14px 16px}
+}
+
+/* Tablet */
+@media (min-width:768px){
+  :root{--content-max:720px;--fs:15.5px}
+  body{padding:68px 0 24px;padding-right:var(--rail)}
+  .hwrap{max-width:var(--content-max);padding:12px 20px}
+  .page{max-width:var(--content-max);padding:16px 20px}
+  .card{padding:16px 18px;border-radius:16px}
+  /* Side nav on tablet+ */
+  nav{
+    top:0;bottom:0;right:0;left:auto;
+    width:88px;border-top:none;border-left:1px solid var(--ln);
+    flex-direction:column;justify-content:center;gap:4px;
+    padding:72px 8px 16px;padding-bottom:max(16px,env(safe-area-inset-bottom));
+  }
+  nav button{flex-direction:column;gap:4px;padding:10px 6px;border-radius:14px;font-size:.7em;width:100%}
+  nav button svg,nav button .ni{width:22px;height:22px}
+  body{--rail:88px;padding-right:88px;padding-bottom:24px}
+  .login-wrap{min-height:calc(100vh - 40px)}
+  .login-card{max-width:400px}
+  .pin-pad button{min-height:56px}
+}
+
+/* Desktop */
+@media (min-width:1024px){
+  :root{--content-max:900px;--rail:200px}
+  body{padding:72px 0 32px;padding-right:var(--rail);font-size:15.5px}
+  .hwrap{max-width:none;padding:12px 28px 12px 28px;margin:0}
+  header .hwrap{max-width:100%}
+  .page{max-width:var(--content-max);margin:0 auto;padding:20px 24px}
+  nav{
+    width:var(--rail);padding:80px 12px 20px;align-items:stretch;
+  }
+  nav button{
+    flex-direction:row;justify-content:flex-start;gap:10px;
+    padding:12px 14px;font-size:.88em;font-weight:700;
+    border-radius:12px;
+  }
+  nav button span.nlab{display:inline}
+  /* Two-column friendly grids */
+  .desk-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .desk-grid .card{margin-bottom:0}
+  .quick-bar{flex-wrap:wrap}
+  .mem{padding:10px 12px}
+  /* denser tables feel */
+  .row.actions-desk{justify-content:flex-start}
+}
+
+/* Large desktop */
+@media (min-width:1280px){
+  :root{--content-max:1040px;--rail:220px}
+  .page{padding:24px 28px}
+}
+
+/* Short screens */
+@media (max-height:500px) and (orientation:landscape){
+  body{padding-top:48px;padding-bottom:64px}
+  header .hwrap{padding:6px 12px}
+  nav{padding-bottom:4px}
+}
+
+/* Hover affordance only on fine pointer */
+@media (hover:hover) and (pointer:fine){
+  .btn:hover{filter:brightness(1.05)}
+  .task-row:hover,.mem:hover{background:var(--sf2)}
+  nav button:hover{background:var(--blue-t)}
+  .card.hero:hover{filter:brightness(1.02)}
+}
+
+/* Modal desktop size */
+@media (min-width:768px){
+  .modal-box,.modal .box,dialog, .modal-card{
+    max-width:480px;margin:auto;
+  }
+}
+/* Force nav labels visible on desktop - structure dependent */
+@media (min-width:1024px){
+  nav button{min-height:48px}
+}
+
+/* App shell: ensure content not under rail */
+.app-shell{display:block}
+
+/* Help page */
+.help-sec{margin-bottom:14px}
+.help-sec h4{margin:0 0 6px;color:var(--p);font-size:.95em}
+.help-sec p,.help-sec li{font-size:.88em;line-height:1.65;color:var(--tx2)}
+.help-sec ol,.help-sec ul{padding-right:18px;margin:6px 0}
+.help-step{background:var(--sf2);border-radius:12px;padding:10px 12px;margin:6px 0;border:1px solid var(--ln);font-size:.88em}
+.help-step b{color:var(--p)}
+.kbd{display:inline-block;padding:1px 6px;border-radius:6px;background:var(--sf2);border:1px solid var(--ln);font-size:.8em;font-family:inherit}
+
+@media (max-width:767px){
+  nav{overflow-x:auto;-webkit-overflow-scrolling:touch;justify-content:flex-start;gap:0;padding-left:4px;padding-right:4px}
+  nav button{min-width:56px;flex-shrink:0;font-size:.6em;padding:6px 4px}
+}
+/* Desktop side nav polish */
+@media (min-width:768px){
+  nav button{color:var(--tx2);min-width:0;width:100%;font-size:.72em}
+  nav button.on{color:#fff}
+  nav button span{display:block}
+}
+@media (min-width:1024px){
+  nav button{font-size:.85em;flex-direction:row!important;justify-content:flex-start;gap:10px;padding:12px 14px}
+  nav button svg{width:20px;height:20px;flex-shrink:0}
+}
+/* Modal centering desktop */
+.modal-bg,.overlay{align-items:center}
+
+
+/* v11 stability */
+.fab-ai{z-index:50}
+#error-box{border:1px solid #fecaca;background:#fef2f2;color:#991b1b;padding:12px;border-radius:12px}
+@media (min-width:768px){
+  body.login-open{padding-right:0!important}
+}
+nav button svg{width:20px;height:20px;fill:currentColor}
+.page{min-height:40vh}
+
+
+/* ===== v12 New Features ===== */
+.online-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:6px;background:#10b981;box-shadow:0 0 0 3px #10b98133}
+.online-dot.off{background:#ef4444;box-shadow:0 0 0 3px #ef444433}
+.tpl-card{border:1px dashed var(--ln);border-radius:12px;padding:10px;margin:6px 0;background:var(--sf2);font-size:.85em}
+.tpl-card .row{margin-top:6px}
+.shortcut-hint{font-size:.7em;color:var(--tx2);opacity:.8}
+.activity-item{font-size:.8em;padding:6px 0;border-bottom:1px solid var(--ln);color:var(--tx2)}
+.activity-item b{color:var(--tx)}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.compare-grid .box{background:var(--sf2);border-radius:12px;padding:10px;text-align:center;border:1px solid var(--ln)}
+.compare-grid .box .n{font-size:1.4em;font-weight:900;color:var(--p)}
+.wa-fab{position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:14px;z-index:45;background:#25d366;color:#fff;border:none;border-radius:99px;padding:10px 14px;font-weight:800;font-family:inherit;font-size:.8em;box-shadow:0 6px 20px #25d36655;cursor:pointer}
+@media(min-width:768px){.wa-fab{bottom:24px;left:calc(var(--rail,88px) + 16px)}}
+.backup-banner{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:10px 12px;font-size:.85em;margin:8px 0}
+body.dark .backup-banner{background:#7c2d1233;border-color:#c2410c;color:#fdba74}
+
+
+/* ===== v13 Human + Social + Smart ===== */
+.focus-mode body,.focus-on{--bg:#0b1220}
+body.focus-on #fabAi,body.focus-on .quick-bar,body.focus-on .backup-banner{display:none!important}
+body.focus-on .entry-head{box-shadow:0 0 0 3px #fbbf2444}
+.story-preview{max-width:280px;margin:10px auto;border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.story-preview canvas{display:block;width:100%;height:auto}
+.next-action{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #93c5fd;border-radius:14px;padding:12px 14px;margin:8px 0}
+body.dark .next-action{background:#1e3a5f44;border-color:#2563eb;color:#e2e8f0}
+.next-action .na-title{font-weight:800;color:var(--p);margin-bottom:4px}
+.streak{display:inline-flex;align-items:center;gap:4px;font-size:.7em;font-weight:800;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:99px}
+body.dark .streak{background:#78350f55;color:#fcd34d}
+.a11y-on{font-size:17px!important}
+.a11y-on .btn,.a11y-on .chip{min-height:48px}
+.a11y-on .card{border-width:2px}
+.celebrate{position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden}
+.celebrate i{position:absolute;width:10px;height:10px;border-radius:2px;animation:fall 2.2s ease-in forwards;opacity:.9}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+.share-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.share-grid .btn{justify-content:center}
+.pulse-dot{width:10px;height:10px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 #22c55e66}50%{box-shadow:0 0 0 8px #22c55e00}}
+.mood-row{display:flex;gap:8px;flex-wrap:wrap}
+.mood-row button{font-size:1.4em;background:var(--sf2);border:1px solid var(--ln);border-radius:12px;padding:8px 12px;cursor:pointer}
+.mood-row button.on{border-color:var(--p);background:var(--blue-t)}
+
+
+/* ===== v14 Task Division ===== */
+.assignee-chip{font-size:.68em;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--blue-t);color:var(--p)}
+.mine-toggle{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--sf2);border-radius:12px;margin:6px 0;border:1px solid var(--ln);font-size:.85em;flex-wrap:wrap}
+.workload-card .wl-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--ln);font-size:.85em}
+.workload-card .wl-row:last-child{border:none}
+.progress-mini{flex:1;height:6px;background:var(--ln);border-radius:99px;margin:0 10px;overflow:hidden;min-width:40px}
+.progress-mini i{display:block;height:100%;background:var(--p);border-radius:99px}
+
+
+/* ===== v15 Advanced ===== */
+.cmd-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;backdrop-filter:blur(4px)}
+.cmd-box{width:100%;max-width:420px;background:var(--sf);border-radius:16px;border:1px solid var(--ln);box-shadow:0 20px 50px rgba(0,0,0,.25);overflow:hidden}
+.cmd-box input{width:100%;border:none;border-bottom:1px solid var(--ln);padding:14px 16px;font-size:1em;font-family:inherit;background:transparent;color:var(--tx);outline:none}
+.cmd-item{padding:10px 16px;cursor:pointer;font-size:.9em;display:flex;justify-content:space-between;gap:8px}
+.cmd-item:hover,.cmd-item.on{background:var(--blue-t)}
+.pin-star{cursor:pointer;opacity:.5}
+.pin-star.on{opacity:1;filter:none}
+.session-note{width:100%;min-height:60px;border-radius:12px;border:1px solid var(--ln);padding:10px;font-family:inherit;font-size:.9em;background:var(--sf2);color:var(--tx)}
+.adv-chip{font-size:.7em;padding:3px 8px;border-radius:8px;background:var(--sf2);border:1px solid var(--ln);font-weight:700}
+body.oled{--bg:#000;--sf:#0a0a0a;--sf2:#121212;--ln:#222}
+.sort-bar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+
+
+/* ===== v16 Advanced Ops ===== */
+.undo-bar{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:90;background:#1e293b;color:#fff;padding:10px 16px;border-radius:99px;font-size:.85em;display:none;align-items:center;gap:12px;box-shadow:0 8px 30px rgba(0,0,0,.3);white-space:nowrap;max-width:92vw}
+.undo-bar.show{display:flex}
+.undo-bar button{background:#fff;color:#0f172a;border:none;border-radius:99px;padding:6px 12px;font-weight:800;font-family:inherit;cursor:pointer}
+.risk-hi{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.risk-mid{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.team-board{display:grid;gap:8px}
+.team-board .tb{background:var(--sf2);border-radius:12px;padding:10px;border:1px solid var(--ln)}
+.timeline{border-right:3px solid var(--p);padding-right:12px;margin:8px 0}
+.timeline .tl-item{font-size:.85em;padding:6px 0;color:var(--tx2)}
+.timeline .tl-item b{color:var(--tx)}
+
+
+/* ===== v17 ===== */
+.heat{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin:8px 0}
+.heat i{aspect-ratio:1;border-radius:4px;background:var(--ln);display:block}
+.heat i.h0{background:var(--ln)}
+.heat i.h1{background:#bbf7d0}
+.heat i.h2{background:#4ade80}
+.heat i.h3{background:#16a34a}
+.heat i.h4{background:#fbbf24}
+.heat i.h5{background:#f87171}
+.filter-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.filter-chips button{border:1px solid var(--ln);background:var(--sf);border-radius:99px;padding:6px 12px;font-size:.78em;font-weight:700;font-family:inherit;color:var(--tx);cursor:pointer}
+.filter-chips button.on{background:var(--p);color:#fff;border-color:var(--p)}
+.batch-bar{display:none;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;background:var(--sf2);border:1px solid var(--ln);border-radius:12px;margin:8px 0;position:sticky;top:56px;z-index:30}
+.batch-bar.on{display:flex}
+.mem.pick{outline:2px solid var(--p);background:var(--blue-t)}
+.coach{font-size:.78em;color:var(--tx2);padding:4px 0 0;line-height:1.4}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.kpi{background:var(--sf2);border-radius:12px;padding:10px;text-align:center;border:1px solid var(--ln)}
+.kpi .n{font-size:1.3em;font-weight:900;color:var(--p)}
+.kpi .l{font-size:.72em;color:var(--tx2)}
+.ts-tag{font-size:.65em;color:var(--tx2)}
+
+
+/* v18 */
+.workflow-step{display:inline-block;margin:2px 0}
+
 </style>
 </head>
 <body>
@@ -266,10 +520,16 @@ body.dark .hami-tip{background:#064e3b33;border-color:#065f46;color:#6ee7b7}
   <button class="hbtn first" onclick="toggleFS()" aria-label="تمام‌صفحه">⛶</button>
   <button class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="تغییر تم">🌙</button>
 </div></header>
-<div id="app"></div>
+<div id="app" class="page"></div>
 <div class="toast" id="toast"></div>
 <nav id="nav"></nav>
 <script>
+
+
+
+
+
+
 "use strict";
 /* ============ تقویم شمسی (jalaali) ============ */
 const Jalali=(()=>{const br=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
@@ -301,14 +561,19 @@ const dow=j=>{const g=toG(j.jy,j.jm,j.jd);return(new Date(g.gy,g.gm-1,g.gd).getD
 const toJ=(gy,gm,gd)=>d2j(g2d(gy,gm,gd));
 return{toJ,toG,mLen,today,fmt,toFa,toKey,fromKey,dow,MN,DN};})();
 
-/* ============ لایه داده (نسخه ۹) ============ */
+/* ============ لایه داده (نسخه ۱۸) ============ */
 const Store=(()=>{const KEY="mct:data";
-const DEF={v:9,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],
+const DEF={v:18,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],
 groups:["عمومی"],
 users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}],
 currentUserId:null,
 period:{title:"دوره جاری",attendIds:[],feeIds:[],hwIds:[],note:""},
 doorChecks:{},
+activityLog:[],
+assignments:{attend:{},fee:{}},
+pinned:[],
+sessionNotes:{},
+undoStack:[],
 settings:{theme:null,fs:"m",color:"blue",alarmTimes:[15,8,5,3],sound:false,className:"کلاس من",maxSessions:40,privacyMode:false,hidePrivateInReports:true,requireLogin:false,quickConfirm:true,feeDeadlineDays:1},timer:null};
 let data;
 function load(){try{data=JSON.parse(localStorage.getItem(KEY))||null;}catch(e){data=null;}
@@ -339,14 +604,65 @@ data.period=data.period||{title:"دوره جاری",attendIds:[],feeIds:[],hwIds
 data.doorChecks=data.doorChecks||{};
 if(data.settings&&data.settings.feeDeadlineDays==null)data.settings.feeDeadlineDays=1;
 data.v=9;}
+if(data.v<11){
+data.users=data.users&&data.users.length?data.users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}];
+data.period=data.period||{title:"دوره جاری",attendIds:[],feeIds:[],hwIds:[],note:""};
+data.doorChecks=data.doorChecks||{};
+(data.members||[]).forEach(m=>{
+  if(!Array.isArray(m.phones))m.phones=m.phone?[m.phone]:[];
+  if(!m.roles)m.roles=[];
+  if(m.consentContact==null)m.consentContact=true;
+  if(m.consentPhoto==null)m.consentPhoto=true;
+});
+data.v=11;}
+if(data.v<12){
+data.activityLog=data.activityLog||[];
+if(data.settings&&data.settings.lastBackupAt===undefined)data.settings.lastBackupAt=null;
+if(data.settings&&data.settings.autoTheme==null)data.settings.autoTheme=false;
+data.v=12;}
+if(data.v<13){
+if(data.settings){if(data.settings.a11y==null)data.settings.a11y=false;if(data.settings.focusMode==null)data.settings.focusMode=false;}
+(data.members||[]).forEach(m=>{if(m.streak==null)m.streak=0;});
+data.v=13;}
+if(data.v<14){
+data.assignments=data.assignments||{attend:{},fee:{}};
+if(!data.assignments.attend)data.assignments.attend={};
+if(!data.assignments.fee)data.assignments.fee={};
+if(data.settings&&data.settings.onlyMine==null)data.settings.onlyMine=false;
+data.v=14;}
+if(data.v<15){
+data.pinned=data.pinned||[];
+data.sessionNotes=data.sessionNotes||{};
+if(data.settings){if(data.settings.oled==null)data.settings.oled=false;if(data.settings.smartSort==null)data.settings.smartSort=true;}
+data.v=15;}
+if(data.v<16){
+data.undoStack=data.undoStack||[];
+data.v=16;}
+if(data.v<17){
+data.v=17;}
+if(data.v<18){
+data.activityLog=data.activityLog||[];
+data.assignments=data.assignments||{attend:{},fee:{}};
+data.pinned=data.pinned||[];
+data.sessionNotes=data.sessionNotes||{};
+data.undoStack=data.undoStack||[];
+data.v=18;}
 data.settings=Object.assign({},DEF.settings,data.settings||{});
 data.groups=data.groups||["عمومی"];}
-const save=()=>localStorage.setItem(KEY,JSON.stringify(data));
+const save=()=>{
+try{
+  const raw=JSON.stringify(data);
+  localStorage.setItem(KEY,raw);
+}catch(e){
+  console.warn(e);
+  try{toast("⚠️ فضای ذخیره پر است — پشتیبان بگیرید و جلسات قدیمی را پاک کنید");}catch(_){}
+}
+};
 load();
 return{get:()=>data,save,reset(){data=JSON.parse(JSON.stringify(DEF));save();},
 importObj(o){if(!o||typeof o!=="object"||!Array.isArray(o.members))throw 0;
 o.members.forEach(m=>{if(m.phone&&!m.phones)m.phones=[m.phone];if(!m.phones)m.phones=[];});
-o.extra=o.extra||[];o.groups=o.groups||["عمومی"];(o.members||[]).forEach(m=>{if(!m.group)m.group="عمومی";});o.v=9;o.period=o.period||{title:"دوره جاری",attendIds:[],feeIds:[],hwIds:[],note:""};o.doorChecks=o.doorChecks||{};o.users=o.users&&o.users.length?o.users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}];(o.members||[]).forEach(m=>{if(m.privateNote==null)m.privateNote="";if(!m.needs)m.needs=[];if(m.consentContact==null)m.consentContact=true;if(m.consentPhoto==null)m.consentPhoto=true;});data=o;save();},
+o.extra=o.extra||[];o.groups=o.groups||["عمومی"];(o.members||[]).forEach(m=>{if(!m.group)m.group="عمومی";});o.v=18;o.assignments=o.assignments||{attend:{},fee:{}};o.period=o.period||{title:"دوره جاری",attendIds:[],feeIds:[],hwIds:[],note:""};o.doorChecks=o.doorChecks||{};o.users=o.users&&o.users.length?o.users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}];(o.members||[]).forEach(m=>{if(m.privateNote==null)m.privateNote="";if(!m.needs)m.needs=[];if(m.consentContact==null)m.consentContact=true;if(m.consentPhoto==null)m.consentPhoto=true;});data=o;save();},
 uid:()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6)};})();
 
 
@@ -536,7 +852,7 @@ if(bdToday)tasks+='<div class="task-row" onclick="go(\'members\')"><div class="s
 if(!tasks)tasks='<div class="empty">🎉 همه‌چیز انجام شده — عالی!</div>';
 const insightCard='<div class="card fade-up"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px"><h3 style="margin:0">✨ نمای کلی <span class="badge-ai">AI</span></h3><button class="btn sm ghost" onclick="showInsights()">جزئیات</button></div><div class="row" style="gap:12px;align-items:center">'+ringSVG(ins.avg,64)+'<div style="flex:1">'+sparkHTML(ins.spark)+'<p class="stat-line" style="margin:4px 0 0">میانگین حضور '+Jalali.toFa(ins.avg)+'٪'+(ins.trend?(' · '+(ins.trend>0?'+':'')+Jalali.toFa(ins.trend)+'٪'):'')+'</p></div></div></div>';
 
-el.innerHTML=roleDashboardHTML()+insightCard+
+el.innerHTML=workflowStripHTML()+dataHealthHTML()+smartNextActionHTML()+kpiRowHTML()+heatmapHTML()+myTasksBannerHTML()+activityHTML()+backupReminderHTML()+periodSummaryHTML()+sessionCompareHTML()+roleDashboardHTML()+insightCard+
 '<div class="card hero"><h3>🎯 کلاس بعدی</h3>'+(nc?
 '<div style="position:relative;z-index:1"><div style="font-size:1.05em;font-weight:800">'+Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date)+(nc.c.extra?" (جلسه خاص)":"")+" — ساعت "+Jalali.toFa(nc.c.start)+'</div><div style="font-weight:900;font-size:clamp(1.2em,6vw,1.5em);margin:4px 0 8px">'+cd+"</div>"+
 '<div class="row"><button class="btn" style="flex:1;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.28)" onclick="go(\'attend\')">📞 تماس‌ها</button><button class="btn" style="flex:1;background:#fff;color:#1d4ed8;border:none" onclick="openEntry()">✅ ثبت ورود</button></div></div>'
@@ -585,8 +901,10 @@ toast("↩️ "+((d.members.find(m=>m.id===mid)||{}).name||"")+" به لیست �
 Pages.attend=function(el){const d=Store.get();
 if(!d.members.length){el.innerHTML=emptyState("اول از تب «اعضا» اعضا را اضافه کن");return;}
 const nc=nextClass(),key=sessionSel()||"",s=d.sessions[key]||{};
-const done=d.members.filter(m=>(s[m.id]||{}).p1);
-const need=d.members.filter(m=>!(s[m.id]||{}).p1);
+let done=d.members.filter(m=>(s[m.id]||{}).p1);
+let need=d.members.filter(m=>!(s[m.id]||{}).p1);
+done=smartSortMembers(applyListFilter(filterMembersForMe(done,"attend"),"attend"),"attend");
+need=smartSortMembers(applyListFilter(filterMembersForMe(need,"attend"),"attend"),"attend");
 const pct=d.members.length?Math.round(done.length/d.members.length*100):0;
 const pastKeys=Object.keys(d.sessions).filter(k=>k!==key).sort().reverse();
 let sel='<select name="session-select" aria-label="انتخاب جلسه" onchange="setSel(this.value)" style="flex:1;font-weight:700">';
@@ -594,7 +912,7 @@ sel+='<option value="'+key+'"'+(key===curKey()?"":" selected")+">"+(key===curKey
 for(const k of pastKeys)sel+='<option value="'+k+'"'+(k===key?" selected":"")+">جلسه گذشته: "+Jalali.fmt(Jalali.fromKey(k))+"</option>";
 sel+="</select>";
 let h='<div class="round-banner r1"><b>نوبت ۱ — تماس قبلی</b><br>چند ساعت یا یک روز قبل از کلاس با اعضا تماس بگیرید. بعد از تکمیل، گزارش را برای حامی‌ها بفرستید.</div>'+
-'<div class="card"><h3>📞 نوبت ۱: تماس‌های قبلی</h3><div class="row" style="margin-bottom:8px">'+sel+"</div>";
+'<div class="card"><h3>📞 نوبت ۱: تماس‌های قبلی</h3>'+onlyMineToggleHTML("attend")+filterChipsHTML()+batchBarHTML()+teamBoardHTML("attend")+'<div class="row" style="margin-bottom:8px">'+sel+"</div>";
 h+='<div class="progress"><i style="width:'+pct+'%"></i></div><p class="stat-line">ثبت‌شده: <b style="color:var(--p)">'+Jalali.toFa(done.length)+"</b> از "+Jalali.toFa(d.members.length)+'</p>'+
 '<div class="row" style="margin:10px 0 6px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">⏳ ثبت‌نشده ('+Jalali.toFa(need.length)+')</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">✓ ثبت‌شده ('+Jalali.toFa(done.length)+')</button></div>'+
 '<div class="row" style="margin-bottom:6px">'+filterBar("جستجوی نام در لیست")+
@@ -606,7 +924,16 @@ h+='<div class="card">'+(dl.length?dl.map(m=>doneRow(m,key,s[m.id]||{},"p1")).jo
 }else{
 const nl=fl?need.filter(m=>m.name.includes(fl)):need;
 h+='<div class="card">'+(nl.length?nl.map(m=>block(m,"p1",s[m.id]||{},key)).join(""):'<div class="empty">🎉 همه ثبت شده‌اند!</div>')+"</div>";}
-el.innerHTML=h;};
+el.innerHTML=h;wireMineToggle("attend");wireSessionNote();
+try{
+  document.querySelectorAll(".mem[data-mid]").forEach(el=>{
+    el.addEventListener("click",e=>{
+      if(e.target.closest("button,a,input,select,textarea,label"))return;
+      if(e.shiftKey||window._batchMode){e.preventDefault();toggleBatchPick(el.getAttribute("data-mid"));}
+    });
+    el.addEventListener("contextmenu",e=>{e.preventDefault();toggleBatchPick(el.getAttribute("data-mid"));});
+  });
+}catch(e){}};
 function setDoneTab(v){UI.doneTab=v;UI.filter="";render();}
 window.setDoneTab=setDoneTab;
 function setSel(k){const d=Store.get();d._lastSession=k;Store.save();resetUI();render();}
@@ -615,6 +942,7 @@ window.setSel=setSel;
 /* ---- ثبت ورود ---- */
 function openEntry(){const d=Store.get(),nc=nextClass();
 if(!nc){toast("⚠️ اول کلاس را در تنظیمات ثبت کنید");return;}
+try{if(d.settings.focusMode)document.body.classList.add("focus-on");}catch(e){}
 const target=nc.t.getTime();
 d._lastSession=Jalali.toKey(nc.date);
 if(!d.timer||d.timer.target!==target)d.timer={target,fired:[]};
@@ -670,10 +998,10 @@ if(!d.members.length){el.innerHTML=emptyState("اول از تب «اعضا» ا�
 const nc=nextClass(),key=curFeeKey(),f=d.fees[key]||{};
 const np=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
 const pct=d.members.length?Math.round((d.members.length-np)/d.members.length*100):0;
-const unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));
+let unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));unpaid=smartSortMembers(filterMembersForMe(unpaid,"fee"),"fee");
 const follow=unpaid.filter(m=>!(f[m.id]||{}).fc);
 const contacted=d.members.filter(m=>(f[m.id]&&f[m.id].paid)||((f[m.id]||{}).fc));
-let h='<div class="'+(feeInfo.past&&feeInfo.overdue.length?'deadline-warn':'round-banner r1')+'"><b>مهلت واریز:</b> '+esc(feeInfo.text)+'<br><span style="font-size:.9em">اعضا باید تا یک روز قبل از کلاس واریز کنند و فیش را در واتساپ برای مسئولان شهریه بفرستند. اینجا وضعیت را ثبت و برای حامی‌ها گزارش کنید.</span></div>';
+let h=onlyMineToggleHTML("fee")+'<div class="'+(feeInfo.past&&feeInfo.overdue.length?'deadline-warn':'round-banner r1')+'"><b>مهلت واریز:</b> '+esc(feeInfo.text)+'<br><span style="font-size:.9em">اعضا باید تا یک روز قبل از کلاس واریز کنند و فیش را در واتساپ برای مسئولان شهریه بفرستند. اینجا وضعیت را ثبت و برای حامی‌ها گزارش کنید.</span></div>';
 h+='<div class="row" style="margin:6px 0 8px;flex-wrap:wrap"><button class="btn sm g" type="button" id="btnFeeHami">📤 گزارش شهریه به حامی‌ها</button><button class="btn sm ghost" type="button" id="btnFeeXls">⬇️ خروجی اکسل</button></div>';
 h+='<div class="card hero"><h3>💰 شهریه جلسه</h3><div style="position:relative;z-index:1">';
 if(nc)h+='<div style="font-size:.85em;opacity:.9;margin-bottom:3px">'+Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date)+" — مهلت: قبل از شروع کلاس</div>";
@@ -699,7 +1027,7 @@ h+='<div class="card">'+(list.length?list.map(m=>feeCallRow(m,key,f[m.id]||{})).
 }else{
 const list=pick(contacted);
 h+='<div class="card">'+(list.length?list.map(m=>feeDoneRow(m,key,f[m.id]||{})).join(""):'<div class="empty">هنوز کسی پیگیری نشده</div>')+"</div>";}
-el.innerHTML=h;
+el.innerHTML=h;wireMineToggle("fee");
 const bfh=document.getElementById("btnFeeHami");if(bfh)bfh.onclick=()=>reportFeesToHami();
 const bfx=document.getElementById("btnFeeXls");if(bfx)bfx.onclick=()=>exportCSV("fees",key);
 };
@@ -789,10 +1117,10 @@ el.innerHTML=
 '<div class="card"><h3>🏫 نام کلاس</h3><input id="classNameIn" value="'+esc(st.className||"کلاس من")+'" placeholder="مثلاً کلاس ریاضی" onchange="setClassName(this.value)" aria-label="نام کلاس"></div>'+
 '<div class="card"><h3>👥 گروه‌ها</h3><div id="grpList" class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:8px"></div><button class="btn sm ghost" onclick="addGroup()">＋ گروه جدید</button></div>'+
 '<div class="card" id="storCard"><h3>💾 فضای ذخیره‌سازی</h3><div id="storBody"></div></div>'+
-'<div class="card"><h3>🔔 هوشمندسازی</h3><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm ghost" onclick="enableNotifs()">🔔 اعلان کلاس</button><button class="btn sm ghost" onclick="togglePrivacyMode()">🔒 حریم خصوصی</button><button class="btn sm ghost" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" onclick="shareClassCode()">📲 اشتراک QR</button><button class="btn sm ghost" onclick="showInsights()">✨ بینش</button></div><p class="stat-line" style="margin-top:8px">اعلان ۱۵ دقیقه قبل از کلاس · تقویم ICS · اشتراک برنامه</p></div>'+
+'<div class="card"><h3>🔔 هوشمندسازی</h3><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm ghost" onclick="enableNotifs()">🔔 اعلان کلاس</button><button class="btn sm ghost" onclick="togglePrivacyMode()">🔒 حریم خصوصی</button><button class="btn sm ghost" onclick="editTemplates()">📝 الگوهای پیام</button><button class="btn sm ghost" onclick="toggleAutoTheme()">🌓 تم خودکار</button><button class="btn sm ghost" onclick="toggleA11y()">♿ دسترسی‌پذیری</button><button class="btn sm ghost" onclick="toggleOled()">⬛ OLED</button><button class="btn sm ghost" onclick="openCommandPalette()">⌘ دستورات</button><button class="btn sm ghost" onclick="performUndo()">↩ بازگشت</button><button class="btn sm ghost" onclick="handoffPackage()">📦 تحویل شیفت</button><button class="btn sm ghost" onclick="compactSyncExport()">🔗 همگام فشرده</button><button class="btn sm ghost" onclick="communicationHub()">📡 ارتباطات</button><button class="btn sm ghost" onclick="copyPrevSession()">📋 کپی جلسه قبل</button><button class="btn sm ghost" onclick="transferMyTasks()">🔄 انتقال وظایف</button><button class="btn sm ghost" onclick="toggleFocusMode()">🎯 تمرکز پشت‌در</button><button class="btn sm ghost" onclick="shareStoryCard()">📸 کارت استوری</button><button class="btn sm ghost" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" onclick="shareClassCode()">📲 اشتراک QR</button><button class="btn sm ghost" onclick="showInsights()">✨ بینش</button></div><p class="stat-line" style="margin-top:8px">اعلان ۱۵ دقیقه قبل از کلاس · تقویم ICS · اشتراک برنامه</p></div>'+
 '<div class="card"><h3>👥 کاربران و دسترسی</h3><p class="role-hint">استفاده مشترک: برای هر نفر کاربر و رمز جدا بسازید.</p><div class="toggle-row"><span>ورود با رمز اجباری</span><button type="button" class="sw '+(st.requireLogin?"on":"")+'" id="swLogin"></button></div><div class="toggle-row"><span>تأیید قبل از کارهای مهم</span><button type="button" class="sw '+(st.quickConfirm!==false?"on":"")+'" id="swConfirm"></button></div><div id="userList" style="margin-top:8px"></div><button class="btn sm p" style="margin-top:8px" id="btnAddUser">＋ کاربر جدید</button> <button class="btn sm ghost" style="margin-top:8px" id="btnLogout">خروج</button></div>'+'<div class="row"><button class="btn p" style="flex:1" onclick="backup()">⬇️ پشتیبان</button><button class="btn ghost" style="flex:1" onclick="document.getElementById(\'rf\').click()">⬆️ بازیابی</button><input type="file" id="rf" class="sr" accept=".json" onchange="restore(this)"></div>'+
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
-'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۹.۰ — گردش‌کار گروه درمانی<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
+'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۱۸ — پایدار و ارتباطات<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
 const gl=document.getElementById("grpList");
 if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
@@ -927,12 +1255,13 @@ function toggleCallFilter(){UI.callOnly=!UI.callOnly;UI.filter="";render();}
 function setAtt(key,mid,ph,st){const d=Store.get();
 if(!key){toast("⚠️ اول کلاس را در تنظیمات ثبت کنید");return;}
 d._lastSession=key;d.sessions[key]=d.sessions[key]||{};
-const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
+const _prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
+const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};cur.time=Date.now();cur.by=(currentUser()||{}).name||"";
 const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2";
 const was=cur[ph];
 if(cur[ph]===st){cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[ph==="p1"?"a1":"a2"];}
 else cur[ph]=st;
-Store.save();
+pushUndo({type:"att",key:key,mid:mid,prev:_prev,label:"ثبت حضور"});Store.save();
 const y=window.scrollY;
 if(route==="entry")renderEntry();else render();
 window.scrollTo(0,y);
@@ -1032,7 +1361,7 @@ function toggleTheme(){setTheme(theme()==="light"?"dark":"light");}
 function setTheme(t){Store.get().settings.theme=t;Store.save();applyTheme();render();}
 function setFS(f){Store.get().settings.fs=f;Store.save();applyFS();render();}
 function applyFS(){document.documentElement.style.setProperty("--fs",{s:"13px",m:"15px",l:"17px"}[Store.get().settings.fs||"m"]);}
-function backup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;const t=Jalali.today();
+function backup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;try{markBackupDone();}catch(e){}logActivity("تهیه پشتیبان");const t=Jalali.today();
 const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(Store.get())],{type:"application/json"}));
 a.download="My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+String(t.jd).padStart(2,"0")+".json";a.click();toast("✅ پشتیبان گرفته شد");}
 function shareBackup(){const j=JSON.stringify(Store.get());
@@ -1124,11 +1453,12 @@ function pushState(){if(route!=="home")history.pushState({route:route},"");}
 function goBack(){if(history.state&&history.state.route)history.back();else go("home");}
 window.addEventListener("popstate",e=>{
 route=(e.state&&e.state.route)||"home";
+if(Store.get().settings.requireLogin&&!currentUser())route="login";
 resetUI();window._t&&clearInterval(window._t);window._tick=null;render();});
 function go(r){
 if(r==="login"){route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;render();return;}
 if(Store.get().settings.requireLogin&&!currentUser()){route="login";render();return;}
-const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",settings:"settings"};
+const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",settings:"settings",help:"help"};
 if(map[r]&&!can(map[r])){toast("⛔ به این بخش دسترسی ندارید");return;}
 route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;
 render();pushState();}
@@ -1174,10 +1504,10 @@ const NEEDS=[["follow","پیگیری ویژه"],["sensitive","حساس"],["encou
 /* ============ v8: کاربران و سطح دسترسی ============ */
 const ROLE_LABEL={admin:"مدیر",support:"حامی",follow:"پیگیر",view:"مشاهده‌گر"};
 const ROLE_PERMS={
-  admin:  {home:1,attend:1,fees:1,members:1,homework:1,settings:1,privateNotes:1,delete:1,backup:1,report:1,shareSupport:1,edit:1},
-  support:{home:1,attend:1,fees:0,members:1,homework:1,settings:0,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:0},
-  follow: {home:1,attend:1,fees:1,members:1,homework:1,settings:0,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:1},
-  view:   {home:1,attend:1,fees:0,members:1,homework:1,settings:0,privateNotes:0,delete:0,backup:0,report:1,shareSupport:0,edit:0}
+  admin:  {home:1,attend:1,fees:1,members:1,homework:1,settings:1,help:1,privateNotes:1,delete:1,backup:1,report:1,shareSupport:1,edit:1},
+  support:{home:1,attend:1,fees:0,members:1,homework:1,settings:0,help:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:0},
+  follow: {home:1,attend:1,fees:1,members:1,homework:1,settings:0,help:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:1},
+  view:   {home:1,attend:1,fees:0,members:1,homework:1,settings:0,help:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:0,edit:0}
 };
 
 /* ============ v9: گردش‌کار گروه درمانی ============ */
@@ -1234,7 +1564,7 @@ function periodForm(){
 }
 
 /* گزارش نوبت مشخص به حامی‌ها */
-function reportRoundToHami(ph){
+function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به حامی");}catch(e){}
   if(!requirePerm("shareSupport","اجازه ارسال گزارش ندارید"))return;
   const d=Store.get();const key=sessionSel()||curKey();
   if(!key){toast("جلسه مشخص نیست");return;}
@@ -1347,6 +1677,1165 @@ function reportFeesToHami(){
 }
 
 
+
+/* ============ v12: قابلیت‌های جدید ============ */
+const DEFAULT_TEMPLATES={
+  attend:"سلام {name}، یادآوری کلاس {class} در {date} ساعت {time}. لطفاً تأیید حضور بدهید. ممنون 🙏",
+  fee:"سلام {name}، یادآوری واریز شهریه کلاس {class} تا قبل از {date}. پس از واریز فیش را ارسال کنید. سپاس",
+  hami:"گزارش برای حامی‌ها — {class} — {date}\nجزئیات در پیام بعدی."
+};
+function getTemplates(){
+  const d=Store.get();
+  return Object.assign({},DEFAULT_TEMPLATES,(d.settings&&d.settings.msgTemplates)||{});
+}
+function fillTpl(tpl,vars){
+  let s=tpl||"";
+  Object.keys(vars||{}).forEach(k=>{s=s.split("{"+k+"}").join(vars[k]==null?"":String(vars[k]));});
+  return s;
+}
+function logActivity(text){
+  try{
+    const d=Store.get();
+    d.activityLog=d.activityLog||[];
+    const u=currentUser();
+    d.activityLog.unshift({t:Date.now(),by:u?u.name:"—",text:String(text).slice(0,120)});
+    if(d.activityLog.length>80)d.activityLog=d.activityLog.slice(0,80);
+    Store.save();
+  }catch(e){}
+}
+function sessionCompareHTML(){
+  const d=Store.get();
+  const keys=Object.keys(d.sessions||{}).sort().reverse();
+  if(keys.length<1)return"";
+  const calc=key=>{
+    const s=d.sessions[key]||{};
+    let p=0,a=0,n=d.members.length||1;
+    d.members.forEach(m=>{
+      const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
+      if(st==="present"||st==="delay")p++;
+      else if(st==="absent"||st==="problem")a++;
+    });
+    return{key,pct:Math.round(p/n*100),p,a};
+  };
+  const cur=calc(keys[0]);
+  const prev=keys[1]?calc(keys[1]):null;
+  let h='<div class="card fade-up"><h3>📊 مقایسه جلسات</h3><div class="compare-grid">';
+  h+='<div class="box"><div class="stat-line">آخرین جلسه</div><div class="n">'+Jalali.toFa(cur.pct)+'٪</div><div class="stat-line">'+Jalali.fmt(Jalali.fromKey(cur.key))+'</div></div>';
+  if(prev)h+='<div class="box"><div class="stat-line">جلسه قبل</div><div class="n">'+Jalali.toFa(prev.pct)+'٪</div><div class="stat-line">'+(cur.pct-prev.pct>=0?"+":"")+Jalali.toFa(cur.pct-prev.pct)+'٪ نسبت به قبل</div></div>';
+  else h+='<div class="box"><div class="stat-line">جلسه قبل</div><div class="n">—</div></div>';
+  h+='</div></div>';
+  return h;
+}
+function backupReminderHTML(){
+  const d=Store.get();
+  const last=d.settings.lastBackupAt;
+  const week=7*864e5;
+  if(last&&(Date.now()-last)<week)return"";
+  return'<div class="backup-banner noprint">💾 بیش از یک هفته از آخرین پشتیبان گذشته (یا هنوز نگرفته‌اید). از تنظیمات پشتیبان بگیرید تا داده از دست نرود. <button class="btn sm ghost" onclick="backup()">⬇️ پشتیبان الان</button></div>';
+}
+function activityHTML(){
+  const d=Store.get();
+  const log=(d.activityLog||[]).slice(0,6);
+  if(!log.length)return"";
+  let h='<div class="card noprint"><h3>📝 فعالیت‌های اخیر</h3>';
+  log.forEach(a=>{
+    const dt=new Date(a.t);
+    const t=Jalali.toFa(dt.getHours())+":"+Jalali.toFa(String(dt.getMinutes()).padStart(2,"0"));
+    h+='<div class="activity-item"><b>'+esc(a.by)+'</b> — '+esc(a.text)+' <span class="shortcut-hint">'+t+'</span></div>';
+  });
+  h+='</div>';
+  return h;
+}
+function onlineBadgeHTML(){
+  const on=navigator.onLine;
+  return'<span class="online-dot'+(on?"":" off")+'" title="'+(on?"آنلاین":"آفلاین")+'"></span>'+(on?"آنلاین":"آفلاین");
+}
+function waMsg(phone,text){
+  if(!phone){toast("شماره ندارد");return;}
+  const url=waLink(phone);
+  const base=url.split("?")[0];
+  const full=base+"?text="+encodeURIComponent(text||"");
+  window.open(full,"_blank");
+}
+function remindUnpaidWA(){
+  if(!requirePerm("fees"))return;
+  const info=feeDeadlineInfo();
+  const d=Store.get();
+  const f=info.key?(d.fees[info.key]||{}):{};
+  const unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)&&(m.phones||[])[0]);
+  if(!unpaid.length){toast("همه پرداخت کرده‌اند یا شماره ندارند");return;}
+  const tpl=getTemplates().fee;
+  const nc=nextClass();
+  const vars={class:d.settings.className||"کلاس",date:nc?Jalali.fmt(nc.date):"",time:nc?nc.c.start:""};
+  // open first; show list modal for rest
+  const o=modal('<h3 style="font-weight:800">📤 یادآوری شهریه واتساپ</h3><p class="role-hint">برای هر نفر پیام آماده با الگوی پیش‌فرض باز می‌شود.</p>'+
+    unpaid.map(m=>'<div class="mem"><b>'+esc(m.name)+'</b><button class="btn sm g" style="margin-right:auto" data-wa="'+esc((m.phones||[])[0])+'" data-name="'+esc(m.name)+'">واتساپ</button></div>').join("")+
+    '<button class="btn ghost" style="width:100%;margin-top:8px" id="waCl">بستن</button>');
+  $("#waCl",o).onclick=()=>o.remove();
+  o.querySelectorAll("[data-wa]").forEach(b=>{
+    b.onclick=()=>{
+      const msg=fillTpl(tpl,Object.assign({},vars,{name:b.getAttribute("data-name")}));
+      waMsg(b.getAttribute("data-wa"),msg);
+      logActivity("یادآوری شهریه واتساپ: "+b.getAttribute("data-name"));
+    };
+  });
+}
+function attendRemindWA(){
+  if(!requirePerm("attend"))return;
+  const d=Store.get();const key=sessionSel()||curKey();
+  if(!key){toast("جلسه مشخص نیست");return;}
+  const s=d.sessions[key]||{};
+  const need=d.members.filter(m=>{
+    const st=(s[m.id]||{}).p1;
+    return !st&&(m.phones||[])[0];
+  });
+  if(!need.length){toast("مورد ثبت‌نشده با شماره نیست");return;}
+  const tpl=getTemplates().attend;
+  const nc=nextClass();
+  const vars={class:d.settings.className||"کلاس",date:Jalali.fmt(Jalali.fromKey(key)),time:nc?nc.c.start:""};
+  const o=modal('<h3 style="font-weight:800">📞 پیامک/واتساپ یادآوری حضور</h3>'+
+    need.map(m=>'<div class="mem"><b>'+esc(m.name)+'</b><button class="btn sm g" style="margin-right:auto" data-wa="'+esc((m.phones||[])[0])+'" data-name="'+esc(m.name)+'">واتساپ</button></div>').join("")+
+    '<button class="btn ghost" style="width:100%;margin-top:8px" id="waCl2">بستن</button>');
+  $("#waCl2",o).onclick=()=>o.remove();
+  o.querySelectorAll("[data-wa]").forEach(b=>{
+    b.onclick=()=>{
+      waMsg(b.getAttribute("data-wa"),fillTpl(tpl,Object.assign({},vars,{name:b.getAttribute("data-name")})));
+      logActivity("یادآوری حضور: "+b.getAttribute("data-name"));
+    };
+  });
+}
+function editTemplates(){
+  if(!requirePerm("settings"))return;
+  const t=getTemplates();
+  const o=modal('<h3 style="font-weight:800">📝 الگوهای پیام</h3><p class="role-hint">متغیرها: {name} {class} {date} {time}</p>'+
+    '<label>یادآوری حضور</label><textarea id="tplA" rows="3">'+esc(t.attend)+'</textarea>'+
+    '<label>یادآوری شهریه</label><textarea id="tplF" rows="3">'+esc(t.fee)+'</textarea>'+
+    '<label>سربرگ گزارش حامی</label><textarea id="tplH" rows="2">'+esc(t.hami)+'</textarea>'+
+    '<div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" id="tplS">💾 ذخیره</button><button class="btn ghost" id="tplC">انصراف</button></div>');
+  $("#tplC",o).onclick=()=>o.remove();
+  $("#tplS",o).onclick=()=>{
+    const d=Store.get();
+    d.settings.msgTemplates={attend:$("#tplA",o).value,fee:$("#tplF",o).value,hami:$("#tplH",o).value};
+    Store.save();o.remove();toast("✅ الگوها ذخیره شد");logActivity("ویرایش الگوهای پیام");
+  };
+}
+function toggleAutoTheme(){
+  const d=Store.get();
+  d.settings.autoTheme=!d.settings.autoTheme;
+  Store.save();
+  applyAutoTheme();
+  toast(d.settings.autoTheme?"تم خودکار روشن شد":"تم خودکار خاموش شد");
+  render();
+}
+function applyAutoTheme(){
+  const d=Store.get();
+  if(!d.settings.autoTheme)return;
+  const h=new Date().getHours();
+  const dark=h>=19||h<7;
+  if((document.body.classList.contains("dark"))!==dark){
+    d.settings.theme=dark?"dark":"light";
+    Store.save();
+  }
+}
+// Keyboard shortcuts desktop
+function bindShortcuts(){
+  if(window._mctKeys)return;
+  window._mctKeys=true;
+  document.addEventListener("keydown",e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openCommandPalette();return;}
+    if(e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="SELECT"))return;
+    if(e.altKey||e.ctrlKey||e.metaKey)return;
+    const map={h:"home",a:"attend",f:"fees",m:"members",w:"homework",s:"settings",g:"help"};
+    const k=e.key.toLowerCase();
+    if(map[k]&&route!=="login"&&route!=="entry"){e.preventDefault();go(map[k]);}
+    if(k==="?"||k==="/"){e.preventDefault();go("help");}
+  });
+}
+function markBackupDone(){
+  const d=Store.get();d.settings.lastBackupAt=Date.now();Store.save();
+}
+
+
+/* ============ v13: انسان‌محور + شبکه اجتماعی + هوشمند ============ */
+function presenceStreak(id){
+  const d=Store.get();
+  const keys=Object.keys(d.sessions||{}).sort().reverse();
+  let s=0;
+  for(const k of keys){
+    const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
+    if(st==="present"||st==="delay")s++;
+    else break;
+  }
+  return s;
+}
+function streakBadge(id){
+  const n=presenceStreak(id);
+  if(n<3)return"";
+  return'<span class="streak" title="حضور پیاپی">🔥 '+Jalali.toFa(n)+'</span>';
+}
+function smartNextActionHTML(){
+  const d=Store.get();
+  const nc=nextClass();
+  const key=curKey()||sessionSel();
+  const s=key?(d.sessions[key]||{}):{};
+  const f=key?(d.fees[key]||{}):{};
+  const un1=d.members.filter(m=>!(s[m.id]||{}).p1).length;
+  const un2=d.members.filter(m=>!(s[m.id]||{}).p2).length;
+  const unp=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
+  let title="پیشنهاد هوشمند",body="",act="";
+  const now=Date.now();
+  const msToClass=nc?nc.t-now:null;
+  if(msToClass!=null&&msToClass>0&&msToClass<45*6e4){
+    title="الان وقت نوبت ۲ است";
+    body="کمتر از ۴۵ دقیقه تا کلاس — پشت در تماس بگیرید و چک‌لیست درمانگر را بزنید.";
+    act='<button class="btn sm p" onclick="openEntry()">🚪 نوبت ۲</button>';
+  }else if(un1>0&&(msToClass==null||msToClass>2*36e5)){
+    title="نوبت ۱ ناتمام";
+    body=Jalali.toFa(un1)+" نفر هنوز در تماس قبلی ثبت نشده‌اند.";
+    act='<button class="btn sm p" onclick="go(\'attend\')">📞 ادامه نوبت ۱</button> <button class="btn sm ghost" onclick="attendRemindWA()">💬 واتساپ</button>';
+  }else if(unp>0){
+    title="پیگیری شهریه";
+    body=Jalali.toFa(unp)+" نفر هنوز واریز نکرده‌اند.";
+    act='<button class="btn sm p" onclick="go(\'fees\')">💰 شهریه</button> <button class="btn sm ghost" onclick="remindUnpaidWA()">💚 یادآوری</button>';
+  }else if(un2>0&&msToClass!=null&&msToClass<864e5){
+    title="آماده‌سازی نوبت ۲";
+    body="نوبت ۱ خوب پیش رفته؛ برای پشت در آماده شوید.";
+    act='<button class="btn sm p" onclick="openEntry()">ورود به نوبت ۲</button>';
+  }else{
+    title="وضعیت پایدار";
+    body="کار فوری نیست. می‌توانید گزارش به حامی‌ها یا پشتیبان بگیرید.";
+    act='<button class="btn sm ghost" onclick="reportRoundToHami(1)">📤 گزارش</button> <button class="btn sm ghost" onclick="backup()">💾 پشتیبان</button>';
+  }
+  return'<div class="next-action fade-up noprint"><div class="na-title">✨ '+title+'</div><div style="font-size:.88em;margin-bottom:8px">'+body+'</div><div class="row" style="flex-wrap:wrap;gap:6px">'+act+'</div></div>';
+}
+function celebrateConfetti(){
+  const c=document.createElement("div");c.className="celebrate";
+  const colors=["#2563eb","#10b981","#f59e0b","#ec4899","#8b5cf6","#38bdf8"];
+  for(let i=0;i<40;i++){
+    const p=document.createElement("i");
+    p.style.left=Math.random()*100+"%";
+    p.style.background=colors[i%colors.length];
+    p.style.animationDelay=(Math.random()*0.8)+"s";
+    p.style.width=(6+Math.random()*8)+"px";
+    p.style.height=(6+Math.random()*8)+"px";
+    c.appendChild(p);
+  }
+  document.body.appendChild(c);
+  setTimeout(()=>c.remove(),2800);
+  try{navigator.vibrate&&navigator.vibrate([40,30,40,30,80]);}catch(e){}
+}
+function checkSessionComplete(){
+  const d=Store.get();const key=sessionSel()||curKey();
+  if(!key||!d.members.length)return;
+  const s=d.sessions[key]||{};
+  const all=d.members.every(m=>(s[m.id]||{}).p1||(s[m.id]||{}).p2);
+  if(all){celebrateConfetti();toast("🎉 همه ثبت شدند — عالی بود!");logActivity("تکمیل ثبت حضور جلسه");}
+}
+function tgShare(text){
+  const url="https://t.me/share/url?url=&text="+encodeURIComponent(text);
+  window.open(url,"_blank");
+}
+function shareNative(text,title){
+  if(navigator.share){
+    navigator.share({title:title||"MCT",text:text}).catch(()=>{});
+  }else{
+    copyTxt(text);
+  }
+}
+function buildStoryCard(kind){
+  // kind: attend | fees
+  const d=Store.get();
+  const key=sessionSel()||curKey();
+  const canvas=document.createElement("canvas");
+  canvas.width=1080;canvas.height=1920;
+  const ctx=canvas.getContext("2d");
+  // gradient bg
+  const g=ctx.createLinearGradient(0,0,0,1920);
+  g.addColorStop(0,"#1d4ed8");g.addColorStop(0.5,"#2563eb");g.addColorStop(1,"#0ea5e9");
+  ctx.fillStyle=g;ctx.fillRect(0,0,1080,1920);
+  // soft circles
+  ctx.fillStyle="rgba(255,255,255,.06)";
+  ctx.beginPath();ctx.arc(200,400,300,0,6.3);ctx.fill();
+  ctx.beginPath();ctx.arc(900,1400,400,0,6.3);ctx.fill();
+  ctx.fillStyle="#fff";
+  ctx.textAlign="center";
+  ctx.font="bold 54px Tahoma,sans-serif";
+  ctx.fillText(d.settings.className||"کلاس",540,280);
+  ctx.font="32px Tahoma,sans-serif";
+  ctx.fillStyle="rgba(255,255,255,.85)";
+  const dateStr=key?Jalali.fmt(Jalali.fromKey(key)):Jalali.fmt(Jalali.today());
+  ctx.fillText(dateStr,540,360);
+  let title="گزارش حضور", lines=[];
+  if(kind==="fees"){
+    title="گزارش شهریه";
+    const f=key?(d.fees[key]||{}):{};
+    const paid=d.members.filter(m=>f[m.id]&&f[m.id].paid).length;
+    const un=d.members.length-paid;
+    lines=["پرداخت‌شده: "+paid, "باقی‌مانده: "+un, "کل اعضا: "+d.members.length];
+  }else{
+    const s=key?(d.sessions[key]||{}):{};
+    let p=0,del=0,ab=0,pr=0;
+    d.members.forEach(m=>{
+      const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
+      if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;
+    });
+    lines=["حاضر: "+p,"تأخیر: "+del,"بدون حضور: "+ab,"نیاز هماهنگی: "+pr];
+  }
+  ctx.font="bold 64px Tahoma,sans-serif";
+  ctx.fillStyle="#fff";
+  ctx.fillText(title,540,520);
+  ctx.font="bold 48px Tahoma,sans-serif";
+  lines.forEach((ln,i)=>{
+    ctx.fillStyle="rgba(255,255,255,.95)";
+    ctx.fillText(ln,540,680+i*100);
+  });
+  ctx.font="28px Tahoma,sans-serif";
+  ctx.fillStyle="rgba(255,255,255,.7)";
+  ctx.fillText("My-Class-Track · برای حامی‌ها",540,1750);
+  ctx.fillText("با احترام و حفظ حریم اعضا",540,1800);
+  return canvas;
+}
+function shareStoryCard(kind){
+  kind=kind||"attend";
+  const canvas=buildStoryCard(kind);
+  const o=modal('<h3 style="font-weight:800">📸 کارت استوری</h3><p class="role-hint">برای وضعیت واتساپ، تلگرام یا اینستاگرام — بدون جزئیات محرمانه.</p><div class="story-preview"><canvas id="storyCv" width="1080" height="1920" style="width:100%"></canvas></div>'+
+    '<div class="share-grid" style="margin-top:10px">'+
+    '<button class="btn p" id="stDl">⬇️ دانلود تصویر</button>'+
+    '<button class="btn g" id="stWa">واتساپ</button>'+
+    '<button class="btn ghost" id="stTg">تلگرام</button>'+
+    '<button class="btn ghost" id="stSh">اشتراک</button></div>');
+  const cv=$("#storyCv",o);
+  cv.getContext("2d").drawImage(canvas,0,0);
+  const blobP=new Promise(res=>canvas.toBlob(res,"image/png"));
+  $("#stDl",o).onclick=async()=>{
+    const b=await blobP;const a=document.createElement("a");
+    a.href=URL.createObjectURL(b);a.download="mct-story.png";a.click();
+    logActivity("دانلود کارت استوری");
+  };
+  $("#stWa",o).onclick=()=>{
+    // WhatsApp can't attach image via URL easily; download + tip
+    toast("تصویر را دانلود کنید و در وضعیت واتساپ بگذارید");
+    $("#stDl",o).click();
+  };
+  $("#stTg",o).onclick=()=>{toast("تصویر را دانلود و در تلگرام بفرستید");$("#stDl",o).click();};
+  $("#stSh",o).onclick=async()=>{
+    const b=await blobP;
+    const file=new File([b],"mct-story.png",{type:"image/png"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:"گزارش کلاس",text:"گزارش بدون جزئیات محرمانه"}).catch(()=>{});
+    }else if(navigator.share){
+      navigator.share({title:"گزارش کلاس",text:"کارت استوری را از اپ ذخیره کنید"}).catch(()=>{});
+    }else toast("اشتراک فایل در این مرورگر پشتیبانی نمی‌شود — دانلود کنید");
+  };
+}
+function humanHamiSummary(){
+  const d=Store.get();const key=sessionSel()||curKey();
+  if(!key){toast("جلسه نیست");return;}
+  const s=d.sessions[key]||{};
+  let p=0,del=0,ab=0,pr=0,none=0;
+  d.members.forEach(m=>{
+    const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
+    if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;else none++;
+  });
+  const total=d.members.length||1;
+  const pct=Math.round((p+del)/total*100);
+  let tone="وضعیت کلی خوب است.";
+  if(pct<60)tone="نیاز به پیگیری حمایتگرانه داریم.";
+  else if(pct<80)tone="وضعیت قابل قبول است؛ چند نفر را نرم پیگیری کنیم.";
+  const text=["🤝 خلاصه انسانی برای حامی‌ها",
+    d.settings.className||"کلاس",
+    "تاریخ: "+Jalali.fmt(Jalali.fromKey(key)),
+    "",
+    "حدود "+Jalali.toFa(pct)+"٪ اعضا حاضر یا با تأخیر هماهنگ شده‌اند.",
+    tone,
+    p?"حاضر: "+Jalali.toFa(p):"",
+    del?"تأخیر: "+Jalali.toFa(del):"",
+    ab?"بدون حضور: "+Jalali.toFa(ab):"",
+    pr?"نیاز هماهنگی: "+Jalali.toFa(pr):"",
+    none?"هنوز نامشخص: "+Jalali.toFa(none):"",
+    "",
+    "— بدون ذکر جزئیات محرمانه —"].filter(Boolean).join("\n");
+  const o=modal('<h3 style="font-weight:800">🤝 خلاصه انسانی</h3><textarea rows="12" readonly id="humSum">'+esc(text)+'</textarea>'+
+    '<div class="share-grid" style="margin-top:10px">'+
+    '<button class="btn p" id="hsCopy">📋 کپی</button>'+
+    '<button class="btn g" id="hsWa">واتساپ</button>'+
+    '<button class="btn ghost" id="hsTg">تلگرام</button>'+
+    '<button class="btn ghost" id="hsSh">اشتراک</button></div>');
+  $("#hsCopy",o).onclick=()=>copyTxt(text);
+  $("#hsWa",o).onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
+  $("#hsTg",o).onclick=()=>tgShare(text);
+  $("#hsSh",o).onclick=()=>shareNative(text,"خلاصه حامی");
+  logActivity("خلاصه انسانی برای حامی");
+}
+function toggleFocusMode(){
+  const d=Store.get();
+  d.settings.focusMode=!d.settings.focusMode;
+  Store.save();
+  document.body.classList.toggle("focus-on",!!d.settings.focusMode);
+  toast(d.settings.focusMode?"🎯 حالت تمرکز پشت در روشن":"حالت تمرکز خاموش");
+  if(route==="entry")renderEntry(); else render();
+}
+function toggleA11y(){
+  const d=Store.get();
+  d.settings.a11y=!d.settings.a11y;
+  Store.save();
+  document.body.classList.toggle("a11y-on",!!d.settings.a11y);
+  toast(d.settings.a11y?"دسترسی‌پذیری بیشتر فعال شد":"حالت عادی");
+  render();
+}
+function applyA11yFocus(){
+  const d=Store.get();
+  document.body.classList.toggle("a11y-on",!!(d.settings&&d.settings.a11y));
+  document.body.classList.toggle("focus-on",!!(d.settings&&d.settings.focusMode&&route==="entry"));
+}
+
+
+/* ============ v14: تقسیم وظایف ============ */
+function assignMap(kind){
+  const d=Store.get();
+  d.assignments=d.assignments||{attend:{},fee:{}};
+  if(!d.assignments[kind])d.assignments[kind]={};
+  return d.assignments[kind];
+}
+function myAssigneeId(){
+  const u=currentUser();
+  if(!u)return null;
+  const d=Store.get();
+  if(u.memberId)return u.memberId;
+  const m=d.members.find(x=>x.name===u.name);
+  return m?m.id:("user:"+u.id);
+}
+function isMine(kind, memberId){
+  const map=assignMap(kind);
+  const aid=map[memberId];
+  if(!aid)return true;
+  return aid===myAssigneeId();
+}
+function assigneeName(kind, memberId){
+  const map=assignMap(kind);
+  const aid=map[memberId];
+  if(!aid)return"";
+  const d=Store.get();
+  if(String(aid).indexOf("user:")===0){
+    const uid=aid.slice(5);
+    const u=(d.users||[]).find(x=>x.id===uid);
+    return u?u.name:"";
+  }
+  const m=d.members.find(x=>x.id===aid);
+  return m?m.name:"";
+}
+function periodLeadIds(kind){
+  const d=Store.get();
+  const p=d.period||{};
+  let leadIds=kind==="fee"?(p.feeIds||[]).slice():(p.attendIds||[]).slice();
+  if(!leadIds.length){
+    const role=kind==="fee"?"fee":"attend";
+    leadIds=d.members.filter(m=>(m.roles||[]).includes(role)).map(m=>m.id);
+  }
+  return leadIds;
+}
+function autoSplitTasks(kind){
+  kind=kind||"attend";
+  const d=Store.get();
+  const leadIds=periodLeadIds(kind);
+  if(leadIds.length<1){toast("اول مسئولان این دوره را در کارت دوره مشخص کنید");return;}
+  const map=assignMap(kind);
+  Object.keys(map).forEach(k=>delete map[k]);
+  const members=d.members.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),"fa"));
+  members.forEach((m,i)=>{map[m.id]=leadIds[i%leadIds.length];});
+  Store.save();
+  logActivity("تقسیم خودکار "+(kind==="fee"?"شهریه":"حضور"));
+  toast("✅ تقسیم بین "+Jalali.toFa(leadIds.length)+" مسئول");
+  render();
+}
+function clearSplit(kind){
+  kind=kind||"attend";
+  const d=Store.get();
+  d.assignments=d.assignments||{attend:{},fee:{}};
+  d.assignments[kind]={};
+  Store.save();toast("تقسیم پاک شد");render();
+}
+function workloadHTML(kind){
+  const d=Store.get();
+  const leadIds=periodLeadIds(kind);
+  if(!leadIds.length)return'<p class="stat-line">مسئولی تعریف نشده — از کارت دوره اضافه کنید.</p>';
+  const map=assignMap(kind);
+  const key=sessionSel()||curKey();
+  const bag=key?(kind==="fee"?(d.fees[key]||{}):(d.sessions[key]||{})):{};
+  let h='<div class="workload-card">';
+  leadIds.forEach(lid=>{
+    const lead=d.members.find(m=>m.id===lid);
+    const name=lead?lead.name:lid;
+    const assigned=d.members.filter(m=>map[m.id]===lid);
+    let done=0;
+    assigned.forEach(m=>{
+      if(kind==="fee"){if(bag[m.id]&&bag[m.id].paid)done++;}
+      else{const st=(bag[m.id]||{}).p1||(bag[m.id]||{}).p2;if(st)done++;}
+    });
+    const pct=assigned.length?Math.round(done/assigned.length*100):0;
+    h+='<div class="wl-row"><span><b>'+esc(name)+'</b> · '+Jalali.toFa(assigned.length)+' نفر</span><div class="progress-mini"><i style="width:'+pct+'%"></i></div><span>'+Jalali.toFa(done)+'/'+Jalali.toFa(assigned.length)+'</span></div>';
+  });
+  const un=d.members.filter(m=>!map[m.id]);
+  if(un.length)h+='<p class="stat-line">تقسیم‌نشده: '+Jalali.toFa(un.length)+'</p>';
+  h+='</div>';
+  return h;
+}
+function onlyMineToggleHTML(kind){
+  const d=Store.get();
+  const on=!!d.settings.onlyMine;
+  return'<div class="mine-toggle noprint"><label style="display:flex;align-items:center;gap:8px;margin:0"><input type="checkbox" id="onlyMineCb" '+(on?"checked":"")+' style="width:auto;min-height:0"> فقط وظایف من</label>'+
+    '<button class="btn sm ghost" type="button" id="btnAutoSplit">⚖ تقسیم</button>'+
+    '<button class="btn sm ghost" type="button" id="btnShowWL">📊 بارکار</button></div>';
+}
+function wireMineToggle(kind){
+  kind=kind||"attend";
+  const cb=document.getElementById("onlyMineCb");
+  if(cb)cb.onchange=()=>{const d=Store.get();d.settings.onlyMine=!!cb.checked;Store.save();render();};
+  const b=document.getElementById("btnAutoSplit");
+  if(b)b.onclick=()=>autoSplitTasks(kind);
+  const w=document.getElementById("btnShowWL");
+  if(w)w.onclick=()=>{
+    const o=modal('<h3 style="font-weight:800">📊 بار کار '+(kind==="fee"?"شهریه":"حضور")+'</h3>'+workloadHTML(kind)+
+      '<div class="row" style="margin-top:12px;gap:6px;flex-wrap:wrap"><button class="btn sm p" id="wlSplit">⚖ تقسیم مساوی</button><button class="btn sm ghost" id="wlClear">پاک کردن</button><button class="btn sm ghost" id="wlCl">بستن</button></div>');
+    const cl=$("#wlCl",o);if(cl)cl.onclick=()=>o.remove();
+    const sp=$("#wlSplit",o);if(sp)sp.onclick=()=>{autoSplitTasks(kind);o.remove();};
+    const cr=$("#wlClear",o);if(cr)cr.onclick=()=>{clearSplit(kind);o.remove();};
+  };
+}
+function filterMembersForMe(list, kind){
+  const d=Store.get();
+  if(!d.settings.onlyMine)return list;
+  return list.filter(m=>isMine(kind,m.id));
+}
+function assigneeChip(kind, mid){
+  const n=assigneeName(kind,mid);
+  if(!n)return"";
+  return'<span class="assignee-chip">👤 '+esc(n)+'</span> ';
+}
+function myPendingCount(){
+  const d=Store.get();
+  const key=curKey()||sessionSel();
+  const s=key?(d.sessions[key]||{}):{};
+  const f=key?(d.fees[key]||{}):{};
+  let a=0,fee=0;
+  d.members.forEach(m=>{
+    if(isMine("attend",m.id)&&!(s[m.id]||{}).p1)a++;
+    if(isMine("fee",m.id)&&!(f[m.id]&&f[m.id].paid))fee++;
+  });
+  return{attend:a,fee:fee};
+}
+function myTasksBannerHTML(){
+  const d=Store.get();
+  const hasSplit=Object.keys(assignMap("attend")).length+Object.keys(assignMap("fee")).length;
+  if(!hasSplit&&!d.settings.onlyMine)return"";
+  const c=myPendingCount();
+  let h='<div class="card fade-up noprint"><h3>🧩 وظایف من در این دوره</h3>';
+  h+='<p class="stat-line">حضور باز: <b>'+Jalali.toFa(c.attend)+'</b> · شهریه باز: <b>'+Jalali.toFa(c.fee)+'</b></p>';
+  h+='<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px">';
+  h+='<button class="btn sm p" onclick="go(\'attend\')">📞 حضور</button>';
+  h+='<button class="btn sm ghost" onclick="go(\'fees\')">💰 شهریه</button>';
+  h+='<button class="btn sm ghost" id="homeSplitBtn">⚖ تقسیم خودکار حضور</button>';
+  h+='</div></div>';
+  return h;
+}
+function wireHomeSplit(){
+  const b=document.getElementById("homeSplitBtn");
+  if(b)b.onclick=()=>autoSplitTasks("attend");
+}
+
+
+/* ============ v15: پیشرفته ============ */
+function togglePin(id){
+  const d=Store.get();
+  d.pinned=d.pinned||[];
+  const i=d.pinned.indexOf(id);
+  if(i>=0)d.pinned.splice(i,1);else d.pinned.push(id);
+  Store.save();render();
+}
+function isPinned(id){return (Store.get().pinned||[]).indexOf(id)>=0;}
+function smartSortMembers(list, kind){
+  const d=Store.get();
+  if(!d.settings.smartSort)return list;
+  const key=sessionSel()||curKey();
+  const s=key?(kind==="fee"?(d.fees[key]||{}):(d.sessions[key]||{})):{};
+  const pinned=d.pinned||[];
+  return list.slice().sort((a,b)=>{
+    const pa=pinned.indexOf(a.id)>=0?0:1;
+    const pb=pinned.indexOf(b.id)>=0?0:1;
+    if(pa!==pb)return pa-pb;
+    let da=0,db=0;
+    if(kind==="fee"){
+      da=(s[a.id]&&s[a.id].paid)?1:0;
+      db=(s[b.id]&&s[b.id].paid)?1:0;
+    }else{
+      da=((s[a.id]||{}).p1||(s[a.id]||{}).p2)?1:0;
+      db=((s[b.id]||{}).p1||(s[b.id]||{}).p2)?1:0;
+    }
+    if(da!==db)return da-db; // pending first
+    const ma=isMine(kind,a.id)?0:1;
+    const mb=isMine(kind,b.id)?0:1;
+    if(ma!==mb)return ma-mb;
+    return String(a.name).localeCompare(String(b.name),"fa");
+  });
+}
+function copyPrevSession(){
+  if(!requirePerm("attend")&&!requirePerm("edit"))return;
+  const d=Store.get();
+  const keys=Object.keys(d.sessions||{}).sort();
+  const cur=sessionSel()||curKey();
+  if(!cur){toast("جلسه جاری نیست");return;}
+  const prev=keys.filter(k=>k<cur).pop();
+  if(!prev){toast("جلسه قبلی برای کپی نیست");return;}
+  confirm2("وضعیت حضور جلسه قبل روی این جلسه کپی شود؟ (فقط خانه‌های خالی پر می‌شوند)",()=>{
+    d.sessions[cur]=d.sessions[cur]||{};
+    let n=0;
+    d.members.forEach(m=>{
+      const src=d.sessions[prev][m.id];
+      if(!src)return;
+      const dst=d.sessions[cur][m.id]=d.sessions[cur][m.id]||{};
+      if(!dst.p1&&src.p1){dst.p1=src.p1;n++;}
+    });
+    Store.save();logActivity("کپی از جلسه قبل: "+n);toast("✅ "+Jalali.toFa(n)+" مورد از جلسه قبل");render();
+  });
+}
+function saveSessionNote(){
+  const d=Store.get();
+  const key=sessionSel()||curKey();
+  if(!key)return;
+  const el=document.getElementById("sessNote");
+  if(!el)return;
+  d.sessionNotes=d.sessionNotes||{};
+  d.sessionNotes[key]=el.value.trim();
+  Store.save();toast("یادداشت جلسه ذخیره شد");logActivity("یادداشت جلسه");
+}
+function sessionNoteHTML(){
+  const d=Store.get();
+  const key=sessionSel()||curKey();
+  if(!key)return"";
+  const note=(d.sessionNotes||{})[key]||"";
+  return'<div class="card noprint"><h3>📝 یادداشت مشترک جلسه</h3><p class="stat-line">برای هماهنگی بین مسئولان — محرمانه پزشکی نیست</p>'+
+    '<textarea class="session-note" id="sessNote" placeholder="مثلاً: امروز باران است؛ تأخیر محتمل">'+esc(note)+'</textarea>'+
+    '<button class="btn sm p" style="margin-top:6px" type="button" id="btnSaveNote">💾 ذخیره یادداشت</button></div>';
+}
+function wireSessionNote(){
+  const b=document.getElementById("btnSaveNote");
+  if(b)b.onclick=()=>saveSessionNote();
+}
+function transferMyTasks(kind){
+  kind=kind||"attend";
+  const d=Store.get();
+  const leads=periodLeadIds(kind).filter(id=>id!==myAssigneeId());
+  if(!leads.length){toast("مسئول دیگری برای انتقال نیست");return;}
+  const map=assignMap(kind);
+  let opts=leads.map(id=>{
+    const m=d.members.find(x=>x.id===id);
+    return'<option value="'+id+'">'+(m?m.name:id)+'</option>';
+  }).join("");
+  const o=modal('<h3 style="font-weight:800">🔄 انتقال وظایف من</h3><p class="role-hint">اعضای سهم من به مسئول دیگر منتقل می‌شوند.</p>'+
+    '<label>انتقال به</label><select id="trTo">'+opts+'</select>'+
+    '<div class="row" style="margin-top:12px"><button class="btn p" style="flex:1" id="trGo">انتقال</button><button class="btn ghost" id="trCl">انصراف</button></div>');
+  $("#trCl",o).onclick=()=>o.remove();
+  $("#trGo",o).onclick=()=>{
+    const to=$("#trTo",o).value;
+    const me=myAssigneeId();
+    let n=0;
+    d.members.forEach(m=>{
+      if(map[m.id]===me){map[m.id]=to;n++;}
+    });
+    Store.save();o.remove();toast("✅ "+Jalali.toFa(n)+" وظیفه منتقل شد");logActivity("انتقال وظایف");render();
+  };
+}
+function weeklyDigest(){
+  const d=Store.get();
+  const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,4);
+  let lines=["📊 خلاصه هفتگی — "+(d.settings.className||"کلاس"), "تاریخ تهیه: "+Jalali.fmt(Jalali.today()), ""];
+  keys.forEach(k=>{
+    const s=d.sessions[k]||{};
+    let p=0,t=d.members.length||1;
+    d.members.forEach(m=>{
+      const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
+      if(st==="present"||st==="delay")p++;
+    });
+    lines.push(Jalali.fmt(Jalali.fromKey(k))+" — حضور تقریبی "+Jalali.toFa(Math.round(p/t*100))+"٪ ("+Jalali.toFa(p)+"/"+Jalali.toFa(t)+")");
+  });
+  const note=(d.period&&d.period.note)||"";
+  if(note)lines.push("","یادداشت دوره: "+note);
+  lines.push("","— مناسب ارسال به حامی‌ها —");
+  const text=lines.join("\n");
+  const o=modal('<h3 style="font-weight:800">📊 خلاصه هفتگی</h3><textarea rows="12" readonly id="wdTx">'+esc(text)+'</textarea>'+
+    '<div class="share-grid" style="margin-top:10px"><button class="btn p" id="wdC">📋 کپی</button><button class="btn g" id="wdW">واتساپ</button><button class="btn ghost" id="wdT">تلگرام</button></div>');
+  $("#wdC",o).onclick=()=>copyTxt(text);
+  $("#wdW",o).onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
+  $("#wdT",o).onclick=()=>tgShare(text);
+  logActivity("خلاصه هفتگی");
+}
+function openCommandPalette(){
+  if(route==="login")return;
+  const existing=document.querySelector(".cmd-overlay");
+  if(existing){existing.remove();return;}
+  const memActs=(Store.get().members||[]).slice(0,40).map(m=>({k:"روند: "+m.name,fn:()=>showMemberTimeline(m.id)}));
+  const actions=memActs.concat([
+    {k:"خانه",fn:()=>go("home")},
+    {k:"حضور / نوبت ۱",fn:()=>go("attend")},
+    {k:"نوبت ۲ پشت در",fn:()=>openEntry()},
+    {k:"شهریه",fn:()=>go("fees")},
+    {k:"اعضا",fn:()=>go("members")},
+    {k:"تکالیف",fn:()=>go("homework")},
+    {k:"تنظیمات",fn:()=>go("settings")},
+    {k:"راهنما",fn:()=>go("help")},
+    {k:"تقسیم وظایف حضور",fn:()=>autoSplitTasks("attend")},
+    {k:"تقسیم وظایف شهریه",fn:()=>autoSplitTasks("fee")},
+    {k:"گزارش نوبت ۱ به حامی",fn:()=>reportRoundToHami(1)},
+    {k:"گزارش نوبت ۲ به حامی",fn:()=>reportRoundToHami(2)},
+    {k:"خلاصه انسانی حامی",fn:()=>humanHamiSummary()},
+    {k:"خلاصه هفتگی",fn:()=>weeklyDigest()},
+    {k:"کارت استوری",fn:()=>shareStoryCard()},
+    {k:"کپی از جلسه قبل",fn:()=>copyPrevSession()},
+    {k:"پشتیبان",fn:()=>backup()},
+    {k:"انتقال وظایف من",fn:()=>transferMyTasks("attend")},{k:"بسته تحویل شیفت",fn:()=>handoffPackage("attend")},{k:"همگام‌سازی فشرده",fn:()=>compactSyncExport()},{k:"مرکز ارتباطات",fn:()=>communicationHub()},{k:"ثبت دسته‌ای حاضر",fn:()=>batchSetAtt("present")},{k:"بازگشت آخرین عمل",fn:()=>performUndo()}
+  ]);
+  const ov=document.createElement("div");
+  ov.className="cmd-overlay";
+  ov.innerHTML='<div class="cmd-box"><input id="cmdIn" placeholder="جستجوی دستور… (Ctrl+K)" autocomplete="off"><div id="cmdList"></div></div>';
+  document.body.appendChild(ov);
+  const input=$("#cmdIn",ov), list=$("#cmdList",ov);
+  let sel=0, filtered=actions;
+  const draw=()=>{
+    list.innerHTML=filtered.slice(0,10).map((a,i)=>'<div class="cmd-item'+(i===sel?" on":"")+'" data-i="'+i+'"><span>'+esc(a.k)+'</span></div>').join("")||'<div class="cmd-item">موردی نیست</div>';
+    list.querySelectorAll(".cmd-item[data-i]").forEach(el=>{
+      el.onclick=()=>{filtered[Number(el.getAttribute("data-i"))].fn();ov.remove();};
+    });
+  };
+  const filter=()=>{
+    const q=input.value.trim();
+    filtered=actions.filter(a=>!q||a.k.indexOf(q)>=0);
+    sel=0;draw();
+  };
+  input.oninput=filter;
+  input.onkeydown=e=>{
+    if(e.key==="Escape"){ov.remove();return;}
+    if(e.key==="ArrowDown"){sel=Math.min(sel+1,filtered.length-1);draw();e.preventDefault();}
+    if(e.key==="ArrowUp"){sel=Math.max(sel-1,0);draw();e.preventDefault();}
+    if(e.key==="Enter"&&filtered[sel]){filtered[sel].fn();ov.remove();}
+  };
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  filter();
+  setTimeout(()=>input.focus(),50);
+}
+function toggleOled(){
+  const d=Store.get();
+  d.settings.oled=!d.settings.oled;
+  if(d.settings.oled){d.settings.theme="dark";}
+  Store.save();
+  document.body.classList.toggle("oled",!!d.settings.oled);
+  toast(d.settings.oled?"OLED تیره فعال":"OLED خاموش");
+  render();
+}
+function applyOled(){
+  const d=Store.get();
+  document.body.classList.toggle("oled",!!(d.settings&&d.settings.oled));
+}
+function reassignMember(kind, mid){
+  const d=Store.get();
+  const leads=periodLeadIds(kind);
+  if(!leads.length){toast("مسئولی در دوره نیست");return;}
+  const map=assignMap(kind);
+  const o=modal('<h3 style="font-weight:800">👤 تعیین مسئول</h3><select id="raSel"><option value="">— بدون تقسیم —</option>'+
+    leads.map(id=>{
+      const m=d.members.find(x=>x.id===id);
+      return'<option value="'+id+'" '+(map[mid]===id?"selected":"")+'>'+(m?esc(m.name):id)+'</option>';
+    }).join("")+'</select>'+
+    '<div class="row" style="margin-top:12px"><button class="btn p" style="flex:1" id="raOk">تأیید</button><button class="btn ghost" id="raCl">انصراف</button></div>');
+  $("#raCl",o).onclick=()=>o.remove();
+  $("#raOk",o).onclick=()=>{
+    const v=$("#raSel",o).value;
+    if(!v)delete map[mid]; else map[mid]=v;
+    Store.save();o.remove();render();
+  };
+}
+
+
+/* ============ v16: عملیات پیشرفته ============ */
+const _undoUI={timer:null};
+function pushUndo(entry){
+  const d=Store.get();
+  d.undoStack=d.undoStack||[];
+  d.undoStack.push(Object.assign({t:Date.now()},entry));
+  if(d.undoStack.length>30)d.undoStack=d.undoStack.slice(-30);
+  Store.save();
+  showUndoBar(entry.label||"عملیات");
+}
+function showUndoBar(label){
+  let bar=document.getElementById("undoBar");
+  if(!bar){
+    bar=document.createElement("div");
+    bar.id="undoBar";
+    bar.className="undo-bar";
+    bar.innerHTML='<span id="undoLbl"></span><button type="button" id="undoBtn">↩ بازگشت</button>';
+    document.body.appendChild(bar);
+    document.getElementById("undoBtn").onclick=()=>performUndo();
+  }
+  document.getElementById("undoLbl").textContent=label+" — ۸ ثانیه برای بازگشت";
+  bar.classList.add("show");
+  clearTimeout(_undoUI.timer);
+  _undoUI.timer=setTimeout(()=>bar.classList.remove("show"),8000);
+}
+function performUndo(){
+  const d=Store.get();
+  const u=(d.undoStack||[]).pop();
+  if(!u){toast("چیزی برای بازگشت نیست");return;}
+  if(u.type==="att"){
+    d.sessions[u.key]=d.sessions[u.key]||{};
+    if(u.prev==null)delete d.sessions[u.key][u.mid];
+    else d.sessions[u.key][u.mid]=u.prev;
+  }else if(u.type==="fee"){
+    d.fees[u.key]=d.fees[u.key]||{};
+    if(u.prev==null)delete d.fees[u.key][u.mid];
+    else d.fees[u.key][u.mid]=u.prev;
+  }
+  Store.save();
+  document.getElementById("undoBar")&&document.getElementById("undoBar").classList.remove("show");
+  toast("↩ بازگردانده شد");
+  render();
+}
+function absenceRisk(id){
+  const d=Store.get();
+  const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,8);
+  if(keys.length<3)return0;
+  let abs=0,total=0;
+  keys.forEach(k=>{
+    const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
+    if(!st)return;
+    total++;
+    if(st==="absent"||st==="problem")abs++;
+  });
+  if(total<3)return0;
+  return abs/total;
+}
+function riskChip(id){
+  const r=absenceRisk(id);
+  if(r>=0.5)return'<span class="assignee-chip risk-hi">ریسک بالا</span> ';
+  if(r>=0.3)return'<span class="assignee-chip risk-mid">نیاز توجه</span> ';
+  return"";
+}
+function memberTimeline(id){
+  const d=Store.get();
+  const m=d.members.find(x=>x.id===id);
+  if(!m)return;
+  const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,10);
+  const lbl={present:"حاضر",delay:"تأخیر",absent:"بدون حضور",problem:"مشکل"};
+  let h='<div class="timeline">';
+  keys.forEach(k=>{
+    const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
+    h+='<div class="tl-item"><b>'+Jalali.fmt(Jalali.fromKey(k))+'</b> — '+(st?lbl[st]||st:"ثبت نشده")+'</div>';
+  });
+  h+='</div>';
+  const risk=absenceRisk(id);
+  modal('<h3 style="font-weight:800">📅 روند '+esc(m.name)+'</h3>'+
+    (risk>=0.3?'<p class="stat-line">نرخ عدم‌ثبت مؤثر اخیر: '+Jalali.toFa(Math.round(risk*100))+'٪</p>':'')+
+    h+'<button class="btn ghost" style="width:100%" onclick="this.closest(\'.modal-bg,dialog,[class*=modal]\')?.remove?.()">بستن</button>');
+  // simpler close: find modal root
+  setTimeout(()=>{
+    const root=document.querySelector(".modal, .overlay, [id^=m]");
+  },0);
+}
+function teamBoardHTML(kind){
+  kind=kind||"attend";
+  const d=Store.get();
+  const leads=periodLeadIds(kind);
+  if(!leads.length)return"";
+  const map=assignMap(kind);
+  const key=sessionSel()||curKey();
+  const bag=key?(kind==="fee"?(d.fees[key]||{}):(d.sessions[key]||{})):{};
+  let h='<div class="card noprint"><h3>👥 تابلوی تیم '+(kind==="fee"?"شهریه":"حضور")+'</h3><div class="team-board">';
+  leads.forEach(lid=>{
+    const lead=d.members.find(x=>x.id===lid);
+    const name=lead?lead.name:lid;
+    const assigned=d.members.filter(m=>map[m.id]===lid);
+    let done=0;
+    assigned.forEach(m=>{
+      if(kind==="fee"){if(bag[m.id]&&bag[m.id].paid)done++;}
+      else if((bag[m.id]||{}).p1||(bag[m.id]||{}).p2)done++;
+    });
+    const pct=assigned.length?Math.round(done/assigned.length*100):0;
+    const me=lid===myAssigneeId()?' <span class="badge b-p">شما</span>':'';
+    h+='<div class="tb"><div class="row" style="justify-content:space-between"><b>'+esc(name)+'</b>'+me+'<span>'+Jalali.toFa(pct)+'٪</span></div>'+
+      '<div class="progress-mini" style="margin-top:6px"><i style="width:'+pct+'%"></i></div>'+
+      '<div class="stat-line" style="margin-top:4px">'+Jalali.toFa(done)+' از '+Jalali.toFa(assigned.length)+' انجام شده</div></div>';
+  });
+  h+='</div></div>';
+  return h;
+}
+function handoffPackage(kind){
+  kind=kind||"attend";
+  const d=Store.get();
+  const me=myAssigneeId();
+  const map=assignMap(kind);
+  const key=sessionSel()||curKey();
+  const pending=d.members.filter(m=>{
+    if(map[m.id]&&map[m.id]!==me)return false;
+    if(!map[m.id]&&d.settings.onlyMine)return isMine(kind,m.id);
+    if(map[m.id]!==me&&Object.keys(map).length)return false;
+    if(kind==="fee"){
+      const f=key?(d.fees[key]||{}):{};
+      return!(f[m.id]&&f[m.id].paid);
+    }
+    const s=key?(d.sessions[key]||{}):{};
+    return!((s[m.id]||{}).p1||(s[m.id]||{}).p2);
+  });
+  // Actually simpler pending list for mine
+  const minePending=d.members.filter(m=>{
+    if(!isMine(kind,m.id))return false;
+    if(kind==="fee"){const f=key?(d.fees[key]||{}):{};return!(f[m.id]&&f[m.id].paid);}
+    const s=key?(d.sessions[key]||{}):{};
+    return!((s[m.id]||{}).p1);
+  });
+  let lines=["📦 بسته تحویل شیفت — "+(kind==="fee"?"شهریه":"حضور"),
+    d.settings.className||"کلاس",
+    key?("جلسه: "+Jalali.fmt(Jalali.fromKey(key))):"",
+    "از طرف: "+((currentUser()||{}).name||""),
+    "","باقی‌مانده‌ها:"];
+  minePending.forEach(m=>lines.push("• "+m.name+((m.phones||[])[0]?" — "+m.phones[0]:"")));
+  if(!minePending.length)lines.push("• مورد بازی نیست");
+  lines.push("","لطفاً ادامه دهید. — ارسال از MCT");
+  const text=lines.join("\n");
+  const o=modal('<h3 style="font-weight:800">📦 تحویل شیفت</h3><textarea rows="12" readonly>'+esc(text)+'</textarea>'+
+    '<div class="share-grid" style="margin-top:10px"><button class="btn p" id="hoC">📋 کپی</button><button class="btn g" id="hoW">واتساپ</button><button class="btn ghost" id="hoTr">🔄 انتقال رسمی</button></div>');
+  $("#hoC",o).onclick=()=>copyTxt(text);
+  $("#hoW",o).onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
+  $("#hoTr",o).onclick=()=>{o.remove();transferMyTasks(kind);};
+  logActivity("بسته تحویل شیفت");
+}
+function showMemberTimeline(id){
+  const d=Store.get();
+  const m=d.members.find(x=>x.id===id);
+  if(!m)return;
+  const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,12);
+  const lbl={present:"✅ حاضر",delay:"⏰ تأخیر",absent:"📭 بدون حضور",problem:"💬 مشکل"};
+  let h='<div class="timeline">';
+  if(!keys.length)h+='<div class="tl-item">هنوز جلسه‌ای نیست</div>';
+  keys.forEach(k=>{
+    const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
+    h+='<div class="tl-item"><b>'+Jalali.fmt(Jalali.fromKey(k))+'</b> — '+(st?lbl[st]||st:"—")+'</div>';
+  });
+  h+='</div>';
+  const r=absenceRisk(id);
+  const o=modal('<h3 style="font-weight:800">📅 '+esc(m.name)+'</h3>'+
+    (r>=0.3?'<p class="assignee-chip risk-mid">الگوی نیاز به توجه: '+Jalali.toFa(Math.round(r*100))+'٪</p>':'')+
+    h+'<button class="btn ghost" style="width:100%;margin-top:8px" id="tlCl">بستن</button>');
+  $("#tlCl",o).onclick=()=>o.remove();
+}
+
+
+/* ============ v17: فیلتر، دسته، نقشه حرارت، مربی تماس ============ */
+window._batchSel=window._batchSel||new Set();
+window._listFilter=window._listFilter||"all";
+function setListFilter(f){window._listFilter=f;render();}
+function toggleBatchPick(id){
+  if(window._batchSel.has(id))window._batchSel.delete(id);else window._batchSel.add(id);
+  // update UI without full render if possible
+  document.querySelectorAll(".mem[data-mid=\""+id+"\"]").forEach(el=>el.classList.toggle("pick",window._batchSel.has(id)));
+  const bar=document.getElementById("batchBar");
+  if(bar){bar.classList.toggle("on",window._batchSel.size>0);
+    const c=document.getElementById("batchCount");if(c)c.textContent=Jalali.toFa(window._batchSel.size);}
+}
+function clearBatch(){window._batchSel=new Set();render();}
+function batchSetAtt(st){
+  if(!window._batchSel.size){toast("کسی انتخاب نشده");return;}
+  const key=sessionSel()||curKey();
+  if(!key){toast("جلسه مشخص نیست");return;}
+  const ids=[...window._batchSel];
+  ids.forEach(mid=>{
+    // use setAtt for each for undo of last only - direct for speed
+    const d=Store.get();
+    d.sessions[key]=d.sessions[key]||{};
+    const prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
+    const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
+    cur.p1=st;cur.time=Date.now();cur.by=(currentUser()||{}).name||"";
+    pushUndo({type:"att",key,mid,prev,label:"دسته‌ای"});
+  });
+  Store.save();
+  window._batchSel=new Set();
+  toast("✅ "+Jalali.toFa(ids.length)+" نفر: "+st);
+  logActivity("ثبت دسته‌ای "+st);
+  render();
+}
+function filterChipsHTML(){
+  const f=window._listFilter||"all";
+  const items=[["all","همه"],["mine","وظایف من"],["risk","نیاز توجه"],["pin","پین"],["open","باز"]];
+  return'<div class="filter-chips noprint">'+items.map(([k,l])=>
+    '<button type="button" class="'+(f===k?"on":"")+'" onclick="setListFilter(\''+k+'\')">'+l+'</button>'
+  ).join("")+'</div>';
+}
+function applyListFilter(list, kind){
+  const f=window._listFilter||"all";
+  const d=Store.get();
+  const key=sessionSel()||curKey();
+  const s=key?(d.sessions[key]||{}):{};
+  if(f==="all")return list;
+  if(f==="mine")return list.filter(m=>isMine(kind,m.id));
+  if(f==="risk")return list.filter(m=>absenceRisk(m.id)>=0.3);
+  if(f==="pin")return list.filter(m=>isPinned(m.id));
+  if(f==="open"){
+    if(kind==="fee"){const fees=key?(d.fees[key]||{}):{};return list.filter(m=>!(fees[m.id]&&fees[m.id].paid));}
+    return list.filter(m=>!((s[m.id]||{}).p1||(s[m.id]||{}).p2));
+  }
+  return list;
+}
+function openBatchPicker(){
+  const d=Store.get();
+  const key=sessionSel()||curKey();
+  let list=applyListFilter(filterMembersForMe(d.members.slice(),"attend"),"attend");
+  list=smartSortMembers(list,"attend");
+  const o=modal('<h3 style="font-weight:800">☑ انتخاب چندنفره</h3><div style="max-height:50vh;overflow:auto" id="bpList">'+
+    list.map(m=>'<label class="mem" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-id="'+m.id+'" '+(window._batchSel.has(m.id)?"checked":"")+' style="width:auto;min-height:0"> '+esc(m.name)+'</label>').join("")+
+    '</div><div class="row" style="margin-top:10px;gap:6px;flex-wrap:wrap">'+
+    '<button class="btn sm p" id="bpP">حاضر</button><button class="btn sm ghost" id="bpD">تأخیر</button><button class="btn sm ghost" id="bpA">غایب</button><button class="btn sm ghost" id="bpX">بستن</button></div>');
+  const collect=()=>{window._batchSel=new Set();o.querySelectorAll("input[data-id]:checked").forEach(c=>window._batchSel.add(c.getAttribute("data-id")));};
+  $("#bpP",o).onclick=()=>{collect();o.remove();batchSetAtt("present");};
+  $("#bpD",o).onclick=()=>{collect();o.remove();batchSetAtt("delay");};
+  $("#bpA",o).onclick=()=>{collect();o.remove();batchSetAtt("absent");};
+  $("#bpX",o).onclick=()=>o.remove();
+}
+function batchBarHTML(){
+  return'<div class="batch-bar noprint on" id="batchBar"><span>انتخاب: <b id="batchCount">۰</b></span>'+
+    '<button class="btn sm p" type="button" onclick="batchSetAtt(\'present\')">حاضر</button>'+
+    '<button class="btn sm ghost" type="button" onclick="batchSetAtt(\'delay\')">تأخیر</button>'+
+    '<button class="btn sm ghost" type="button" onclick="batchSetAtt(\'absent\')">غایب</button>'+
+    '<button class="btn sm ghost" type="button" onclick="openBatchPicker()">☑ انتخاب</button> <button class="btn sm ghost" type="button" onclick="clearBatch()">لغو</button></div>';
+}
+function heatmapHTML(){
+  const d=Store.get();
+  const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,8).reverse();
+  if(keys.length<2)return"";
+  let cells="";
+  keys.forEach(k=>{
+    const s=d.sessions[k]||{};
+    let p=0,t=d.members.length||1;
+    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay")p++;});
+    const pct=p/t;
+    let cls="h0";
+    if(pct>=0.9)cls="h3";else if(pct>=0.75)cls="h2";else if(pct>=0.5)cls="h1";else if(pct>=0.3)cls="h4";else cls="h5";
+    cells+='<i class="'+cls+'" title="'+Jalali.fmt(Jalali.fromKey(k))+' — '+Math.round(pct*100)+'%"></i>';
+  });
+  return'<div class="card noprint"><h3>🌡️ نقشه ۸ جلسه اخیر</h3><div class="heat">'+cells+'</div><p class="stat-line">سبز = حضور خوب · زرد/قرمز = نیاز توجه</p></div>';
+}
+function kpiRowHTML(){
+  const d=Store.get();
+  const key=curKey()||sessionSel();
+  const s=key?(d.sessions[key]||{}):{};
+  const f=key?(d.fees[key]||{}):{};
+  let openA=0,openF=0,done=0;
+  d.members.forEach(m=>{
+    if(!((s[m.id]||{}).p1||(s[m.id]||{}).p2))openA++; else done++;
+    if(!(f[m.id]&&f[m.id].paid))openF++;
+  });
+  return'<div class="kpi-row noprint"><div class="kpi"><div class="n">'+Jalali.toFa(openA)+'</div><div class="l">حضور باز</div></div>'+
+    '<div class="kpi"><div class="n">'+Jalali.toFa(openF)+'</div><div class="l">شهریه باز</div></div>'+
+    '<div class="kpi"><div class="n">'+Jalali.toFa(done)+'</div><div class="l">ثبت‌شده</div></div></div>';
+}
+function callCoach(m){
+  const r=absenceRisk(m.id);
+  if(r>=0.5)return'<div class="coach">💡 با لحن حمایتگر تماس بگیرید؛ سابقه عدم حضور اخیر دارد.</div>';
+  if(r>=0.3)return'<div class="coach">💡 یادآوری ملایم کافی است؛ الگوی نامنظم داشته.</div>';
+  if(isPinned(m.id))return'<div class="coach">📌 عضو پین‌شده — اولویت هماهنگی.</div>';
+  return"";
+}
+function stampAtt(cur){
+  cur.time=Date.now();
+  cur.by=(currentUser()||{}).name||"";
+  return cur;
+}
+function compactSyncExport(){
+  const d=Store.get();
+  const key=sessionSel()||curKey();
+  const payload={
+    v:17,key,className:d.settings.className,
+    sessions:key?d.sessions[key]:null,
+    fees:key?d.fees[key]:null,
+    assignments:d.assignments,
+    period:d.period,
+    at:Date.now()
+  };
+  const text=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const o=modal('<h3 style="font-weight:800">🔗 همگام‌سازی فشرده</h3><p class="role-hint">این کد را برای همکار بفرستید تا وضعیت جلسه و تقسیم کار را وارد کند.</p>'+
+    '<textarea rows="6" id="syncOut" readonly>'+text+'</textarea>'+
+    '<div class="row" style="margin-top:8px;gap:6px"><button class="btn p" style="flex:1" id="syC">📋 کپی</button><button class="btn ghost" id="syI">وارد کردن کد</button></div>');
+  $("#syC",o).onclick=()=>copyTxt(text);
+  $("#syI",o).onclick=()=>{
+    o.remove();
+    const o2=modal('<h3 style="font-weight:800">وارد کردن همگام</h3><textarea rows="6" id="syncIn" placeholder="کد را بچسبانید"></textarea>'+
+      '<button class="btn p" style="width:100%;margin-top:8px" id="syGo">ادغام</button>');
+    $("#syGo",o2).onclick=()=>{
+      try{
+        const raw=decodeURIComponent(escape(atob($("#syncIn",o2).value.trim())));
+        const p=JSON.parse(raw);
+        const d=Store.get();
+        if(p.sessions&&p.key){
+          d.sessions[p.key]=Object.assign({},d.sessions[p.key]||{},p.sessions);
+        }
+        if(p.fees&&p.key){
+          d.fees[p.key]=Object.assign({},d.fees[p.key]||{},p.fees);
+        }
+        if(p.assignments){
+          d.assignments=d.assignments||{attend:{},fee:{}};
+          d.assignments.attend=Object.assign({},d.assignments.attend,p.assignments.attend||{});
+          d.assignments.fee=Object.assign({},d.assignments.fee,p.assignments.fee||{});
+        }
+        if(p.period)d.period=Object.assign({},d.period,p.period);
+        Store.save();o2.remove();toast("✅ همگام‌سازی انجام شد");logActivity("وارد کردن همگام فشرده");render();
+      }catch(e){toast("کد نامعتبر است");}
+    };
+  };
+}
+
+
+/* ============ v18: مرکز ارتباطات + سلامت داده ============ */
+function communicationHub(){
+  const d=Store.get();
+  const key=sessionSel()||curKey();
+  const o=modal('<h3 style="font-weight:800">📡 مرکز ارتباطات</h3><p class="role-hint">گزارش‌ها و پیام‌ها با حفظ حریم خصوصی (بدون یادداشت محرمانه).</p>'+
+    '<div class="share-grid">'+
+    '<button class="btn p" id="c1">📤 نوبت ۱ → حامی</button>'+
+    '<button class="btn p" id="c2">📤 نوبت ۲ → حامی</button>'+
+    '<button class="btn g" id="c3">💰 شهریه → حامی</button>'+
+    '<button class="btn ghost" id="c4">🤝 خلاصه انسانی</button>'+
+    '<button class="btn ghost" id="c5">📊 هفتگی</button>'+
+    '<button class="btn ghost" id="c6">📦 تحویل شیفت</button>'+
+    '<button class="btn ghost" id="c7">📸 استوری</button>'+
+    '<button class="btn ghost" id="c8">🔗 همگام فشرده</button>'+
+    '<button class="btn ghost" id="c9">💬 یادآوری حضور</button>'+
+    '<button class="btn ghost" id="c10">💚 یادآوری شهریه</button>'+
+    '</div><button class="btn ghost" style="width:100%;margin-top:10px" id="cCl">بستن</button>');
+  const map={c1:()=>reportRoundToHami(1),c2:()=>reportRoundToHami(2),c3:()=>reportFeesToHami(),c4:()=>humanHamiSummary(),c5:()=>weeklyDigest(),c6:()=>handoffPackage("attend"),c7:()=>shareStoryCard(),c8:()=>compactSyncExport(),c9:()=>attendRemindWA(),c10:()=>remindUnpaidWA()};
+  Object.keys(map).forEach(id=>{const b=$("#"+id,o);if(b)b.onclick=()=>{o.remove();map[id]();};});
+  $("#cCl",o).onclick=()=>o.remove();
+}
+function dataHealthHTML(){
+  const d=Store.get();
+  const issues=[];
+  if(!d.members.length)issues.push("هنوز عضوی ثبت نشده");
+  if(!(d.classes&&d.classes.length))issues.push("ساعت کلاس در تنظیمات خالی است");
+  const noPhone=d.members.filter(m=>!(m.phones||[]).filter(Boolean).length).length;
+  if(noPhone)issues.push(Jalali.toFa(noPhone)+" نفر بدون شماره");
+  const leadsA=periodLeadIds("attend");
+  if(!leadsA.length)issues.push("مسئول حضور دوره مشخص نشده");
+  const last=d.settings.lastBackupAt;
+  if(!last||(Date.now()-last)>7*864e5)issues.push("پشتیبان بیش از ۷ روز پیش (یا هرگز)");
+  if(!issues.length)return'<div class="card noprint"><h3>✅ سلامت داده</h3><p class="stat-line">آماده کار — مورد بحرانی نیست.</p></div>';
+  return'<div class="card noprint"><h3>🩺 سلامت داده</h3><ul style="margin:0;padding-right:18px;font-size:.88em;color:var(--tx2)">'+
+    issues.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>'+
+    '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn sm p" onclick="go(\'settings\')">تنظیمات</button><button class="btn sm ghost" onclick="backup()">پشتیبان</button><button class="btn sm ghost" onclick="communicationHub()">ارتباطات</button></div></div>';
+}
+function workflowStripHTML(){
+  return'<div class="card noprint"><h3>🧭 گردش کار جلسه</h3><p class="stat-line" style="line-height:1.7">① نوبت ۱ تماس قبلی → ② پیگیری شهریه تا یک روز قبل → ③ نوبت ۲ پشت در → ④ یادآور ۱۵/۸/۵/۳ به درمانگر → ⑤ گزارش به حامی‌ها</p>'+
+    '<div class="row" style="flex-wrap:wrap;gap:6px">'+
+    '<button class="btn sm p" onclick="go(\'attend\')">① حضور</button>'+
+    '<button class="btn sm ghost" onclick="go(\'fees\')">② شهریه</button>'+
+    '<button class="btn sm ghost" onclick="openEntry()">③ نوبت ۲</button>'+
+    '<button class="btn sm ghost" onclick="communicationHub()">⑤ گزارش</button></div></div>';
+}
+
 function currentUser(){
   const d=Store.get();
   if(!d.users||!d.users.length)return{id:"u-admin",name:"مدیر",role:"admin",pin:"0000"};
@@ -1381,6 +2870,61 @@ function loginUser(userId,pin){
   toast("سلام "+u.name+" 👋");
   return true;
 }
+
+/* ============ v10: راهنما ============ */
+function Pages_help(el){
+  el.innerHTML='<div class="page">'+
+  '<div class="card"><h3>📖 راهنمای استفاده</h3>'+
+  '<p class="role-hint">این اپ برای گروه درمانی است: پیگیری حضور (دو نوبت)، شهریه، تکالیف، و گزارش به حامی‌ها.</p></div>'+
+
+  '<div class="card help-sec"><h4>۱) شروع سریع</h4>'+
+  '<div class="help-step"><b>گام ۱:</b> از تنظیمات، نام کلاس و برنامه هفتگی (مثلاً سه‌شنبه ۱۹–۲۱) را ثبت کنید.</div>'+
+  '<div class="help-step"><b>گام ۲:</b> در تب اعضا، همه افراد را با شماره تماس اضافه کنید. برای اعضای قدیمی نقش «حامی» را بزنید.</div>'+
+  '<div class="help-step"><b>گام ۳:</b> در کارت «دوره» مسئولان حضور، شهریه و تکالیف این دوره را مشخص کنید.</div>'+
+  '<div class="help-step"><b>گام ۴:</b> اگر چند نفر با یک دستگاه کار می‌کنند، در تنظیمات کاربر بسازید و «ورود با رمز» را روشن کنید.</div></div>'+
+
+  '<div class="card help-sec"><h4>۲) نوبت ۱ — تماس قبلی</h4>'+
+  '<p>چند ساعت یا یک روز قبل از کلاس:</p>'+
+  '<ol><li>تب <b>حضور</b> را باز کنید.</li>'+
+  '<li>برای هر نفر وضعیت را ثبت کنید (حاضر / تأخیر / بدون حضور / مشکل).</li>'+
+  '<li>دکمه <b>گزارش به حامی</b> را بزنید و برای حامی‌ها بفرستید.</li></ol></div>'+
+
+  '<div class="card help-sec"><h4>۳) نوبت ۲ — پشت در کلاس</h4>'+
+  '<ol><li>حدود ۳۰ دقیقه قبل، از خانه یا حضور وارد <b>نوبت ۲ پشت در</b> شوید.</li>'+
+  '<li>تک‌به‌تک تماس بگیرید و وضعیت را ثبت کنید.</li>'+
+  '<li>چک‌لیست ۱۵ / ۸ / ۵ / ۳ دقیقه را برای اعلام به درمانگر تیک بزنید؛ در ۳ دقیقه در را باز کنید.</li>'+
+  '<li>دوباره <b>گزارش این نوبت به حامی‌ها</b> را ارسال کنید.</li></ol></div>'+
+
+  '<div class="card help-sec"><h4>۴) شهریه</h4>'+
+  '<p>مهلت پیش‌فرض: <b>یک روز قبل از کلاس</b>. اعضا فیش را در واتساپ می‌فرستند؛ شما وضعیت را در اپ ثبت می‌کنید.</p>'+
+  '<ol><li>تب شهریه → پرداخت‌شده را تیک بزنید.</li>'+
+  '<li>خروجی اکسل بگیرید.</li>'+
+  '<li>گزارش شهریه را برای حامی‌ها بفرستید.</li></ol></div>'+
+
+  '<div class="card help-sec"><h4>۵) حامی کیست؟</h4>'+
+  '<p>حامی = عضو قدیمی که قبلاً مسئول بوده و الان پشتیبان مسئولان جدید و رابط با درمانگر است. گزارش‌ها برای اوست؛ لازم نیست همیشه وارد اپ شود.</p></div>'+
+
+  '<div class="card help-sec"><h4>۶) نقش‌های ورود به اپ</h4>'+
+  '<ul><li><b>مدیر:</b> همه تنظیمات و دوره</li>'+
+  '<li><b>پیگیر:</b> حضور و شهریه</li>'+
+  '<li><b>حامی (کاربر):</b> مشاهده و گزارش بدون شهریه حساس</li>'+
+  '<li><b>مشاهده‌گر:</b> فقط خواندن</li></ul></div>'+
+
+  '<div class="card help-sec"><h4>۷) موبایل و کامپیوتر</h4>'+
+  '<p><b>موبایل:</b> منوی پایین؛ دکمه‌های بزرگ؛ مناسب تماس سریع پشت در.</p>'+
+  '<p><b>تبلت/کامپیوتر:</b> منوی کناری؛ صفحه عریض‌تر؛ مناسب ساخت گزارش و اکسل.</p>'+
+  '<p>روی گوشی می‌توانید اپ را «Add to Home Screen» کنید تا مثل برنامه نصب شود.</p></div>'+
+
+  '<div class="card help-sec"><h4>۸) نکات ایمنی داده</h4>'+
+  '<ul><li>داده روی همین مرورگر/دستگاه است — مرتب <b>پشتیبان</b> بگیرید.</li>'+
+  '<li>یادداشت محرمانه در گزارش حامی نمی‌آید.</li>'+
+  '<li>حالت حریم خصوصی عکس و شماره را محو می‌کند.</li></ul></div>'+
+
+  '<div class="card"><a class="btn p" style="width:100%;display:block;text-align:center;text-decoration:none" href="GUIDE.html" target="_blank">📖 راهنمای تصویری کامل</a><button class="btn ghost" style="width:100%;margin-top:8px" onclick="go(\'home\')">🏠 بازگشت به خانه</button></div>'+
+  '</div>';
+}
+Pages.help=Pages_help;
+
 function Pages_login(el){
   const d=Store.get();
   const users=d.users||[];
@@ -1506,14 +3050,22 @@ function quickBarHTML(){
   if(can("shareSupport"))h+='<button class="btn sm ghost" onclick="reportRoundToHami(1)">📤 گزارش نوبت۱</button>';
   if(can("shareSupport"))h+='<button class="btn sm ghost" onclick="reportRoundToHami(2)">📤 گزارش نوبت۲</button>';
   if(can("fees")&&can("shareSupport"))h+='<button class="btn sm ghost" onclick="reportFeesToHami()">💰 گزارش شهریه</button>';
+  if(can("fees"))h+='<button class="btn sm ghost" onclick="remindUnpaidWA()">💚 یادآوری شهریه</button>';
+  if(can("attend"))h+='<button class="btn sm ghost" onclick="attendRemindWA()">💬 یادآوری حضور</button>';
+  if(can("shareSupport"))h+='<button class="btn sm ghost" onclick="humanHamiSummary()">🤝 خلاصه حامی</button>';
+  if(can("shareSupport"))h+='<button class="btn sm ghost" onclick="weeklyDigest()">📊 هفتگی</button>';
+  if(can("attend"))h+='<button class="btn sm ghost" onclick="handoffPackage()">📦 تحویل شیفت</button>';
+  h+='<button class="btn sm ghost" onclick="communicationHub()">📡 ارتباطات</button>';
+  if(can("report"))h+='<button class="btn sm ghost" onclick="shareStoryCard()">📸 استوری</button>';
   if(can("report"))h+='<button class="btn sm ghost" onclick="printAttendReport()">🖨 چاپ</button>';
+  h+='<button class="btn sm ghost" onclick="go(\'help\')">📖 راهنما</button>';
   h+="</div>";
   return h;
 }
 function userBadgeHTML(){
   const u=currentUser();
   if(!u)return"";
-  return'<div class="user-chip noprint" onclick="'+(can("settings")?"go(\'settings\')":"logoutUser()")+'">👤 <b>'+esc(u.name)+'</b> <span class="role-badge role-'+u.role+'">'+(ROLE_LABEL[u.role]||u.role)+'</span></div>';
+  return'<div class="user-chip noprint" onclick="'+(can("settings")?"go(\'settings\')":"logoutUser()")+'">👤 <b>'+esc(u.name)+'</b> <span class="role-badge role-'+u.role+'">'+(ROLE_LABEL[u.role]||u.role)+'</span> '+onlineBadgeHTML()+'</div>';
 }
 
 function privacyOn(){return !!(Store.get().settings||{}).privacyMode;}
@@ -1800,21 +3352,32 @@ function delGroup(g){
 }
 
 /* ============ روتر ============ */
-const NAV=[["home","خانه",ICONS.home],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["members","اعضا",ICONS.users],["homework","تکالیف",ICONS.book],["settings","تنظیمات",ICONS.gear]];
-function render(){applyTheme();applyColor();applyFS();
+const NAV=[["home","خانه",ICONS.home],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["members","اعضا",ICONS.users],["homework","تکالیف",ICONS.book],["settings","تنظیمات",ICONS.gear],["help","راهنما","📖"]];
+function render(){
+try{applyAutoTheme();applyTheme();applyColor();applyFS();applyPrivacy();applyA11yFocus();applyOled();bindShortcuts();}catch(e){console.warn(e);}
+const d0=Store.get();
+if(d0.settings&&d0.settings.requireLogin&&!currentUser()&&route!=="login"){route="login";}
+if(route==="login"){
+  document.getElementById("hdr").style.display="none";
+  document.getElementById("nav").style.display="none";
+  const fabL=document.getElementById("fabAi");if(fabL)fabL.remove();
+  const elL=$("#app");elL.className="page";
+  try{Pages.login(elL);}catch(e){elL.innerHTML='<div class="card">خطا در ورود</div>';}
+  return;
+}
 const ht=document.querySelector(".htitle");if(ht)ht.textContent=(Store.get().settings.className||"My-Class-Track");
 let fab=document.getElementById("fabAi");
 if(route==="entry"){if(fab)fab.remove();}
 else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="بینش هوشمند";fab.innerHTML="✨";fab.onclick=showInsights;document.body.appendChild(fab);}
-scheduleClassNotif();
-
-
+try{scheduleClassNotif();}catch(e){}
 document.getElementById("hdr").style.display=route==="entry"?"none":"";
 document.getElementById("nav").style.display=route==="entry"?"none":"";
-const bb=document.getElementById("backBtn");if(bb)bb.style.display=(route!=="home")?"":"none";
-if(route==="entry"){renderEntry();return;}
+const bb=document.getElementById("backBtn");if(bb)bb.style.display=(route!=="home"&&route!=="login")?"":"none";
+if(route==="entry"){try{renderEntry();}catch(e){console.warn(e);}return;}
  $("#nav").innerHTML=NAV.filter(n=>can(n[0])).map(n=>'<button class="'+(route===n[0]?"on":"")+'" onclick="go(\''+n[0]+'\')" aria-label="'+n[1]+'">'+n[2]+"<span>"+n[1]+"</span></button>").join("");
-const el=$("#app");(Pages[route]||Pages.home)(el);window.scrollTo(0,0);}
+const el=$("#app");el.className="page";
+try{(Pages[route]||Pages.home)(el);wireHomeSplit();wireMineToggle(route==="fees"?"fee":"attend");}catch(err){console.warn(err);el.innerHTML='<div class="card"><h3>⚠️ خطا</h3><button class="btn p" onclick="go(\'home\')">خانه</button></div>';}
+window.scrollTo(0,0);}
 window.render=render;
 window.openEntry=openEntry;window.exitEntry=exitEntry;window.toggleEntryFilter=toggleEntryFilter;
 window.showReport=showReport;window.feeReport=feeReport;
@@ -1826,13 +3389,23 @@ window.setFS=setFS;window.backup=backup;window.restore=restore;window.wipeAll=wi
 window.copyTxt=copyTxt;window.toggleCallFilter=toggleCallFilter;
 window.setColor=setColor;window.toggleSound=toggleSound;window.shareBackup=shareBackup;
 window.toggleFS=toggleFS;window.goBack=goBack;
-window.printAttendReport=printAttendReport;window.showInsights=showInsights;window.togglePrivacyMode=togglePrivacyMode;window.logoutUser=logoutUser;window.userForm=userForm;window.delUser=delUser;window.reportForSupporters=reportForSupporters;window.reportRoundToHami=reportRoundToHami;window.reportFeesToHami=reportFeesToHami;window.periodForm=periodForm;window.toggleDoorCheck=toggleDoorCheck;window.loginUser=loginUser;window.careQueue=careQueue;window.startSpeech=startSpeech;window.enableNotifs=enableNotifs;window.exportICS=exportICS;window.shareClassCode=shareClassCode;window.scheduleClassNotif=scheduleClassNotif;window.pruneSessions=pruneSessions;window.storageInfo=storageInfo;
+window.printAttendReport=printAttendReport;window.showInsights=showInsights;window.togglePrivacyMode=togglePrivacyMode;window.logoutUser=logoutUser;window.userForm=userForm;window.delUser=delUser;window.reportForSupporters=reportForSupporters;window.reportRoundToHami=reportRoundToHami;window.reportFeesToHami=reportFeesToHami;window.periodForm=periodForm;window.toggleDoorCheck=toggleDoorCheck;window.loginUser=loginUser;window.remindUnpaidWA=remindUnpaidWA;window.attendRemindWA=attendRemindWA;window.shareStoryCard=shareStoryCard;window.humanHamiSummary=humanHamiSummary;window.toggleFocusMode=toggleFocusMode;window.toggleA11y=toggleA11y;window.tgShare=tgShare;window.celebrate=celebrate;window.autoSplitTasks=autoSplitTasks;window.clearSplit=clearSplit;window.openCommandPalette=openCommandPalette;window.weeklyDigest=weeklyDigest;window.copyPrevSession=copyPrevSession;window.transferMyTasks=transferMyTasks;window.toggleOled=toggleOled;window.togglePin=togglePin;window.reassignMember=reassignMember;window.performUndo=performUndo;window.handoffPackage=handoffPackage;window.showMemberTimeline=showMemberTimeline;window.teamBoardHTML=teamBoardHTML;window.setListFilter=setListFilter;window.toggleBatchPick=toggleBatchPick;window.batchSetAtt=batchSetAtt;window.clearBatch=clearBatch;window.openBatchPicker=openBatchPicker;window.communicationHub=communicationHub;window.celebrateConfetti=celebrateConfetti;window.compactSyncExport=compactSyncExport;window.editTemplates=editTemplates;window.toggleAutoTheme=toggleAutoTheme;window.logActivity=logActivity;window.careQueue=careQueue;window.startSpeech=startSpeech;window.enableNotifs=enableNotifs;window.exportICS=exportICS;window.shareClassCode=shareClassCode;window.scheduleClassNotif=scheduleClassNotif;window.pruneSessions=pruneSessions;window.storageInfo=storageInfo;
 window.setClassName=setClassName;window.addGroup=addGroup;window.delGroup=delGroup;
 
+if(Store.get().settings.requireLogin&&!currentUser())route="login";
 render();
-scheduleClassNotif();
+try{scheduleClassNotif();}catch(e){}
+
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)
 navigator.serviceWorker.register("sw.js").catch(()=>{});
+window.addEventListener("online",()=>{toast("🟢 آنلاین شدید");render();});
+window.addEventListener("offline",()=>{toast("🔴 آفلاین — داده محلی امن است");render();});
+
+
+
+
+
+
 </script>
 </body>
 </html>
