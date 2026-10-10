@@ -37,7 +37,7 @@ return{toJ,toG,mLen,today,fmt,toFa,toKey,fromKey,dow,MN,DN};})();
 
 /* ============ لایه داده (نسخه ۱۹) ============ */
 const Store=(()=>{const KEY="mct:data";
-const DEF={v:21,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],
+const DEF={v:22,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],
 groups:["عمومی"],
 users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}],
 currentUserId:null,
@@ -124,6 +124,7 @@ data.v=18;}
 if(data.v<19){data.v=19;}
 if(data.v<20){data.v=20;}
 if(data.v<21){data.v=21;}
+if(data.v<22){data.v=22;}
 data.settings=Object.assign({},DEF.settings,data.settings||{});
 data.groups=data.groups||["عمومی"];}
 const save=()=>{
@@ -287,6 +288,16 @@ function curKey(){const nc=nextClass();return nc?Jalali.toKey(nc.date):null;}
 const STK=["present","delay","absent","problem"],STL=["حاضر","تأخیر","غایب","مشکل"];
 const ST={lbl:{present:"حاضر",delay:"تأخیر",absent:"غایب",problem:"مشکل",none:"ثبت‌نشده"},cls:{present:"b-ok",delay:"b-warn",absent:"b-bad",problem:"b-prob",none:"b-m"}};
 const ROLES=[["attend","پیگیری حضور"],["fee","شهریه"],["hw","تکالیف"],["support","حامی (عضو قدیمی)"]];
+const ROLE_ICONS={attend:"📞",fee:"💰",hw:"📋",support:"🤝"};
+const ROLE_SHORT={attend:"حضور",fee:"شهریه",hw:"تکلیف",support:"حامی"};
+function roleIconsHTML(roles){
+  return (roles||[]).map(r=>{
+    const title=ROLE_SHORT[r]||(ROLES.find(x=>x[0]===r)||[r,r])[1];
+    const ico=ROLE_ICONS[r]||"•";
+    return '<span class="role-ico" title="'+title+'" aria-label="'+title+'">'+ico+'</span>';
+  }).join("");
+}
+
 function sessionSel(){const d=Store.get();return d._lastSession||curKey();}
 function curFeeKey(){return curKey()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
 const needsCall=st=>st!=="present";

@@ -332,7 +332,7 @@ cur.fc=null;Store.save();render();}
 window.setFeeTab=setFeeTab;
 
 /* ---- تکالیف (دو تب + جستجو + صدا + ویرایش) ---- */
-Pages.homework=function(el){const d=Store.get();
+Pages.homework=function(el){/* sectioned */const d=Store.get();
 let h='<div class="row" style="margin-bottom:10px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">➕ تکلیف جدید</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">📚 آرشیو ('+Jalali.toFa(d.homework.length)+')</button></div>';
 if(!UI.doneTab){
 h+='<div class="card"><h3>📚 تکلیف جدید</h3><label>جلسه (تاریخ)</label>'+
@@ -364,8 +364,15 @@ window.hwEdit=hwEdit;
 
 /* ---- اعضا ---- */
 Pages.members=function(el){
-el.innerHTML='<div class="card"><div class="row"><input id="mSearch" name="member-search" aria-label="جستجوی نام عضو" placeholder="🔍 جستجوی نام…" oninput="renderMembers(this.value)" style="flex:1"><button class="btn p" onclick="memberForm()" aria-label="افزودن عضو جدید">＋</button></div>'+
-'<div class="row" style="margin-top:8px"><button class="btn ghost sm" onclick="exportMembersCSV()">📊 خروج اکسل</button><button class="btn ghost sm" onclick="document.getElementById(\'mimp\').click()">⬆️ ورود اکسل</button><input type="file" id="mimp" class="sr" accept=".csv,text/csv" onchange="importMembersCSV(this)"></div></div><div id="mList"></div>';
+el.innerHTML='<div class="card hero"><h3>👥 اعضا</h3><p style="opacity:.9;font-size:.88em;margin:0">فهرست اعضا — نقش‌ها با آیکون مشخص‌اند (حضور، شهریه، تکلیف، حامی).</p></div>'+
+'<div class="card"><div class="sec-label">جستجو و افزودن</div><div class="row"><input id="mSearch" name="member-search" aria-label="جستجوی نام عضو" placeholder="🔍 جستجوی نام…" oninput="renderMembers(this.value)" style="flex:1"><button class="btn p" onclick="memberForm()" aria-label="افزودن عضو جدید">＋</button></div>'+
+'<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="exportMembersCSV()">📊 خروجی</button><button class="btn ghost sm" onclick="document.getElementById(\'mimp\').click()">⬆️ ورود</button><input type="file" id="mimp" class="sr" accept=".csv,text/csv" onchange="importMembersCSV(this)"></div>'+
+'<div class="role-legend">'+
+'<span class="role-ico" title="پیگیری حضور">📞</span><span class="leg">حضور</span>'+
+'<span class="role-ico" title="شهریه">💰</span><span class="leg">شهریه</span>'+
+'<span class="role-ico" title="تکالیف">📋</span><span class="leg">تکلیف</span>'+
+'<span class="role-ico" title="حامی">🤝</span><span class="leg">حامی</span>'+
+'</div></div><div class="sec-label">فهرست اعضا</div><div id="mList"></div>';
 renderMembers("");};
 
 /* ---- تنظیمات ---- */
@@ -393,7 +400,7 @@ el.innerHTML=
 '<div class="card"><h3>🔔 هوشمندسازی</h3><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm ghost" onclick="enableNotifs()">🔔 اعلان کلاس</button><button class="btn sm ghost" onclick="togglePrivacyMode()">🔒 حریم خصوصی</button><button class="btn sm ghost" onclick="editTemplates()">📝 الگوهای پیام</button><button class="btn sm ghost" onclick="toggleAutoTheme()">🌓 تم خودکار</button><button class="btn sm ghost" onclick="toggleA11y()">♿ دسترسی‌پذیری</button><button class="btn sm ghost" onclick="toggleOled()">⬛ OLED</button><button class="btn sm ghost" onclick="openCommandPalette()">⌘ دستورات</button><button class="btn sm ghost" onclick="performUndo()">↩ بازگشت</button><button class="btn sm ghost" onclick="handoffPackage()">📦 تحویل شیفت</button><button class="btn sm ghost" onclick="compactSyncExport()">🔗 همگام فشرده</button><button class="btn sm ghost" onclick="communicationHub()">📡 ارتباطات</button><button class="btn sm ghost" onclick="copyPrevSession()">📋 کپی جلسه قبل</button><button class="btn sm ghost" onclick="transferMyTasks()">🔄 انتقال وظایف</button><button class="btn sm ghost" onclick="toggleFocusMode()">🎯 تمرکز پشت‌در</button><button class="btn sm ghost" onclick="shareStoryCard()">📸 کارت استوری</button><button class="btn sm ghost" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" onclick="shareClassCode()">📲 اشتراک QR</button><button class="btn sm ghost" onclick="showInsights()">✨ بینش</button></div><p class="stat-line" style="margin-top:8px">اعلان ۱۵ دقیقه قبل از کلاس · تقویم ICS · اشتراک برنامه</p></div>'+
 '<div class="card"><h3>👥 کاربران و دسترسی</h3><p class="role-hint">استفاده مشترک: برای هر نفر کاربر و رمز جدا بسازید.</p><div class="toggle-row"><span>ورود با رمز اجباری</span><button type="button" class="sw '+(st.requireLogin?"on":"")+'" id="swLogin"></button></div><div class="toggle-row"><span>تأیید قبل از کارهای مهم</span><button type="button" class="sw '+(st.quickConfirm!==false?"on":"")+'" id="swConfirm"></button></div><div id="userList" style="margin-top:8px"></div><button class="btn sm p" style="margin-top:8px" id="btnAddUser">＋ کاربر جدید</button> <button class="btn sm ghost" style="margin-top:8px" id="btnLogout">خروج</button></div>'+'<div class="row"><button class="btn p" style="flex:1" onclick="backup()">⬇️ پشتیبان</button><button class="btn ghost" style="flex:1" onclick="document.getElementById(\'rf\').click()">⬆️ بازیابی</button><input type="file" id="rf" class="sr" accept=".json" onchange="restore(this)"></div>'+
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
-'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۱ — ماژول ES و ناوبری هوشمند<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
+'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۲ — ماژول ES و ناوبری هوشمند<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
 const gl=document.getElementById("grpList");
 if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
@@ -415,15 +422,14 @@ function emptyState(m){return'<div class="card"><div class="empty">'+ICONS.users
 function renderMembers(q){q=(q||"").trim();const d=Store.get();
 const list=d.members.filter(m=>!q||m.name.includes(q));
  $("#mList").innerHTML=list.length?('<div class="card">'+list.map(m=>{
-const rl=(m.roles||[]).map(r=>{const rr=ROLES.find(x=>x[0]===r);return'<span class="badge b-p">'+(rr?rr[1]:r)+"</span>";}).join(" ")+(m.group&&m.group!=="عمومی"?'<span class="badge b-m">'+esc(m.group)+'</span>':"");
-const ab=absCount(m.id);
-const abB=ab?'<span class="badge '+(ab>=3?"b-warn":"b-m")+'" title="'+esc(humanAbsLabel(ab))+'">'+Jalali.toFa(ab)+" بدون حضور</span>":"";
+const rl=roleIconsHTML(m.roles)+(m.group&&m.group!=="عمومی"?'<span class="role-ico" title="گروه: '+esc(m.group)+'">🏷</span>':"");
 const p0=(m.phones||[]).filter(Boolean)[0];
 const extraN=(m.phones||[]).filter(Boolean).length-1;
-return'<div class="mem">'+avatar(m)+"<div><b>"+esc(m.name)+"</b> "+needTags(m)+(supporterName(m)?'<span class="stat-line"> · حامی: '+esc(supporterName(m))+'</span>':'')+"<br>"+
-(p0?'<a href="tel:'+esc(p0)+'" style="color:var(--p);text-decoration:none;font-size:.8em;font-weight:700" aria-label="تماس با '+esc(m.name)+'">'+Jalali.toFa(p0)+" 📞</a>"+(extraN>0?'<span class="badge b-p" style="font-size:.65em">+'+Jalali.toFa(extraN)+" شماره</span>":""):'<span style="color:var(--tx2);font-size:.8em">بدون شماره</span>')+
-(m.birth?'<span style="color:var(--tx2);font-size:.8em"> | 🎂 '+Jalali.fmt(m.birth)+"</span>":"")+"</div>"+
-'<div style="margin-right:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">'+abB+rl+audBtn(m.voice,"پخش یادداشت "+m.name)+'<button class="btn sm ghost" onclick="memberForm(\''+m.id+'\')" aria-label="ویرایش '+esc(m.name)+'">✏️</button><button class="btn sm ghost" onclick="delMember(\''+m.id+'\')" aria-label="حذف '+esc(m.name)+'">🗑</button></div></div>';
+return'<div class="mem mem-row">'+avatar(m)+'<div class="mem-main"><div class="mem-name"><b>'+esc(m.name)+'</b>'+needTags(m)+rl+'</div><div class="mem-meta">'+
+(p0?'<a href="tel:'+esc(p0)+'" class="mem-phone" aria-label="تماس با '+esc(m.name)+'">📞 '+Jalali.toFa(p0)+'</a>'+(extraN>0?'<span class="mem-extra">+'+Jalali.toFa(extraN)+'</span>':''):'<span class="mem-muted">بدون شماره</span>')+
+(supporterName(m)?'<span class="mem-muted"> · 🤝 '+esc(supporterName(m))+'</span>':'')+
+(m.birth?'<span class="mem-muted"> · 🎂 '+Jalali.fmt(m.birth)+'</span>':'')+
+'</div></div><div class="mem-actions">'+audBtn(m.voice,"پخش یادداشت "+m.name)+'<button class="btn sm ghost ico-btn" onclick="memberForm(\''+m.id+'\')" aria-label="ویرایش">✏️</button><button class="btn sm ghost ico-btn" onclick="delMember(\''+m.id+'\')" aria-label="حذف">🗑</button></div></div>';
 }).join("")+"</div>"):('<div class="card"><div class="empty">'+ICONS.users+"<p>عضوی ثبت نشده</p><button class='btn p' onclick='memberForm()'>＋ افزودن اولین عضو</button></div></div>");}
 function memberForm(id){const d=Store.get(),m=id?d.members.find(x=>x.id===id):null;
 const o=modal("<h3 style='font-weight:800'>"+(m?"✏️ ویرایش عضو":"＋ عضو جدید")+"</h3>"+

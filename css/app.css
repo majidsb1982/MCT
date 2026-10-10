@@ -524,3 +524,20 @@ nav button{position:relative}
 .hsub{transition:opacity .2s}
 .route-progress{height:2px;background:var(--pg);position:fixed;top:0;right:0;left:0;z-index:100;transform-origin:right;animation:routeIn .35s var(--ease,ease) forwards}
 @keyframes routeIn{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+/* v22 role icons + members layout */
+.role-ico{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:var(--blue-t);font-size:.95em;margin-left:3px;vertical-align:middle;line-height:1}
+.role-legend{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;margin-top:10px;padding-top:8px;border-top:1px solid var(--ln);font-size:.78em;color:var(--tx2)}
+.role-legend .leg{margin-left:2px}
+.mem-row{align-items:flex-start!important;gap:10px}
+.mem-main{flex:1;min-width:0}
+.mem-name{display:flex;align-items:center;flex-wrap:wrap;gap:4px;line-height:1.35}
+.mem-name b{font-size:.95em}
+.mem-meta{font-size:.78em;color:var(--tx2);margin-top:3px;line-height:1.4}
+.mem-phone{color:var(--p);text-decoration:none;font-weight:700}
+.mem-extra{margin-right:4px;opacity:.8}
+.mem-muted{color:var(--tx2)}
+.mem-actions{display:flex;gap:4px;align-items:center;flex-shrink:0;margin-right:0}
+.ico-btn{min-width:38px;padding:7px 8px}
+.mem-list .mem{padding:11px 0}
+.page-sec{margin:12px 0 6px}
