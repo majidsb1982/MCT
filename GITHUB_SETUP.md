@@ -1,39 +1,42 @@
-# تمیزکاری و استقرار گیت‌هاب — MCT
+# گیت‌هاب و استقرار MCT v21
 
-## ساختار ریشه ریپو
+## ساختار کامل ریپو
 
 ```
-MCT/
-├── README.md
-├── .gitignore
-├── index.html
-├── sw.js
-├── manifest.webmanifest
-├── icon.svg
-├── GUIDE.html
-└── GUIDE.md
+index.html
+css/app.css
+js/core.js      # هسته
+js/pages.js     # صفحات
+js/app.js       # روتینگ و قابلیت‌ها
+sw.js
+manifest.webmanifest
+icon.svg
+README.md
+GUIDE.md
+GUIDE.html
+.gitignore
 ```
 
-ZIPهای قدیمی را در ریشه نگذارید؛ در Releases با تگ نسخه بگذارید.
+## نصب روی گیت‌هاب (یک‌بار)
+
+1. بسته `MCT-v21.zip` را از پروژه دانلود و Extract کنید
+2. در https://github.com/majidsb1982/MCT → **Add file → Upload files**
+3. همه فایل‌ها و پوشه‌های `css/` و `js/` را بکشید روی صفحه
+4. Commit message: `release: v21 complete`
 
 ## GitHub Pages
 
 1. https://github.com/majidsb1982/MCT/settings/pages
 2. Source: Deploy from a branch
-3. Branch: main ، folder: / (root)
-4. آدرس: https://majidsb1982.github.io/MCT/
+3. Branch: `main` / folder: `/ (root)`
+4. آدرس: **https://majidsb1982.github.io/MCT/**
 
-## به‌روزرسانی از ZIP محلی
+بعد از هر آپدیت روی موبایل Hard Refresh کنید.
 
-محتویات `MCT-v18.zip` را روی ریشه ریپو آپلود یا با git push بفرستید.
+## ترتیب بارگذاری JS
 
-```bash
-git clone https://github.com/majidsb1982/MCT.git
-cd MCT
-# کپی فایل‌های نسخه ۱۸
-git add .
-git commit -m "release: v18"
-git push
-```
+`core.js` → `pages.js` → `app.js` (عوض نشود)
 
-بعد از انتشار، روی موبایل Hard Refresh کنید.
+## نکته
+
+فایل‌های JS بزرگ هستند؛ آپلود از رابط وب GitHub مطمئن‌ترین روش است.
