@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>راهنمای تصویری My-Class-Track</title>
+<link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.003/Vazirmatn-font-face.css" rel="stylesheet">
+<style>
+:root{--p:#2563eb;--p2:#38bdf8;--bg:#f4f7fe;--sf:#fff;--tx:#0f172a;--tx2:#64748b;--ln:#e2e8f0;--ok:#059669;--warn:#d97706;--bad:#dc2626}
+*{box-sizing:border-box}
+body{margin:0;font-family:Vazirmatn,Tahoma,sans-serif;background:var(--bg);color:var(--tx);line-height:1.75;font-size:15.5px}
+.wrap{max-width:880px;margin:0 auto;padding:24px 16px 80px}
+header.hero{background:linear-gradient(135deg,#1d4ed8,#2563eb 40%,#38bdf8);color:#fff;border-radius:20px;padding:28px 24px;margin-bottom:28px;box-shadow:0 12px 40px #2563eb44}
+header.hero h1{margin:0 0 8px;font-size:1.55em}
+header.hero p{margin:0;opacity:.92;font-size:.95em}
+nav.toc{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:16px 18px;margin-bottom:24px}
+nav.toc h2{margin:0 0 10px;font-size:1em}
+nav.toc a{display:block;color:var(--p);text-decoration:none;padding:4px 0;font-size:.9em}
+nav.toc a:hover{text-decoration:underline}
+h2{font-size:1.25em;margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--p);color:#1e3a8a}
+h3{font-size:1.05em;margin:20px 0 8px;color:#1e40af}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:16px;padding:16px 18px;margin:12px 0;box-shadow:0 4px 14px rgba(15,23,42,.04)}
+.step{display:flex;gap:14px;align-items:flex-start;margin:12px 0;padding:12px;background:#f8fafc;border-radius:14px;border:1px solid var(--ln)}
+.step .num{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.step .body{flex:1}
+.step .body b{color:var(--p)}
+.tip{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:12px;padding:12px 14px;margin:12px 0;font-size:.9em}
+.warn{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:12px 14px;margin:12px 0;font-size:.9em}
+.danger{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:12px;padding:12px 14px;margin:12px 0;font-size:.9em}
+table{width:100%;border-collapse:collapse;font-size:.88em;margin:12px 0}
+th,td{border:1px solid var(--ln);padding:8px 10px;text-align:right}
+th{background:#eff6ff;color:#1e40af}
+.fig{margin:18px 0;text-align:center}
+.fig svg{max-width:100%;height:auto;border-radius:16px;background:#fff;box-shadow:0 8px 28px rgba(15,23,42,.08)}
+.fig .cap{font-size:.82em;color:var(--tx2);margin-top:8px}
+.phone{display:inline-block;width:280px;max-width:100%;background:#0f172a;border-radius:28px;padding:12px 10px 20px;box-shadow:0 16px 40px rgba(0,0,0,.25);margin:8px}
+.phone .screen{background:#f4f7fe;border-radius:18px;padding:10px;min-height:360px;text-align:right;color:#0f172a}
+.phone .bar{height:22px;display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.phone .dot{width:8px;height:8px;border-radius:50%;background:#94a3b8}
+.phone .appbar{background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff;border-radius:12px;padding:8px 10px;font-size:.75em;font-weight:800;margin-bottom:8px}
+.phone .c{background:#fff;border-radius:10px;padding:8px;margin-bottom:6px;border:1px solid #e2e8f0;font-size:.72em}
+.phone .btnrow{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.phone .b{background:#2563eb;color:#fff;border-radius:8px;padding:5px 8px;font-size:.65em;font-weight:700}
+.phone .b2{background:#e2e8f0;color:#334155;border-radius:8px;padding:5px 8px;font-size:.65em}
+.phone .navb{display:flex;justify-content:space-around;margin-top:10px;padding-top:8px;border-top:1px solid #e2e8f0;font-size:.58em;color:#64748b}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.75em;font-weight:700}
+.b-ok{background:#d1fae5;color:#065f46}
+.b-w{background:#fef3c7;color:#92400e}
+.b-p{background:#dbeafe;color:#1d4ed8}
+.flow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:16px 0}
+.flow .box{background:#fff;border:2px solid var(--p);border-radius:12px;padding:10px 14px;font-size:.85em;font-weight:700;color:#1e40af}
+.flow .arr{color:var(--p);font-size:1.4em;font-weight:900}
+.check{list-style:none;padding:0}
+.check li{padding:8px 12px;margin:6px 0;background:#fff;border-radius:10px;border:1px solid var(--ln);padding-right:36px;position:relative}
+.check li::before{content:"☐";position:absolute;right:12px;color:var(--p);font-weight:700}
+footer{text-align:center;color:var(--tx2);font-size:.85em;margin-top:40px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>📖 راهنمای تصویری My-Class-Track</h1>
+  <p>دستیار گروه درمانی — حضور دو نوبته · شهریه · حامی‌ها · یادآور پشت در</p>
+</header>
+
+<nav class="toc">
+  <h2>فهرست</h2>
+  <a href="#what">۱. این اپ چیست؟</a>
+  <a href="#roles">۲. نقش‌ها و حامی</a>
+  <a href="#install">۳. نصب موبایل و کامپیوتر</a>
+  <a href="#setup">۴. راه‌اندازی اولیه</a>
+  <a href="#r1">۵. نوبت ۱ — تماس قبلی</a>
+  <a href="#r2">۶. نوبت ۲ — پشت در کلاس</a>
+  <a href="#fee">۷. شهریه</a>
+  <a href="#hw">۸. تکالیف</a>
+  <a href="#session">۹. چک‌لیست یک جلسه کامل</a>
+  <a href="#privacy">۱۰. حریم خصوصی و پشتیبان</a>
+  <a href="#faq">۱۱. مشکلات رایج</a>
+</nav>
+
+<!-- ========== 1 ========== -->
+<h2 id="what">۱. این اپ چیست؟</h2>
+<div class="card">
+  <p>My-Class-Track برای <b>گروه درمانی</b> ساخته شده تا مسئولان هر بخش با سرعت و دقت کار کنند و به <b>حامی‌ها</b> گزارش بدهند.</p>
+</div>
+
+<div class="fig">
+<svg viewBox="0 0 720 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="نمودار کلی سیستم">
+  <rect width="720" height="280" rx="16" fill="#f8fafc"/>
+  <text x="360" y="36" text-anchor="middle" fill="#1e3a8a" font-size="18" font-family="Tahoma" font-weight="700">جریان کلی یک جلسه</text>
+  <!-- boxes -->
+  <rect x="30" y="70" width="120" height="70" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="90" y="100" text-anchor="middle" fill="#1e40af" font-size="13" font-family="Tahoma" font-weight="700">نوبت ۱</text>
+  <text x="90" y="120" text-anchor="middle" fill="#3b82f6" font-size="11" font-family="Tahoma">روز قبل</text>
+
+  <path d="M155 105 H195" stroke="#2563eb" stroke-width="3" marker-end="url(#a)"/>
+
+  <rect x="200" y="70" width="120" height="70" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="260" y="100" text-anchor="middle" fill="#92400e" font-size="13" font-family="Tahoma" font-weight="700">شهریه</text>
+  <text x="260" y="120" text-anchor="middle" fill="#b45309" font-size="11" font-family="Tahoma">تا ۱ روز قبل</text>
+
+  <path d="M325 105 H365" stroke="#2563eb" stroke-width="3"/>
+
+  <rect x="370" y="70" width="120" height="70" rx="12" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="430" y="100" text-anchor="middle" fill="#9a3412" font-size="13" font-family="Tahoma" font-weight="700">نوبت ۲</text>
+  <text x="430" y="120" text-anchor="middle" fill="#c2410c" font-size="11" font-family="Tahoma">پشت در کلاس</text>
+
+  <path d="M495 105 H535" stroke="#2563eb" stroke-width="3"/>
+
+  <rect x="540" y="70" width="150" height="70" rx="12" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+  <text x="615" y="100" text-anchor="middle" fill="#065f46" font-size="13" font-family="Tahoma" font-weight="700">گزارش به حامی</text>
+  <text x="615" y="120" text-anchor="middle" fill="#047857" font-size="11" font-family="Tahoma">+ باز کردن در</text>
+
+  <!-- bottom row -->
+  <rect x="100" y="180" width="200" height="60" rx="12" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="200" y="215" text-anchor="middle" fill="#5b21b6" font-size="13" font-family="Tahoma" font-weight="700">درمانگر (دکتر)</text>
+
+  <rect x="420" y="180" width="200" height="60" rx="12" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+  <text x="520" y="215" text-anchor="middle" fill="#065f46" font-size="13" font-family="Tahoma" font-weight="700">حامی‌ها (اعضای قدیمی)</text>
+
+  <path d="M430 140 L520 175" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4"/>
+  <path d="M260 140 L200 175" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4"/>
+  <text x="360" y="265" text-anchor="middle" fill="#64748b" font-size="12" font-family="Tahoma">حامی = پشتیبان مسئولان جدید + رابط با درمانگر</text>
+</svg>
+<p class="cap">شکل ۱ — جریان کلی از نوبت ۱ تا گزارش حامی و ارتباط با درمانگر</p>
+</div>
+
+<!-- ========== 2 ========== -->
+<h2 id="roles">۲. نقش‌ها و حامی</h2>
+
+<div class="grid2">
+<div class="card">
+  <h3>حامی (عضو قدیمی)</h3>
+  <p>قبلاً مسئول بوده؛ الان:</p>
+  <ul>
+    <li>پشتیبان مسئولان جدید</li>
+    <li>رابط اعضا با درمانگر</li>
+    <li>گیرنده گزارش‌ها</li>
+  </ul>
+  <p>در پروفایل عضو نقش <span class="badge b-ok">حامی (عضو قدیمی)</span> را بزنید.</p>
+</div>
+<div class="card">
+  <h3>مسئولان دوره</h3>
+  <ul>
+    <li><span class="badge b-p">پیگیری حضور</span> — معمولاً ۲ نفر</li>
+    <li><span class="badge b-w">شهریه</span> — معمولاً ۲ نفر</li>
+    <li><span class="badge b-ok">تکالیف</span> — معمولاً ۱ نفر</li>
+  </ul>
+  <p>هر دوره با نظر درمانگر عوض می‌شود (کارت دوره در خانه).</p>
+</div>
+</div>
+
+<div class="fig">
+<svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg">
+  <rect width="720" height="260" rx="16" fill="#f8fafc"/>
+  <text x="360" y="32" text-anchor="middle" fill="#1e3a8a" font-size="16" font-family="Tahoma" font-weight="700">ساختار نقش‌ها</text>
+  <circle cx="360" cy="100" r="42" fill="#2563eb"/>
+  <text x="360" y="105" text-anchor="middle" fill="#fff" font-size="13" font-family="Tahoma" font-weight="700">درمانگر</text>
+  <rect x="40" y="70" width="130" height="60" rx="12" fill="#d1fae5" stroke="#059669" stroke-width="2"/>
+  <text x="105" y="105" text-anchor="middle" fill="#065f46" font-size="13" font-family="Tahoma" font-weight="700">حامی‌ها</text>
+  <rect x="550" y="70" width="130" height="60" rx="12" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="615" y="105" text-anchor="middle" fill="#1e40af" font-size="13" font-family="Tahoma" font-weight="700">مسئولان</text>
+  <path d="M175 100 H310" stroke="#059669" stroke-width="2"/>
+  <path d="M410 100 H545" stroke="#2563eb" stroke-width="2"/>
+  <rect x="80" y="170" width="160" height="50" rx="10" fill="#fff" stroke="#94a3b8"/>
+  <text x="160" y="200" text-anchor="middle" fill="#475569" font-size="12" font-family="Tahoma">گزارش می‌گیرند</text>
+  <rect x="280" y="170" width="160" height="50" rx="10" fill="#fff" stroke="#94a3b8"/>
+  <text x="360" y="200" text-anchor="middle" fill="#475569" font-size="12" font-family="Tahoma">اعضای کلاس</text>
+  <rect x="480" y="170" width="160" height="50" rx="10" fill="#fff" stroke="#94a3b8"/>
+  <text x="560" y="200" text-anchor="middle" fill="#475569" font-size="12" font-family="Tahoma">حضور · شهریه · تکلیف</text>
+  <path d="M160 130 V170" stroke="#94a3b8" stroke-width="1.5"/>
+  <path d="M360 142 V170" stroke="#94a3b8" stroke-width="1.5"/>
+  <path d="M615 130 V170" stroke="#94a3b8" stroke-width="1.5"/>
+</svg>
+<p class="cap">شکل ۲ — درمانگر در مرکز؛ حامی‌ها رابط؛ مسئولان اجراکننده</p>
+</div>
+
+<table>
+  <tr><th>نقش ورود به اپ</th><th>چه می‌تواند بکند؟</th></tr>
+  <tr><td>مدیر</td><td>همه چیز: تنظیمات، دوره، پشتیبان، حذف</td></tr>
+  <tr><td>پیگیر</td><td>حضور، شهریه، گزارش حامی</td></tr>
+  <tr><td>حامی (کاربر اپ)</td><td>مشاهده و گزارش — بدون شهریه حساس</td></tr>
+  <tr><td>مشاهده‌گر</td><td>فقط خواندن</td></tr>
+</table>
+<div class="tip">💡 «حامی عضو قدیمی» با «کاربر حامی در اپ» فرق دارد. حامی واقعی لزوماً وارد اپ نمی‌شود؛ گزارش برای او واتساپ/اشتراک می‌شود.</div>
+
+<!-- ========== 3 ========== -->
+<h2 id="install">۳. نصب روی موبایل و کامپیوتر</h2>
+
+<div class="grid2">
+<div class="card">
+  <h3>📱 موبایل</h3>
+  <div class="step"><div class="num">۱</div><div class="body">آدرس اپ را در <b>Chrome</b> یا <b>Safari</b> باز کنید.</div></div>
+  <div class="step"><div class="num">۲</div><div class="body">منوی مرورگر → <b>Add to Home Screen</b> / افزودن به صفحه اصلی.</div></div>
+  <div class="step"><div class="num">۳</div><div class="body">از آیکون روی صفحه اصلی مثل اپ باز کنید (تمام‌صفحه).</div></div>
+  <p style="font-size:.88em;color:#64748b">منوی پایین برای جابه‌جایی سریع؛ دکمه‌ها برای لمس بزرگ‌اند.</p>
+</div>
+<div class="card">
+  <h3>💻 کامپیوتر</h3>
+  <div class="step"><div class="num">۱</div><div class="body">همان آدرس را در Chrome یا Edge باز کنید.</div></div>
+  <div class="step"><div class="num">۲</div><div class="body">منوی <b>کناری راست</b> را می‌بینید؛ صفحه عریض‌تر است.</div></div>
+  <div class="step"><div class="num">۳</div><div class="body">اختیاری: از مرورگر «نصب اپ» را بزنید.</div></div>
+  <p style="font-size:.88em;color:#64748b">مناسب گزارش، اکسل و تنظیم دوره.</p>
+</div>
+</div>
+
+<div class="fig">
+<div class="phone">
+  <div class="screen">
+    <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    <div class="appbar">My-Class-Track · گروه درمانی</div>
+    <div class="c"><b>📋 دوره جاری</b><br>حضور: شما و همکارتان<br>شهریه: دو مسئول<br>حامی‌ها: اعضای قدیمی</div>
+    <div class="c"><b>🎯 کلاس بعدی</b><br>سه‌شنبه ۱۹:۰۰ — ۲ ساعت مانده
+      <div class="btnrow"><span class="b">نوبت ۱</span><span class="b2">پشت در</span></div>
+    </div>
+    <div class="c"><b>🚪 یادآور</b> ۱۵′ · ۸′ · ۵′ · ۳′ باز کردن در</div>
+    <div class="navb"><span>خانه</span><span>حضور</span><span>شهریه</span><span>اعضا</span><span>راهنما</span></div>
+  </div>
+</div>
+<p class="cap">شکل ۳ — شبیه‌سازی صفحه خانه روی موبایل</p>
+</div>
+
+<!-- ========== 4 ========== -->
+<h2 id="setup">۴. راه‌اندازی اولیه (مدیر / درمانگر)</h2>
+
+<div class="step"><div class="num">۱</div><div class="body"><b>تنظیمات → نام کلاس</b> را بنویسید.</div></div>
+<div class="step"><div class="num">۲</div><div class="body"><b>کلاس هفتگی</b> را اضافه کنید — مثلاً سه‌شنبه از ۱۹:۰۰ تا ۲۱:۰۰.</div></div>
+<div class="step"><div class="num">۳</div><div class="body">تب <b>اعضا</b> → هر نفر با نام و شماره. برای قدیمی‌ها نقش حامی.</div></div>
+<div class="step"><div class="num">۴</div><div class="body">کارت <b>دوره</b> در خانه → مسئولان حضور، شهریه، تکالیف این دوره.</div></div>
+<div class="step"><div class="num">۵</div><div class="body">اگر چند نفر یک دستگاه دارند: <b>تنظیمات → کاربران</b> + رمز ۴ رقمی + «ورود اجباری».</div></div>
+
+<div class="danger">🔐 رمز پیش‌فرض مدیر: <b>۰۰۰۰</b> — حتماً عوض کنید.</div>
+
+<div class="fig">
+<svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="720" height="200" rx="16" fill="#f8fafc"/>
+  <text x="360" y="30" text-anchor="middle" fill="#1e3a8a" font-size="15" font-family="Tahoma" font-weight="700">ترتیب راه‌اندازی</text>
+  <rect x="20" y="60" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="80" y="95" text-anchor="middle" fill="#1e40af" font-size="12" font-family="Tahoma" font-weight="700">نام کلاس</text>
+  <text x="80" y="115" text-anchor="middle" fill="#3b82f6" font-size="11" font-family="Tahoma">+ برنامه هفتگی</text>
+  <text x="150" y="105" fill="#2563eb" font-size="22">←</text>
+  <rect x="170" y="60" width="120" height="80" rx="12" fill="#dbeafe" stroke="#2563eb"/>
+  <text x="230" y="105" text-anchor="middle" fill="#1e40af" font-size="12" font-family="Tahoma" font-weight="700">ثبت اعضا</text>
+  <text x="300" y="105" fill="#2563eb" font-size="22">←</text>
+  <rect x="320" y="60" width="120" height="80" rx="12" fill="#fef3c7" stroke="#d97706"/>
+  <text x="380" y="105" text-anchor="middle" fill="#92400e" font-size="12" font-family="Tahoma" font-weight="700">نقش حامی</text>
+  <text x="450" y="105" fill="#2563eb" font-size="22">←</text>
+  <rect x="470" y="60" width="110" height="80" rx="12" fill="#d1fae5" stroke="#059669"/>
+  <text x="525" y="105" text-anchor="middle" fill="#065f46" font-size="12" font-family="Tahoma" font-weight="700">دوره</text>
+  <text x="590" y="105" fill="#2563eb" font-size="22">←</text>
+  <rect x="610" y="60" width="90" height="80" rx="12" fill="#ede9fe" stroke="#7c3aed"/>
+  <text x="655" y="105" text-anchor="middle" fill="#5b21b6" font-size="12" font-family="Tahoma" font-weight="700">کاربران</text>
+  <text x="360" y="180" text-anchor="middle" fill="#64748b" font-size="12" font-family="Tahoma">یک‌بار در شروع — بعد فقط دوره را هر ترم عوض کنید</text>
+</svg>
+<p class="cap">شکل ۴ — ترتیب پیشنهادی راه‌اندازی</p>
+</div>
+
+<!-- ========== 5 ========== -->
+<h2 id="r1">۵. نوبت ۱ — تماس قبلی</h2>
+<div class="card">
+  <p><b>زمان:</b> چند ساعت یا یک روز قبل از کلاس<br>
+  <b>هدف:</b> فهمیدن کی می‌آید / تأخیر / مشکل — و گزارش به حامی‌ها</p>
+</div>
+
+<div class="step"><div class="num">۱</div><div class="body">تب <b>حضور</b> را باز کنید.</div></div>
+<div class="step"><div class="num">۲</div><div class="body">جلسه درست را از فهرست بالا انتخاب کنید.</div></div>
+<div class="step"><div class="num">۳</div><div class="body">برای هر نفر وضعیت را بزنید:</div></div>
+
+<table>
+  <tr><th>وضعیت</th><th>معنی</th></tr>
+  <tr><td>✅ حاضر</td><td>می‌آید / تأیید کرده</td></tr>
+  <tr><td>⏰ تأخیر</td><td>دیرتر می‌رسد</td></tr>
+  <tr><td>📭 بدون حضور</td><td>نمی‌آید</td></tr>
+  <tr><td>💬 مشکل</td><td>نیاز به هماهنگی / موضوع خاص</td></tr>
+</table>
+
+<div class="step"><div class="num">۴</div><div class="body">در صورت نیاز یادداشت کوتاه (مثلاً «ترافیک»).</div></div>
+<div class="step"><div class="num">۵</div><div class="body">دکمه <b>📤 گزارش به حامی</b> → کپی یا ارسال واتساپ.</div></div>
+
+<div class="fig">
+<div class="phone">
+  <div class="screen">
+    <div class="appbar">نوبت ۱ — تماس قبلی</div>
+    <div class="c" style="background:#eff6ff;border-color:#93c5fd">چند ساعت یا یک روز قبل با اعضا تماس بگیرید؛ بعد گزارش را برای حامی بفرستید.</div>
+    <div class="c"><b>علی محمدی</b> <span class="badge b-ok">حاضر</span>
+      <div class="btnrow"><span class="b2">📞</span><span class="b2">واتساپ</span></div>
+    </div>
+    <div class="c"><b>سارا احمدی</b> <span class="badge b-w">تأخیر</span></div>
+    <div class="c"><b>رضا کریمی</b> — هنوز ثبت نشده
+      <div class="btnrow"><span class="b">حاضر</span><span class="b2">تأخیر</span><span class="b2">غایب</span></div>
+    </div>
+    <div class="btnrow" style="margin-top:10px"><span class="b">📤 گزارش به حامی</span><span class="b2">نوبت ۲</span></div>
+  </div>
+</div>
+<p class="cap">شکل ۵ — نمونه صفحه نوبت ۱ روی موبایل</p>
+</div>
+
+<!-- ========== 6 ========== -->
+<h2 id="r2">۶. نوبت ۲ — پشت در کلاس</h2>
+<div class="card">
+  <p><b>زمان:</b> حدود ۳۰ دقیقه قبل از شروع — پشت در کلاس<br>
+  <b>هدف:</b> تماس تک‌به‌تک + اعلام زمان به درمانگر + باز کردن در</p>
+</div>
+
+<div class="step"><div class="num">۱</div><div class="body">از خانه یا حضور وارد <b>نوبت ۲ / ثبت ورود</b> شوید.</div></div>
+<div class="step"><div class="num">۲</div><div class="body">برای هر عضو تماس بگیرید و وضعیت را ثبت کنید.</div></div>
+<div class="step"><div class="num">۳</div><div class="body">چک‌لیست یادآور را تیک بزنید:</div></div>
+
+<div class="flow">
+  <div class="box">۱۵′ بگو به دکتر</div><div class="arr">←</div>
+  <div class="box">۸′ بگو</div><div class="arr">←</div>
+  <div class="box">۵′ بگو</div><div class="arr">←</div>
+  <div class="box" style="border-color:#059669;color:#065f46">۳′ در را باز کن</div>
+</div>
+
+<div class="step"><div class="num">۴</div><div class="body"><b>گزارش این نوبت به حامی‌ها</b> را بفرستید.</div></div>
+
+<div class="fig">
+<svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+  <rect width="720" height="220" rx="16" fill="#0f172a"/>
+  <text x="360" y="36" text-anchor="middle" fill="#fff" font-size="15" font-family="Tahoma" font-weight="700">پشت در کلاس — تایم‌لاین</text>
+  <line x1="60" y1="120" x2="660" y2="120" stroke="#334155" stroke-width="4"/>
+  <circle cx="120" cy="120" r="16" fill="#38bdf8"/><text x="120" y="125" text-anchor="middle" fill="#0f172a" font-size="10" font-family="Tahoma" font-weight="700">۳۰′</text>
+  <text x="120" y="160" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="Tahoma">شروع تماس</text>
+  <circle cx="280" cy="120" r="16" fill="#fbbf24"/><text x="280" y="125" text-anchor="middle" fill="#0f172a" font-size="10" font-family="Tahoma" font-weight="700">۱۵′</text>
+  <text x="280" y="160" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="Tahoma">اعلام به دکتر</text>
+  <circle cx="400" cy="120" r="14" fill="#fbbf24"/><text x="400" y="124" text-anchor="middle" fill="#0f172a" font-size="9" font-family="Tahoma" font-weight="700">۸′</text>
+  <circle cx="500" cy="120" r="14" fill="#fbbf24"/><text x="500" y="124" text-anchor="middle" fill="#0f172a" font-size="9" font-family="Tahoma" font-weight="700">۵′</text>
+  <circle cx="600" cy="120" r="18" fill="#34d399"/><text x="600" y="125" text-anchor="middle" fill="#0f172a" font-size="10" font-family="Tahoma" font-weight="700">۳′</text>
+  <text x="600" y="160" text-anchor="middle" fill="#6ee7b7" font-size="11" font-family="Tahoma">باز کردن در</text>
+  <text x="360" y="200" text-anchor="middle" fill="#64748b" font-size="12" font-family="Tahoma">هم‌زمان با تماس‌ها، تیک‌های چک‌لیست را در اپ بزنید</text>
+</svg>
+<p class="cap">شکل ۶ — زمان‌بندی نوبت ۲ از ۳۰ دقیقه قبل تا باز کردن در</p>
+</div>
+
+<!-- ========== 7 ========== -->
+<h2 id="fee">۷. شهریه</h2>
+<div class="card">
+  <p><b>مهلت:</b> تا یک روز قبل از کلاس<br>
+  <b>فیش:</b> اعضا در واتساپ برای دو مسئول می‌فرستند<br>
+  <b>اپ:</b> ثبت وضعیت + اکسل + گزارش به حامی</p>
+</div>
+
+<div class="step"><div class="num">۱</div><div class="body">فیش‌ها را در واتساپ بگیرید.</div></div>
+<div class="step"><div class="num">۲</div><div class="body">تب <b>شهریه</b> → پرداخت‌شده را تیک بزنید (یادداشت فیش اختیاری).</div></div>
+<div class="step"><div class="num">۳</div><div class="body">اگر مهلت گذشته، بنر قرمز بدهکاران را نشان می‌دهد — پیگیری کنید.</div></div>
+<div class="step"><div class="num">۴</div><div class="body"><b>خروجی اکسل</b> + <b>گزارش شهریه به حامی‌ها</b>.</div></div>
+
+<div class="warn">⚠️ اپ جایگزین واتساپ فیش نیست؛ دفتر ثبت و گزارش است.</div>
+
+<!-- ========== 8 ========== -->
+<h2 id="hw">۸. تکالیف</h2>
+<div class="card">
+  <p>مسئول تکالیف در تب <b>تکالیف</b> موارد را ثبت می‌کند (آرشیو داخل اپ). اعلام به گروه معمولاً همچنان در واتساپ است.</p>
+</div>
+
+<!-- ========== 9 ========== -->
+<h2 id="session">۹. چک‌لیست یک جلسه کامل</h2>
+<ul class="check">
+  <li>نوبت ۱ انجام شد و گزارش به حامی رفت</li>
+  <li>شهریه‌ها تا روز قبل بسته شد؛ اکسل و گزارش حامی آماده است</li>
+  <li>نوبت ۲ پشت در انجام شد</li>
+  <li>تیک‌های ۱۵ / ۸ / ۵ دقیقه زده شد</li>
+  <li>در دقیقه ۳ در کلاس باز شد</li>
+  <li>گزارش نوبت ۲ به حامی ارسال شد</li>
+</ul>
+
+<!-- ========== 10 ========== -->
+<h2 id="privacy">۱۰. حریم خصوصی و پشتیبان</h2>
+<div class="grid2">
+<div class="card">
+  <h3>🛡️ حریم خصوصی</h3>
+  <ul>
+    <li>یادداشت محرمانه در گزارش حامی نمی‌آید</li>
+    <li>حالت حریم خصوصی: محو عکس و شماره</li>
+    <li>رضایت تماس / عکس در پروفایل</li>
+  </ul>
+</div>
+<div class="card">
+  <h3>💾 پشتیبان</h3>
+  <ul>
+    <li>داده فقط روی همین مرورگر است</li>
+    <li>تنظیمات → پشتیبان (فایل JSON)</li>
+    <li>قبل از تعویض گوشی حتماً بگیرید</li>
+    <li>دستگاه جدید → بازیابی همان فایل</li>
+  </ul>
+</div>
+</div>
+<div class="danger">بدون پشتیبان، پاک شدن دادهٔ مرورگر یعنی از دست رفتن همه اطلاعات.</div>
+
+<!-- ========== 11 ========== -->
+<h2 id="faq">۱۱. مشکلات رایج</h2>
+<table>
+  <tr><th>مشکل</th><th>راه‌حل</th></tr>
+  <tr><td>صفحه قدیمی است</td><td>Hard Refresh: Ctrl+Shift+R یا پاک کردن کش سایت</td></tr>
+  <tr><td>رمز را فراموش کردم</td><td>با پشتیبان قبلی بازیابی کنید</td></tr>
+  <tr><td>دو نفر روی دو گوشی</td><td>همگام زنده نیست؛ یکی پشتیبان مرجع باشد</td></tr>
+  <tr><td>گزارش برای حامی نرفت</td><td>متن را کپی کنید و در واتساپ بچسبانید</td></tr>
+  <tr><td>منو روی موبایل شلوغ است</td><td>افقی اسکرول کنید؛ از نوار سریع خانه استفاده کنید</td></tr>
+</table>
+
+<div class="tip">📖 همین راهنما داخل اپ هم هست: منوی <b>راهنما</b> یا دکمه 📖 در خانه.</div>
+
+<footer>
+  My-Class-Track — راهنمای تصویری · گروه درمانی<br>
+  نسخه منطبق با گردش‌کار: نوبت ۱ و ۲ · شهریه · حامی · پشت در
+</footer>
+
+</div>
+</body>
+</html>
