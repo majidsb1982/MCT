@@ -1,4 +1,4 @@
-const C = "mct-v3";
+const C = "mct-v5";
 const A = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (e) => {
