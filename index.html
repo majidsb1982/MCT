@@ -4,14 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f7fe">
-<meta name="description" content="دستیار کلاس — ثبت حضور، شهریه، تکالیف و مدیریت اعضا">
+<meta name="description" content="دستیار کلاس هوشمند — حضور، شهریه، تکالیف، بینش AI و اعلان">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.003/Vazirmatn-font-face.css" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232563eb'/%3E%3Cstop offset='1' stop-color='%2338bdf8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M14 46V18h8l10 14 10-14h8v28h-8V31L32 44 22 31v15z' fill='%23fff'/%3E%3C/svg%3E">
-<title>My-Class-Track | دستیار کلاس</title>
+<title>My-Class-Track | دستیار کلاس هوشمند</title>
 <style>
+
 
 :root{--p:#2563eb;--p2:#38bdf8;--pg:linear-gradient(135deg,#2563eb,#38bdf8);--pg2:linear-gradient(135deg,#3b82f6,#60a5fa);
 --ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--prob:#f97316;
@@ -121,20 +124,77 @@ body.dark .focus-banner{background:#f59e0b18;border-color:#f59e0b44;color:#fbbf2
 .mblk.hl{animation:hl 2.4s ease;border-radius:12px;outline:2px solid var(--p2)}
 @media print{header,nav,.btn,nav *,.noprint{display:none!important}body{background:#fff;color:#000;padding:0}.card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}}
 
+
+
+/* ===== MCT v6 — Modern UI ===== */
+:root{--blur:12px;--glass:rgba(255,255,255,.72);--ease:cubic-bezier(.22,1,.36,1)}
+body.dark{--glass:rgba(20,30,51,.75)}
+@supports (backdrop-filter:blur(1px)){
+  .card{background:var(--glass);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur))}
+  header,.nav-glass{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+}
+.card{transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+.card:active{transform:scale(.985)}
+.btn{transition:transform .15s var(--ease),opacity .15s,box-shadow .2s}
+.btn:active{transform:scale(.96)}
+.btn.p{box-shadow:0 4px 14px color-mix(in srgb,var(--p) 35%,transparent)}
+.st-btn{transition:transform .12s,background .15s,border-color .15s}
+.st-btn:active{transform:scale(.94)}
+.ring-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-wrap .ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.95em}
+.insight{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.insight .ic{background:var(--sf2);border-radius:14px;padding:12px;text-align:center;border:1px solid var(--ln)}
+.insight .ic b{display:block;font-size:1.25em;font-weight:900;color:var(--p);margin-top:2px}
+.insight .ic span{font-size:.75em;color:var(--tx2)}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;direction:ltr}
+.heat .hd{font-size:.65em;color:var(--tx2);text-align:center;padding:2px}
+.heat .c{aspect-ratio:1;border-radius:6px;background:var(--sf2);border:1px solid var(--ln);cursor:pointer;transition:transform .12s}
+.heat .c:hover{transform:scale(1.12)}
+.heat .c.lv1{background:#bfdbfe;border-color:#93c5fd}
+.heat .c.lv2{background:#60a5fa;border-color:#3b82f6}
+.heat .c.lv3{background:#2563eb;border-color:#1d4ed8}
+.heat .c.lv4{background:#1e3a8a;border-color:#1e3a8a}
+body.dark .heat .c.lv1{background:#1e3a5f}
+body.dark .heat .c.lv2{background:#1e40af}
+body.dark .heat .c.lv3{background:#2563eb}
+body.dark .heat .c.lv4{background:#3b82f6}
+.spark{display:flex;align-items:flex-end;gap:3px;height:40px;padding:4px 0}
+.spark i{flex:1;background:var(--pg);border-radius:3px 3px 0 0;min-height:3px;opacity:.85;transition:height .3s var(--ease)}
+.chip-mic{display:inline-flex;align-items:center;gap:4px}
+.chip-mic.rec{animation:pulse-rec 1s infinite;border-color:var(--bad);color:var(--bad)}
+@keyframes pulse-rec{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fade-up{animation:fade-up .35s var(--ease) both}
+.stagger>*{animation:fade-up .4s var(--ease) both}
+.stagger>*:nth-child(1){animation-delay:.02s}
+.stagger>*:nth-child(2){animation-delay:.06s}
+.stagger>*:nth-child(3){animation-delay:.1s}
+.stagger>*:nth-child(4){animation-delay:.14s}
+.stagger>*:nth-child(5){animation-delay:.18s}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+.skeleton{background:linear-gradient(90deg,var(--sf2) 25%,var(--ln) 50%,var(--sf2) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:10px;height:14px}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.badge-ai{background:linear-gradient(135deg,#8b5cf6,#06b6d4);color:#fff;font-size:.68em;padding:2px 7px;border-radius:6px;font-weight:800}
+.fab-ai{position:fixed;bottom:88px;left:16px;z-index:40;width:48px;height:48px;border-radius:16px;background:var(--pg);color:#fff;border:none;box-shadow:0 6px 20px rgba(37,99,235,.35);font-size:1.3em;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qr-box{background:#fff;padding:12px;border-radius:14px;display:inline-block;margin:8px auto}
+.notif-banner{background:var(--blue-t);border:1px solid color-mix(in srgb,var(--p) 30%,transparent);border-radius:12px;padding:10px 12px;font-size:.85em;margin:8px 0}
+
 </style>
 </head>
 <body>
 <header id="hdr"><div class="hwrap">
   <button class="hbtn" id="backBtn" onclick="goBack()" aria-label="بازگشت" style="display:none">→</button>
   <div class="logo">M</div>
-  <div><div class="htitle">My-Class-Track</div><div class="hsub">دستیار کلاس</div></div>
+  <div><div class="htitle">My-Class-Track</div><div class="hsub">دستیار کلاس هوشمند</div></div>
   <button class="hbtn first" onclick="toggleFS()" aria-label="تمام‌صفحه">⛶</button>
   <button class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="تغییر تم">🌙</button>
 </div></header>
 <div id="app"></div>
 <div class="toast" id="toast"></div>
 <nav id="nav"></nav>
-
 <script>
 "use strict";
 /* ============ تقویم شمسی (jalaali) ============ */
@@ -167,7 +227,7 @@ const dow=j=>{const g=toG(j.jy,j.jm,j.jd);return(new Date(g.gy,g.gm-1,g.gd).getD
 const toJ=(gy,gm,gd)=>d2j(g2d(gy,gm,gd));
 return{toJ,toG,mLen,today,fmt,toFa,toKey,fromKey,dow,MN,DN};})();
 
-/* ============ لایه داده (نسخه ۵) ============ */
+/* ============ لایه داده (نسخه ۶) ============ */
 const Store=(()=>{const KEY="mct:data";
 const DEF={v:5,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],
 groups:["عمومی"],
@@ -351,7 +411,7 @@ b.style.display=(!v||(n&&n.textContent.includes(v)))?"":"none";});}
 window.listFilter=listFilter;
 
 /* ---- خانه ---- */
-Pages.home=function(el){const d=Store.get(),nc=nextClass(),key=curKey();
+Pages.home=function(el){const d=Store.get(),nc=nextClass(),key=curKey();const ins=computeInsights();
 let cd="";
 if(nc){const diff=nc.t-Date.now();
 if(diff>0){const dd=~~(diff/864e5),hh=~~(diff%864e5/36e5),mm=~~(diff%36e5/6e5);
@@ -372,7 +432,9 @@ if(unE)tasks+='<div class="task-row" onclick="openEntry()"><div class="stat-ico"
 if(unP)tasks+='<div class="task-row" onclick="go(\'fees\')"><div class="stat-ico">💰</div><div><div class="t-title">شهریه</div><div class="t-sub">'+Jalali.toFa(unP)+" نفر پرداخت‌نشده</div></div><span class='t-go'>‹</span></div>";
 if(bdToday)tasks+='<div class="task-row" onclick="go(\'members\')"><div class="stat-ico">🎂</div><div><div class="t-title">تولد!</div><div class="t-sub">'+bdToday+"</div></div></div>";
 if(!tasks)tasks='<div class="empty">🎉 همه‌چیز انجام شده — عالی!</div>';
-el.innerHTML=
+const insightCard='<div class="card fade-up"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px"><h3 style="margin:0">✨ نمای کلی <span class="badge-ai">AI</span></h3><button class="btn sm ghost" onclick="showInsights()">جزئیات</button></div><div class="row" style="gap:12px;align-items:center">'+ringSVG(ins.avg,64)+'<div style="flex:1">'+sparkHTML(ins.spark)+'<p class="stat-line" style="margin:4px 0 0">میانگین حضور '+Jalali.toFa(ins.avg)+'٪'+(ins.trend?(' · '+(ins.trend>0?'+':'')+Jalali.toFa(ins.trend)+'٪'):'')+'</p></div></div></div>';
+
+el.innerHTML=insightCard+
 '<div class="card hero"><h3>🎯 کلاس بعدی</h3>'+(nc?
 '<div style="position:relative;z-index:1"><div style="font-size:1.05em;font-weight:800">'+Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date)+(nc.c.extra?" (جلسه خاص)":"")+" — ساعت "+Jalali.toFa(nc.c.start)+'</div><div style="font-weight:900;font-size:clamp(1.2em,6vw,1.5em);margin:4px 0 8px">'+cd+"</div>"+
 '<div class="row"><button class="btn" style="flex:1;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.28)" onclick="go(\'attend\')">📞 تماس‌ها</button><button class="btn" style="flex:1;background:#fff;color:#1d4ed8;border:none" onclick="openEntry()">✅ ثبت ورود</button></div></div>'
@@ -566,7 +628,7 @@ if(!UI.doneTab){
 h+='<div class="card"><h3>📚 تکلیف جدید</h3><label>جلسه (تاریخ)</label>'+
 '<input id="hwDate" name="hw-date" readonly placeholder="انتخاب تاریخ" value="'+(nextClass()?Jalali.fmt(nextClass().date):"")+'" onclick="pickHWDate()" style="cursor:pointer">'+
 '<label>متن تکلیف</label><textarea id="hwText" name="hw-text" placeholder="تکلیف این هفته را بنویسید…"></textarea>'+
-'<div class="row" style="margin-top:8px"><button class="btn sm ghost" id="hwMic" aria-label="ضبط یادداشت صوتی">🎙 ضبط صدا</button><span id="hwV"></span></div>'+
+'<div class="row" style="margin-top:8px">"+speechBtn("hwText")+"<button class="btn sm ghost" id="hwMic" aria-label="ضبط یادداشت صوتی">🎙 ضبط صدا</button><span id="hwV"></span></div>'+
 '<div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" onclick="saveHW()">💾 ذخیره</button></div></div>';
 }else{
 h+=filterBar("جستجوی تکالیف");
@@ -618,9 +680,10 @@ el.innerHTML=
 '<div class="card"><h3>🏫 نام کلاس</h3><input id="classNameIn" value="'+esc(st.className||"کلاس من")+'" placeholder="مثلاً کلاس ریاضی" onchange="setClassName(this.value)" aria-label="نام کلاس"></div>'+
 '<div class="card"><h3>👥 گروه‌ها</h3><div id="grpList" class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:8px"></div><button class="btn sm ghost" onclick="addGroup()">＋ گروه جدید</button></div>'+
 '<div class="card" id="storCard"><h3>💾 فضای ذخیره‌سازی</h3><div id="storBody"></div></div>'+
+'<div class="card"><h3>🔔 هوشمندسازی</h3><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm ghost" onclick="enableNotifs()">🔔 اعلان کلاس</button><button class="btn sm ghost" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" onclick="shareClassCode()">📲 اشتراک QR</button><button class="btn sm ghost" onclick="showInsights()">✨ بینش</button></div><p class="stat-line" style="margin-top:8px">اعلان ۱۵ دقیقه قبل از کلاس · تقویم ICS · اشتراک برنامه</p></div>'+
 '<div class="row"><button class="btn p" style="flex:1" onclick="backup()">⬇️ پشتیبان</button><button class="btn ghost" style="flex:1" onclick="document.getElementById(\'rf\').click()">⬆️ بازیابی</button><input type="file" id="rf" class="sr" accept=".json" onchange="restore(this)"></div>'+
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
-'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۵.۰<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
+'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۶.۰<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
 const gl=document.getElementById("grpList");
 if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
@@ -969,6 +1032,169 @@ cur[t.dataset.f]=t.value;d._lastSession=t.dataset.key;Store.save();return;}
 if(t.classList.contains("fee-note")){feeNote(t.dataset.key,t.dataset.mid,t.value);return;}});
 
 
+
+/* ============ v6: بینش هوشمند ============ */
+function computeInsights(){
+  const d=Store.get(),keys=Object.keys(d.sessions||{}).sort();
+  const total=d.members.length||1;
+  let presentRate=[],absentLeaders={},payRate=0,paidN=0,feeKeys=Object.keys(d.fees||{});
+  keys.slice(-8).forEach(k=>{
+    const s=d.sessions[k]||{};let p=0;
+    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay")p++;if(st==="absent")absentLeaders[m.id]=(absentLeaders[m.id]||0)+1;});
+    presentRate.push(Math.round(p/total*100));
+  });
+  const lastFee=feeKeys.sort().reverse()[0];
+  if(lastFee){const f=d.fees[lastFee]||{};d.members.forEach(m=>{if(f[m.id]&&f[m.id].paid)paidN++;});payRate=Math.round(paidN/total*100);}
+  const topAbs=Object.entries(absentLeaders).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([id,n])=>{
+    const m=d.members.find(x=>x.id===id);return m?{name:m.name,n}:null;}).filter(Boolean);
+  const avg=presentRate.length?Math.round(presentRate.reduce((a,b)=>a+b,0)/presentRate.length):0;
+  const trend=presentRate.length>=2?(presentRate[presentRate.length-1]-presentRate[0]):0;
+  return{presentRate,avg,trend,topAbs,payRate,sessions:keys.length,spark:presentRate};
+}
+function ringSVG(pct,size=72){
+  const r=28,c=2*Math.PI*r,off=c-(pct/100)*c;
+  const col=pct>=80?"#10b981":pct>=50?"#f59e0b":"#ef4444";
+  return'<div class="ring-wrap"><svg width="'+size+'" height="'+size+'" viewBox="0 0 72 72"><circle cx="36" cy="36" r="'+r+'" fill="none" stroke="var(--sf2)" stroke-width="7"/><circle cx="36" cy="36" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" style="transition:stroke-dashoffset .6s"/></svg><div class="ring-val">'+Jalali.toFa(pct)+'٪</div></div>';
+}
+function sparkHTML(arr){
+  if(!arr||!arr.length)return"";
+  const mx=Math.max(100,...arr);
+  return'<div class="spark">'+arr.map(v=>'<i style="height:'+Math.max(8,v/mx*100)+'%" title="'+v+'%"></i>').join("")+"</div>";
+}
+
+/* ============ v6: گفتار به متن (Web Speech API) ============ */
+let _recog=null,_recActive=false;
+function speechSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+function startSpeech(targetId){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast("⚠️ مرورگر از تشخیص گفتار پشتیبانی نمی‌کند");return;}
+  if(_recActive&&_recog){_recog.stop();return;}
+  _recog=new SR();_recog.lang="fa-IR";_recog.interimResults=false;_recog.continuous=false;
+  _recActive=true;
+  const btn=document.querySelector("[data-speech=\""+targetId+"\"]");
+  if(btn)btn.classList.add("rec");
+  toast("🎤 صحبت کنید…");
+  try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}
+  _recog.onresult=e=>{
+    const t=e.results[0][0].transcript;
+    const el=document.getElementById(targetId);
+    if(el){el.value=(el.value?el.value+" ":"")+t;el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}));}
+    toast("✅ متن ثبت شد");
+  };
+  _recog.onerror=()=>toast("⚠️ تشخیص گفتار ناموفق");
+  _recog.onend=()=>{_recActive=false;if(btn)btn.classList.remove("rec");};
+  _recog.start();
+}
+function speechBtn(targetId){
+  if(!speechSupported())return"";
+  return'<button type="button" class="btn sm ghost chip-mic" data-speech="'+targetId+'" onclick="startSpeech(\''+targetId+'\')" aria-label="گفتار به متن">🎤</button>';
+}
+
+/* ============ v6: اعلان کلاس (Notification API) ============ */
+async function enableNotifs(){
+  if(!("Notification" in window)){toast("⚠️ مرورگر از اعلان پشتیبانی نمی‌کند");return;}
+  let p=Notification.permission;
+  if(p==="default")p=await Notification.requestPermission();
+  if(p!=="granted"){toast("اجازه اعلان داده نشد");return;}
+  const d=Store.get();d.settings.notif=true;Store.save();
+  scheduleClassNotif();
+  toast("✅ اعلان کلاس فعال شد");
+}
+function scheduleClassNotif(){
+  const d=Store.get();
+  if(!d.settings.notif||Notification.permission!=="granted")return;
+  const nc=nextClass();if(!nc||!nc.t)return;
+  const ms=nc.t-Date.now()-15*60e3; // 15 min before
+  if(ms<0||ms>864e5*2)return;
+  clearTimeout(window._notifT);
+  window._notifT=setTimeout(()=>{
+    try{
+      new Notification(d.settings.className||"کلاس",{body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||""),icon:"icon.svg",tag:"mct-class"});
+      if(navigator.vibrate)navigator.vibrate([80,40,80]);
+    }catch(e){}
+  },ms);
+}
+
+/* ============ v6: نقشه حرارتی حضور ============ */
+function attendHeatmap(){
+  const d=Store.get(),keys=Object.keys(d.sessions||{}).sort().slice(-28);
+  if(!keys.length)return'<p class="stat-line">هنوز جلسه‌ای ثبت نشده</p>';
+  const days=["ش","ی","د","س","چ","پ","ج"];
+  let h='<div class="heat">'+days.map(x=>'<div class="hd">'+x+'</div>').join("");
+  // pad start based on first session dow
+  const first=Jalali.fromKey(keys[0]);const firstDow=Jalali.dow(first);
+  for(let i=0;i<firstDow;i++)h+='<div class="c" style="opacity:.25"></div>';
+  keys.forEach(k=>{
+    const s=d.sessions[k]||{};let p=0,t=d.members.length||1;
+    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay")p++;});
+    const pct=p/t*100;let lv=pct>=90?"lv4":pct>=70?"lv3":pct>=40?"lv2":pct>0?"lv1":"";
+    const j=Jalali.fromKey(k);
+    h+='<div class="c '+lv+'" title="'+Jalali.fmt(j)+' — '+Math.round(pct)+'٪" onclick="setSel(\''+k+'\');go(\'attend\')"></div>';
+  });
+  h+="</div>";
+  return h;
+}
+
+/* ============ v6: خروجی تقویم ICS ============ */
+function exportICS(){
+  const d=Store.get(),lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//MCT//My-Class-Track//FA","CALSCALE:GREGORIAN"];
+  const name=d.settings.className||"کلاس";
+  // next 8 weeks of regular classes
+  const now=new Date();
+  for(let i=0;i<56;i++){
+    const dt=new Date(now);dt.setDate(now.getDate()+i);const dw=(dt.getDay()+1)%7;
+    for(const c of d.classes){
+      if(c.dow!==dw)continue;
+      const[h,mi]=(c.start||"19:00").split(":").map(Number);
+      const[eh,emi]=(c.end||"21:00").split(":").map(Number);
+      const start=new Date(dt);start.setHours(h,mi,0,0);
+      const end=new Date(dt);end.setHours(eh,emi,0,0);
+      const fmt=x=>x.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+      lines.push("BEGIN:VEVENT","UID:mct-"+fmt(start)+"@mct","DTSTAMP:"+fmt(new Date()),"DTSTART:"+fmt(start),"DTEND:"+fmt(end),"SUMMARY:"+name,"DESCRIPTION:جلسه کلاس — My-Class-Track","END:VEVENT");
+    }
+  }
+  (d.extra||[]).forEach(ex=>{
+    const j=Jalali.fromKey(ex.key);const g=Jalali.toG(j.jy,j.jm,j.jd);
+    const[h,mi]=(ex.start||"19:00").split(":").map(Number);
+    const[eh,emi]=(ex.end||"21:00").split(":").map(Number);
+    const start=new Date(g.gy,g.gm-1,g.gd,h,mi);const end=new Date(g.gy,g.gm-1,g.gd,eh,emi);
+    const fmt=x=>{const p=n=>String(n).padStart(2,"0");return x.getFullYear()+p(x.getMonth()+1)+p(x.getDate())+"T"+p(x.getHours())+p(x.getMinutes())+"00";};
+    lines.push("BEGIN:VEVENT","UID:mct-ex-"+ex.key+"@mct","DTSTAMP:"+fmt(new Date()),"DTSTART:"+fmt(start),"DTEND:"+fmt(end),"SUMMARY:"+name+" (جلسه خاص)","END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  const blob=new Blob([lines.join("\r\n")],{type:"text/calendar;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mct-schedule.ics";a.click();
+  toast("✅ تقویم دانلود شد — در تقویم گوشی Import کنید");
+}
+
+/* ============ v6: کد اشتراک کلاس (QR via API when online) ============ */
+function shareClassCode(){
+  const d=Store.get();
+  const payload={v:1,name:d.settings.className||"کلاس",n:d.members.length,cls:d.classes};
+  const text="My-Class-Track\n"+(d.settings.className||"کلاس")+"\nاعضا: "+d.members.length+"\nبرنامه: "+(d.classes.map(c=>Jalali.DN[c.dow]+" "+c.start).join(" | "));
+  const o=modal('<h3 style="font-weight:800">📤 اشتراک کلاس</h3><p class="stat-line">کد یا لینک را برای همکار بفرستید</p><div style="text-align:center" id="qrWrap"><div class="skeleton" style="width:160px;height:160px;margin:8px auto"></div></div><textarea id="shareCode" rows="4" readonly style="margin-top:8px;font-size:.85em">'+esc(text)+'</textarea><div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" id="shCopy">📋 کپی</button><button class="btn ghost" style="flex:1" id="shShare">📤 ارسال</button></div>');
+  $("#shCopy",o).onclick=()=>copyTxt(text);
+  $("#shShare",o).onclick=()=>shareTxt(text);
+  // QR image when online
+  const qrUrl="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data="+encodeURIComponent(text.slice(0,300));
+  const img=new Image();img.alt="QR";img.className="qr-box";img.onload=()=>{const w=$("#qrWrap",o);if(w)w.innerHTML="";if(w)w.appendChild(img);};
+  img.onerror=()=>{const w=$("#qrWrap",o);if(w)w.innerHTML='<p class="stat-line">QR در حالت آفلاین در دسترس نیست — از کپی متن استفاده کنید</p>';};
+  img.src=qrUrl;
+}
+
+/* ============ v6: بینش کامل (مودال) ============ */
+function showInsights(){
+  const ins=computeInsights();
+  const top=ins.topAbs.length?ins.topAbs.map(x=>esc(x.name)+" ("+Jalali.toFa(x.n)+" غیبت)").join("، "):"—";
+  const trendTxt=ins.trend>0?"📈 روند صعودی (+"+Jalali.toFa(ins.trend)+"٪)":ins.trend<0?"📉 روند نزولی ("+Jalali.toFa(ins.trend)+"٪)":"➡️ روند پایدار";
+  modal('<h3 style="font-weight:800">✨ بینش هوشمند <span class="badge-ai">AI</span></h3>'+
+    '<div class="row" style="gap:14px;margin:12px 0;align-items:center">'+ringSVG(ins.avg)+'<div style="flex:1"><b>میانگین حضور</b><div class="stat-line">'+trendTxt+'</div>'+sparkHTML(ins.spark)+'</div></div>'+
+    '<div class="insight"><div class="ic"><span>جلسات ثبت‌شده</span><b>'+Jalali.toFa(ins.sessions)+'</b></div><div class="ic"><span>پرداخت شهریه</span><b>'+Jalali.toFa(ins.payRate)+'٪</b></div></div>'+
+    '<p class="stat-line" style="margin-top:8px"><b>بیشترین غیبت:</b> '+top+'</p>'+
+    '<h3 style="margin-top:14px">🗓 نقشه حضور (۴ هفته)</h3>'+attendHeatmap()+
+    '<div class="row" style="margin-top:14px;gap:8px"><button class="btn sm ghost" style="flex:1" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" style="flex:1" onclick="shareClassCode()">📲 اشتراک</button></div>');
+}
+
 function printAttendReport(key){
   const d=Store.get();key=key||sessionSel();
   if(!key){toast("⚠️ جلسه‌ای انتخاب نشده");return;}
@@ -1026,6 +1252,11 @@ function delGroup(g){
 const NAV=[["home","خانه",ICONS.home],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["members","اعضا",ICONS.users],["homework","تکالیف",ICONS.book],["settings","تنظیمات",ICONS.gear]];
 function render(){applyTheme();applyColor();applyFS();
 const ht=document.querySelector(".htitle");if(ht)ht.textContent=(Store.get().settings.className||"My-Class-Track");
+let fab=document.getElementById("fabAi");
+if(route==="entry"){if(fab)fab.remove();}
+else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="بینش هوشمند";fab.innerHTML="✨";fab.onclick=showInsights;document.body.appendChild(fab);}
+scheduleClassNotif();
+
 
 document.getElementById("hdr").style.display=route==="entry"?"none":"";
 document.getElementById("nav").style.display=route==="entry"?"none":"";
@@ -1044,14 +1275,13 @@ window.setFS=setFS;window.backup=backup;window.restore=restore;window.wipeAll=wi
 window.copyTxt=copyTxt;window.toggleCallFilter=toggleCallFilter;
 window.setColor=setColor;window.toggleSound=toggleSound;window.shareBackup=shareBackup;
 window.toggleFS=toggleFS;window.goBack=goBack;
-window.printAttendReport=printAttendReport;window.pruneSessions=pruneSessions;window.storageInfo=storageInfo;
+window.printAttendReport=printAttendReport;window.showInsights=showInsights;window.startSpeech=startSpeech;window.enableNotifs=enableNotifs;window.exportICS=exportICS;window.shareClassCode=shareClassCode;window.scheduleClassNotif=scheduleClassNotif;window.pruneSessions=pruneSessions;window.storageInfo=storageInfo;
 window.setClassName=setClassName;window.addGroup=addGroup;window.delGroup=delGroup;
 
 render();
+scheduleClassNotif();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)
 navigator.serviceWorker.register("sw.js").catch(()=>{});
-
 </script>
-
 </body>
 </html>
