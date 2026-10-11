@@ -1,34 +1,17 @@
-# گیت‌هاب و استقرار MCT v21
+# همگام‌سازی گیت‌هاب — MCT v23
 
-## ساختار ریپو
+## آپلود کامل (توصیه)
 
-```
-index.html          # می‌تواند پوسته ماژولار یا یک‌تکه (Pages)
-css/app.css
-js/core.js
-js/pages.js
-js/app.js
-sw.js
-manifest.webmanifest
-icon.svg
-README.md
-GUIDE.md / GUIDE.html
-.gitignore
-```
-
-## GitHub Pages
-
-Settings → Pages → Deploy from branch → `main` / root  
-آدرس: https://majidsb1982.github.io/MCT/
-
-## آپلود نسخه کامل از ZIP
-
-1. دانلود MCT-v21.zip
-2. Extract
-3. در گیت‌هاب: Add file → Upload files → همه را بکشید (با پوشه‌های css و js)
+1. `MCT-v23.zip` را Extract کنید
+2. در ریپو: Add file → Upload files
+3. این‌ها را بفرستید:
+   - **index.mono.html را با نام index.html** (اپ یک‌تکه برای Pages)
+   - یا ساختار ماژولار: index.html + css/ + js/
+   - sw.js, manifest, icon.svg
 4. Commit
 
-## توسعه
+## Pages
+Settings → Pages → main / (root) → https://majidsb1982.github.io/MCT/
 
-ترتیب اسکریپت: core → pages → app  
-هرگز ترتیب را عوض نکنید.
+## بعد از آپدیت
+Hard Refresh روی موبایل تا کش mct-v23 بیاید.
