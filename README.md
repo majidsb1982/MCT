@@ -1,13 +1,16 @@
 # My-Class-Track
 
-بارگذاری تکه‌ای برای همگام‌سازی کامل از طریق API:
+## همگام‌سازی کامل
 
-```
-js/core.js
-js/features.js
-js/pages-1.js … pages-3.js
-js/app-1.js … app-4.js
-css/app-1.css + app-2.css
+فایل‌های کد به تکه‌های کوچک (`js/c-*`, `js/f-*`, `js/p-*`, `js/a-*`, `css/s-*`) تقسیم شده‌اند تا از API قابل ارسال باشند.
+
+**بسته کامل:** `MCT-v25d.zip` را یک‌بار Upload کنید (همه تکه‌ها داخلش است).
+
+یا از کامپیوتر:
+```bash
+git clone https://github.com/majidsb1982/MCT.git
+# extract MCT-v25d.zip into folder
+git add -A && git commit -m "v25d full" && git push
 ```
 
-https://majidsb1982.github.io/MCT/
+Pages: https://majidsb1982.github.io/MCT/
