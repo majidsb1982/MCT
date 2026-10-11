@@ -1,25 +1,38 @@
-# My-Class-Track v23
+# My-Class-Track (MCT)
 
-دستیار آفلاین گروه درمانی (PWA فارسی)
+دستیار آفلاین گروه درمانی — PWA فارسی
 
-## امکانات v23
-- حالت روز کلاس (مسیر ۴ مرحله‌ای)
-- نوار وضعیت جلسه
-- سنجاق اعضا
-- نقش‌ها با آیکون
-- نوبت ۱ و ۲، شهریه، گزارش حامی، تقسیم وظایف
+## ساختار تمیز
+
+```
+index.html
+css/app.css
+js/core.js       # تاریخ شمسی + Store
+js/pages.js      # صفحات UI
+js/features.js   # گزارش، روز کلاس، ابزار
+js/app.js        # نقش‌ها، روتینگ، شروع
+sw.js
+manifest.webmanifest
+icon.svg
+docs/GUIDE.md
+```
+
+ترتیب بارگذاری: `core → pages → features → app`
 
 ## اجرا
 
-### GitHub Pages
-Settings → Pages → branch `main` / root  
-آدرس: https://majidsb1982.github.io/MCT/
-
-پس از آپلود کامل `index.html` یک‌تکه (از MCT-v23.zip فایل index.mono.html را به‌نام index.html بگذارید) اپ کامل بالا می‌آید.
-
-### محلی
 ```bash
 python -m http.server 8080
 ```
 
-نسخه ماژولار: `css/` + `js/core.js` + `js/pages.js` + `js/app.js`
+GitHub Pages: Settings → Pages → `main` / root  
+https://majidsb1982.github.io/MCT/
+
+## گردش کار
+
+1. نوبت ۱ — تماس قبل از کلاس  
+2. شهریه  
+3. نوبت ۲ + یادآور ۱۵/۸/۵/۳  
+4. گزارش به حامی‌ها  
+
+داده فقط روی دستگاه است.
