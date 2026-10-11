@@ -1,0 +1,131 @@
+/**
+ * MCT Features — گزارش، روز کلاس، ابزارها
+ */
+"use strict";
+
+function isPinned(id){
+  const d=Store.get();
+  const pins=d.pinnedMembers||d.pinned||[];
+  return pins.indexOf(id)>=0;
+}
+function togglePinMember(id){
+  const d=Store.get();
+  d.pinnedMembers=d.pinnedMembers||[];
+  d.pinned=d.pinned||[];
+  const i=d.pinnedMembers.indexOf(id);
+  if(i>=0){
+    d.pinnedMembers.splice(i,1);
+    const j=d.pinned.indexOf(id);if(j>=0)d.pinned.splice(j,1);
+    toast("سنجاق برداشته شد");
+  }else{
+    d.pinnedMembers.push(id);
+    if(d.pinned.indexOf(id)<0)d.pinned.push(id);
+    toast("سنجاق شد 📌");
+  }
+  Store.save();
+  if(typeof route!=="undefined"&&route==="members"&&typeof renderMembers==="function")
+    renderMembers((document.getElementById("mSearch")||{}).value||"");
+}
+
+
+
+
+/**
+ * MCT App — روتینگ، دسترسی، قابلیت‌ها، bootstrap (v21)
+ * بارگذاری آخر
+ */
+"use strict";
+
+
+/* ============ v23: حالت روز کلاس + سنجاق اعضا + نوار وضعیت ============ */
+function isClassDaySoon(){
+  const nc=typeof nextClass==="function"?nextClass():null;
+  if(!nc)return null;
+  const diff=nc.t-Date.now();
+  return {nc,diff,hours:diff/36e5,soon:diff>0&&diff<36e5*36};
+}
+function classDayModeHTML(){
+  const info=isClassDaySoon();
+  if(!info||!info.soon)return"";
+  const h=info.hours;
+  let phase="آماده‌سازی";
+  if(h<=0)phase="کلاس در جریان / نوبت ۲";
+  else if(h<=0.5)phase="نوبت ۲ — پشت در";
+  else if(h<=6)phase="نوبت ۱ — تماس نهایی";
+  else phase="پیگیری شهریه و نوبت ۱";
+  return '<div class="card class-day-mode noprint">'+
+    '<div class="cdm-head"><span class="cdm-badge">🎯 حالت روز کلاس</span><span class="cdm-phase">'+phase+'</span></div>'+
+    '<p class="stat-line" style="margin:6px 0 10px">تا شروع: <b>'+(info.diff>0?(Jalali.toFa(Math.floor(info.hours))+" س و "+Jalali.toFa(Math.floor((info.diff%36e5)/6e4))+" د"):"اکنون")+'</b></p>'+
+    '<div class="cdm-steps">'+
+    '<button type="button" class="cdm-step" onclick="go(\'fees\')"><span>۱</span>شهریه</button>'+
+    '<button type="button" class="cdm-step" onclick="go(\'attend\')"><span>۲</span>نوبت ۱</button>'+
+    '<button type="button" class="cdm-step" onclick="openEntry()"><span>۳</span>نوبت ۲</button>'+
+    '<button type="button" class="cdm-step" onclick="go(\'reports\')"><span>۴</span>گزارش حامی</button>'+
+    '</div></div>';
+}
+function statusStripHTML(){
+  try{
+    const d=Store.get();const key=typeof curKey==="function"?curKey():null;
+    if(!key||!d.members.length)return"";
+    const s=d.sessions[key]||{},f=d.fees[key]||{};
+    const tot=d.members.length;
+    const p1=d.members.filter(m=>(s[m.id]||{}).p1).length;
+    const p2=d.members.filter(m=>(s[m.id]||{}).p2).length;
+    const paid=d.members.filter(m=>f[m.id]&&f[m.id].paid).length;
+    return '<div class="status-strip noprint" role="status">'+
+      '<span title="نوبت ۱">📞 '+Jalali.toFa(p1)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="نوبت ۲">🚪 '+Jalali.toFa(p2)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="شهریه">💰 '+Jalali.toFa(paid)+'/'+Jalali.toFa(tot)+'</span>'+
+      '</div>';
+  }catch(e){return"";}
+}
+
+
+
+function go(r){
+if(r==="login"){route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;render();return;}
+if(Store.get().settings.requireLogin&&!currentUser()){route="login";render();return;}
+const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",settings:"settings",help:"help",more:"more",reports:"reports"};
+if(map[r]&&!can(map[r])){toast("⛔ به این بخش دسترسی ندارید");return;}
+route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;
+render();pushState();}
+window.go=go;
+
+/* ============ رویدادهای مشترک ============ */
+document.getElementById("app").addEventListener("click",e=>{
+const ap=e.target.closest("[data-aud]");if(ap){playAud(AUD[ap.dataset.aud]);return;}
+const mi=e.target.closest("[data-mic]");
+if(mi){const key=mi.dataset.key,mid=mi.dataset.mid,ph=mi.dataset.ph;
+const d=Store.get();const cur=(d.sessions[key]||{})[mid]||{};
+const af=ph==="p1"?"a1":"a2";
+recordVoice(res=>{d.sessions[key]=d.sessions[key]||{};
+const c=d.sessions[key][mid]=d.sessions[key][mid]||{};
+if(res)c[af]=res;else delete c[af];Store.save();render();},cur[af]);return;}
+const rf=e.target.closest("[data-restorefee]");
+if(rf){restoreFee(rf.dataset.key,rf.dataset.mid);return;}
+const fs=e.target.closest("[data-fst]");
+if(fs){feeStatus(fs.dataset.key,fs.dataset.mid,fs.dataset.s);return;}
+const rb=e.target.closest("[data-restore]");
+if(rb){restoreAtt(rb.dataset.key,rb.dataset.mid,rb.dataset.ph);return;}
+const b=e.target.closest(".st-btn");if(b){setAtt(b.dataset.key,b.dataset.mid,b.dataset.ph,b.dataset.s);return;}
+const pr=e.target.closest(".payrow");
+if(pr&&!e.target.closest("input")&&!e.target.closest("button")&&!e.target.closest("a")){togglePay(pr.dataset.key,pr.dataset.mid);return;}});
+document.getElementById("app").addEventListener("change",e=>{
+const t=e.target;
+if(t.id==="alarmIn"){const d=Store.get();
+const times=t.value.split(",").map(x=>parseInt(x.trim(),10)).filter(x=>x>0&&x<=59).sort((a,b)=>b-a);
+if(times.length){d.settings.alarmTimes=times;Store.save();toast("✅ لحظه‌های یادآوری: "+times.join("، "));}
+else{toast("⚠️ عدد معتبر وارد کنید (مثلاً 15,8,5,3)");t.value=d.settings.alarmTimes.join(",");}return;}
+if(t.classList.contains("ex-input")){const d=Store.get();
+d.sessions[t.dataset.key]=d.sessions[t.dataset.key]||{};
+const cur=d.sessions[t.dataset.key][t.dataset.mid]=d.sessions[t.dataset.key][t.dataset.mid]||{};
+cur[t.dataset.f]=t.value;d._lastSession=t.dataset.key;Store.save();return;}
+if(t.classList.contains("fee-note")){feeNote(t.dataset.key,t.dataset.mid,t.value);return;}});
+
+
+
+/* ============ v6: بینش هوشمند ============ */
+
+/* ============ v7: حریم خصوصی و نگاه انسانی ============ */
+const NEEDS=[["follow","پیگیری ویژه"],["sensitive","حساس"],["encourage","نیاز به تشویق"],["family","هماهنگی خانواده"]];
+/* ============ v8: کاربران و سطح دسترسی ============ */
