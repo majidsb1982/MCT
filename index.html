@@ -4,27 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f7fe">
-<meta name="description" content="دستیار گروه درمانی — MCT">
+<meta name="description" content="دستیار گروه درمانی — پیگیری حضور، شهریه، تکالیف و گزارش‌ها">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.003/Vazirmatn-font-face.css" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="css/s-1.css"><link rel="stylesheet" href="css/s-2.css"><link rel="stylesheet" href="css/s-3.css"><link rel="stylesheet" href="css/s-4.css"><link rel="stylesheet" href="css/s-5.css"><link rel="stylesheet" href="css/s-6.css"><link rel="stylesheet" href="css/s-7.css"><link rel="stylesheet" href="css/s-8.css"><link rel="stylesheet" href="css/s-9.css"><link rel="stylesheet" href="css/s-10.css"><link rel="stylesheet" href="css/s-11.css"><link rel="stylesheet" href="css/s-12.css">
+<link rel="stylesheet" href="css/app.css">
 <title>My-Class-Track</title>
 </head>
 <body>
 <header id="hdr"><div class="hwrap">
   <button class="hbtn" id="backBtn" onclick="goBack()" aria-label="بازگشت" style="display:none">→</button>
-  <div class="logo">M</div>
+  <div class="logo" aria-hidden="true">M</div>
   <div><div class="htitle">My-Class-Track</div><div class="hsub">گروه درمانی</div></div>
-  <button class="hbtn first" id="exitBtn" onclick="exitApp()" aria-label="خروج">⌂</button>
+  <button class="hbtn first" id="exitBtn" onclick="exitApp()" aria-label="خانه / خروج" title="خانه / خروج">⌂</button>
   <button class="hbtn" onclick="toggleFS()" aria-label="تمام‌صفحه">⛶</button>
   <button class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="تغییر تم">🌙</button>
 </div></header>
 <div id="app" class="page" role="main"></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <nav id="nav" aria-label="ناوبری اصلی"></nav>
-<script src="js/c-1.js"></script><script src="js/c-2.js"></script><script src="js/c-3.js"></script><script src="js/c-4.js"></script><script src="js/c-5.js"></script><script src="js/c-6.js"></script><script src="js/f-1.js"></script><script src="js/f-2.js"></script><script src="js/p-1.js"></script><script src="js/p-2.js"></script><script src="js/p-3.js"></script><script src="js/p-4.js"></script><script src="js/p-5.js"></script><script src="js/p-6.js"></script><script src="js/p-7.js"></script><script src="js/p-8.js"></script><script src="js/p-9.js"></script><script src="js/p-10.js"></script><script src="js/p-11.js"></script><script src="js/p-12.js"></script><script src="js/p-13.js"></script><script src="js/p-14.js"></script><script src="js/p-15.js"></script><script src="js/p-16.js"></script><script src="js/p-17.js"></script><script src="js/p-18.js"></script><script src="js/a-1.js"></script><script src="js/a-2.js"></script><script src="js/a-3.js"></script><script src="js/a-4.js"></script><script src="js/a-5.js"></script><script src="js/a-6.js"></script><script src="js/a-7.js"></script><script src="js/a-8.js"></script><script src="js/a-9.js"></script><script src="js/a-10.js"></script><script src="js/a-11.js"></script><script src="js/a-12.js"></script><script src="js/a-13.js"></script><script src="js/a-14.js"></script><script src="js/a-15.js"></script><script src="js/a-16.js"></script><script src="js/a-17.js"></script><script src="js/a-18.js"></script><script src="js/a-19.js"></script><script src="js/a-20.js"></script><script src="js/a-21.js"></script><script src="js/a-22.js"></script><script src="js/a-23.js"></script><script src="js/a-24.js"></script><script src="js/a-25.js"></script><script src="js/a-26.js"></script><script src="js/a-27.js"></script><script src="js/a-28.js"></script>
+<script src="js/core.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/features.js"></script>
+<script src="js/app.js"></script>
+<script>
+if ("serviceWorker" in navigator && location.protocol !== "file:") {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(err => console.warn("Service worker registration failed", err));
+  });
+}
+</script>
 </body>
 </html>

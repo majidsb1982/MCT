@@ -1,4 +1,52 @@
-const C="mct-v25d",A=['./', './index.html', './manifest.webmanifest', './icon.svg', './js/c-1.js', './js/c-2.js', './js/c-3.js', './js/c-4.js', './js/c-5.js', './js/c-6.js', './js/f-1.js', './js/f-2.js', './js/p-1.js', './js/p-2.js', './js/p-3.js', './js/p-4.js', './js/p-5.js', './js/p-6.js', './js/p-7.js', './js/p-8.js', './js/p-9.js', './js/p-10.js', './js/p-11.js', './js/p-12.js', './js/p-13.js', './js/p-14.js', './js/p-15.js', './js/p-16.js', './js/p-17.js', './js/p-18.js', './js/a-1.js', './js/a-2.js', './js/a-3.js', './js/a-4.js', './js/a-5.js', './js/a-6.js', './js/a-7.js', './js/a-8.js', './js/a-9.js', './js/a-10.js', './js/a-11.js', './js/a-12.js', './js/a-13.js', './js/a-14.js', './js/a-15.js', './js/a-16.js', './js/a-17.js', './js/a-18.js', './js/a-19.js', './js/a-20.js', './js/a-21.js', './js/a-22.js', './js/a-23.js', './js/a-24.js', './js/a-25.js', './js/a-26.js', './js/a-27.js', './js/a-28.js', './css/s-1.css', './css/s-2.css', './css/s-3.css', './css/s-4.css', './css/s-5.css', './css/s-6.css', './css/s-7.css', './css/s-8.css', './css/s-9.css', './css/s-10.css', './css/s-11.css', './css/s-12.css'];
-self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting()));});
-self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request).then(cached=>{const fetched=fetch(e.request).then(res=>{if(res&&res.ok&&res.type==="basic"){const cp=res.clone();caches.open(C).then(c=>c.put(e.request,cp));}return res;}).catch(()=>cached||caches.match("./index.html"));return cached||fetched;}));});
+"use strict";
+const CACHE_NAME = "mct-v26";
+const APP_SHELL = [
+  "./",
+  "./index.html",
+  "./css/app.css",
+  "./js/core.js",
+  "./js/pages.js",
+  "./js/features.js",
+  "./js/app.js",
+  "./manifest.webmanifest",
+  "./icon.svg",
+  "./docs/GUIDE.md"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key.startsWith("mct-") && key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", event => {
+  const request = event.request;
+  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;
+  event.respondWith((async () => {
+    const cached = await caches.match(request);
+    try {
+      const response = await fetch(request);
+      if (response && response.ok && response.type === "basic") {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, response.clone()).catch(() => {});
+      }
+      return response;
+    } catch (error) {
+      if (cached) return cached;
+      if (request.mode === "navigate") {
+        return (await caches.match("./index.html")) || Response.error();
+      }
+      return Response.error();
+    }
+  })());
+});
