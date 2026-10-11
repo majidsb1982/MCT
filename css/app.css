@@ -555,3 +555,25 @@ nav button{position:relative}
 .status-strip{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:8px 12px;margin-bottom:8px;background:var(--sf);border:1px solid var(--ln);border-radius:12px;font-size:.8em;font-weight:700;color:var(--tx2)}
 .status-strip span{white-space:nowrap}
 @media(max-width:400px){.cdm-steps{grid-template-columns:repeat(2,1fr)}}
+
+/* Mobile UX: compact, windowed home dashboard */
+@media (max-width: 767px) {
+  body:has(#app .hub-grid) { height:100dvh; min-height:0; overflow:hidden; display:flex; flex-direction:column; }
+  body:has(#app .hub-grid) #hdr { flex:0 0 auto; }
+  body:has(#app .hub-grid) #app.page { flex:1 1 auto; min-height:0; overflow:hidden; padding:10px 12px 8px; display:flex; flex-direction:column; gap:8px; }
+  body:has(#app .hub-grid) #app > :not(.sec-label):not(.hub-grid) { display:none!important; }
+  body:has(#app .hub-grid) #app .sec-label { flex:0 0 auto; margin:0; padding:2px 2px 0; font-size:.82rem; line-height:1.3; }
+  body:has(#app .hub-grid) #app .hub-grid { flex:1 1 auto; min-height:0; margin:0; gap:10px; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(3,minmax(0,1fr)); align-content:stretch; }
+  body:has(#app .hub-grid) #app .hub-tile { min-height:0; padding:12px 10px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px; text-align:center; overflow:hidden; }
+  body:has(#app .hub-grid) #app .hub-tile .ht-ico { margin:0; font-size:clamp(1.35rem,6vw,1.8rem); }
+  body:has(#app .hub-grid) #app .hub-tile .ht-title { font-size:clamp(.9rem,3.8vw,1.05rem); line-height:1.35; }
+  body:has(#app .hub-grid) #app .hub-tile .ht-sub { font-size:clamp(.68rem,2.8vw,.78rem); line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  body:has(#app .hub-grid) nav { flex:0 0 auto; overflow:hidden; justify-content:space-around; padding:4px 6px calc(4px + env(safe-area-inset-bottom)); gap:2px; }
+  body:has(#app .hub-grid) nav button { min-width:0; flex:1 1 0; padding:6px 2px; font-size:.66rem; white-space:nowrap; }
+}
+@media (max-width:360px) {
+  body:has(#app .hub-grid) #app.page { padding:7px; gap:6px; }
+  body:has(#app .hub-grid) #app .hub-grid { gap:7px; }
+  body:has(#app .hub-grid) #app .hub-tile { padding:7px 5px; }
+  body:has(#app .hub-grid) nav button { font-size:.6rem; }
+}
