@@ -541,3 +541,17 @@ nav button{position:relative}
 .ico-btn{min-width:38px;padding:7px 8px}
 .mem-list .mem{padding:11px 0}
 .page-sec{margin:12px 0 6px}
+
+/* v23 class day + status strip */
+.class-day-mode{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border:none}
+.class-day-mode .stat-line{color:rgba(255,255,255,.9)}
+.cdm-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.cdm-badge{font-weight:800;font-size:.9em}
+.cdm-phase{font-size:.78em;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:99px}
+.cdm-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cdm-step{border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:12px;padding:10px 4px;font-family:inherit;font-size:.72em;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.cdm-step span{width:22px;height:22px;border-radius:50%;background:#fff;color:#1e3a8a;display:flex;align-items:center;justify-content:center;font-size:.85em;font-weight:900}
+.cdm-step:active{transform:scale(.96)}
+.status-strip{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:8px 12px;margin-bottom:8px;background:var(--sf);border:1px solid var(--ln);border-radius:12px;font-size:.8em;font-weight:700;color:var(--tx2)}
+.status-strip span{white-space:nowrap}
+@media(max-width:400px){.cdm-steps{grid-template-columns:repeat(2,1fr)}}
