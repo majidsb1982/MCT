@@ -219,12 +219,12 @@ window.setSel=setSel;
 /* ---- ثبت ورود ---- */
 function openEntry(){const d=Store.get(),nc=nextClass();
 if(!nc){toast("⚠️ اول کلاس را در تنظیمات ثبت کنید");return;}
-try{if(d.settings.focusMode)document.body.classList.add("focus-on");}catch(e){}
+/* Keep normal mobile viewport; do not force focus zoom. */
 const target=nc.t.getTime();
 d._lastSession=Jalali.toKey(nc.date);
 if(!d.timer||d.timer.target!==target)d.timer={target,fired:[]};
 Store.save();route="entry";resetUI();UI.callOnly=true;
-pushState();renderEntry();fsOn();}
+pushState();renderEntry();}
 function renderEntry(){const d=Store.get();
 if(!d.timer||!d.timer.target){route="home";render();return;}
 const target=d.timer.target,key=d._lastSession||sessionSel(),s=d.sessions[key]||{};
@@ -343,7 +343,7 @@ if(!UI.doneTab){
 h+='<div class="card"><h3>📚 تکلیف جدید</h3><label>جلسه (تاریخ)</label>'+
 '<input id="hwDate" name="hw-date" readonly placeholder="انتخاب تاریخ" value="'+(nextClass()?Jalali.fmt(nextClass().date):"")+'" onclick="pickHWDate()" style="cursor:pointer">'+
 '<label>متن تکلیف</label><textarea id="hwText" name="hw-text" placeholder="تکلیف این هفته را بنویسید…"></textarea>'+
-'<div class="row" style="margin-top:8px">"+speechBtn("hwText")+"<button class="btn sm ghost" id="hwMic" aria-label="ضبط یادداشت صوتی">🎙 ضبط صدا</button><span id="hwV"></span></div>'+
+'<div class="row hw-audio-actions" style="margin-top:8px">'+speechBtn("hwText")+'<button type="button" class="btn sm ghost" id="hwMic" aria-label="ضبط یادداشت صوتی">🎙 ضبط صدا</button><span id="hwV"></span></div>'+
 '<div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" onclick="saveHW()">💾 ذخیره</button></div></div>';
 }else{
 h+=filterBar("جستجوی تکالیف");
