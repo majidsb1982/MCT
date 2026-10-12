@@ -44,22 +44,29 @@ function buildNavHTML(){
 }
 
 Pages.more=function(el){
-  let h='<div class="card hero"><h3>☰ بخش‌ها</h3><p style="opacity:.9;font-size:.9em;margin:0">هر بخش پنجره و مسیر خودش را دارد — بدون جست‌وجوی طولانی.</p></div><div class="more-list">';
-  const rows=[
-    ["📋","تکالیف","اعلام و پیگیری تکلیف","go(\'homework\')"],
-    ["📡","گزارش و ارتباطات","حامی، واتساپ، استوری، همگام","go(\'reports\')"],
-    ["👥","اعضا","فهرست و ویرایش اعضا","go(\'members\')"],
-    ["⚙️","تنظیمات","کلاس، کاربر، ظاهر، پشتیبان","go(\'settings\')"],
-    ["📖","راهنما","آموزش کامل","go(\'help\')"],
-    ["⌘","دستورات سریع","جستجوی همه کارها","openCommandPalette()"],
-    ["💾","پشتیبان داده","دانلود JSON","backup()"],
-    ["🔗","همگام فشرده","کد برای همکار","compactSyncExport()"],
-    ["📦","تحویل شیفت","متن باقی‌مانده‌ها","handoffPackage()"]
+  const groups=[
+    {title:"کارهای تکمیلی",items:[
+      ["📋","تکالیف","ثبت و پیگیری تکالیف","go('homework')"],
+      ["📡","گزارش‌ها و ارتباطات","گزارش حامی، پیام‌ها و استوری","go('reports')"],
+      ["⚙️","تنظیمات برنامه","کلاس، کاربران و ظاهر","go('settings')"],
+      ["📖","راهنما","راهنمای استفاده و توضیحات","go('help')"]
+    ]},
+    {title:"ابزارهای مدیریتی",items:[
+      ["💾","پشتیبان‌گیری","ذخیره فایل نسخه پشتیبان","backup()"],
+      ["🔄","انتقال اطلاعات بین دستگاه‌ها","ساخت یا ورود کد همگام‌سازی","compactSyncExport()"],
+      ["📦","تحویل شیفت","خلاصه کارهای باقی‌مانده برای همکار","handoffPackage()"],
+      ["⌘","جستجوی دستورات","پیدا کردن سریع عملیات برنامه","openCommandPalette()"]
+    ]}
   ];
-  rows.forEach(r=>{
-    h+='<button type="button" class="more-item" onclick="'+r[3]+'"><span class="mi-ico">'+r[0]+'</span><span class="mi-txt"><b>'+r[1]+'</b><span>'+r[2]+'</span></span><span class="mi-go">←</span></button>';
+  let h='<div class="card hero more-hero"><h3>☰ بخش‌های بیشتر</h3><p>ابزارهای تکمیلی و مدیریتی، بدون تکرار بخش‌های اصلی نوار پایین.</p></div>';
+  groups.forEach((group,index)=>{
+    h+='<section class="more-group" aria-labelledby="more-group-'+index+'"><h3 id="more-group-'+index+'" class="more-group-title">'+group.title+'</h3><div class="more-list">';
+    group.items.forEach(item=>{
+      h+='<button type="button" class="more-item" onclick="'+item[3]+'"><span class="mi-ico">'+item[0]+'</span><span class="mi-txt"><b>'+item[1]+'</b><span>'+item[2]+'</span></span><span class="mi-go" aria-hidden="true">←</span></button>';
+    });
+    h+='</div></section>';
   });
-  h+='</div>';
+  h+='<p class="more-footnote">برای خانه، حضور، شهریه و اعضا از نوار پایین استفاده کن.</p>';
   el.innerHTML=h;
 };
 Pages.reports=function(el){
@@ -77,8 +84,6 @@ Pages.reports=function(el){
   });
   h+='</div><div class="sec-label">هماهنگی بین مسئولان</div><div class="hub-grid">';
   [
-    ["📦","تحویل شیفت","باقی‌مانده‌های من","handoffPackage()"],
-    ["🔗","همگام فشرده","کد جلسه و تقسیم","compactSyncExport()"],
     ["💬","یادآوری حضور","واتساپ اعضا","attendRemindWA()"],
     ["💚","یادآوری شهریه","واتساپ بدهکاران","remindUnpaidWA()"]
   ].forEach(t=>{
