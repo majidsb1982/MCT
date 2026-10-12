@@ -439,7 +439,7 @@ return'<div class="mem mem-row">'+avatar(m)+'<div class="mem-main"><div class="m
 (supporterName(m)?'<span class="mem-muted"> · 🤝 '+esc(supporterName(m))+'</span>':'')+
 (m.birth?'<span class="mem-muted"> · 🎂 '+Jalali.fmt(m.birth)+'</span>':'')+
 '</div></div><div class="mem-actions">'+audBtn(m.voice,"پخش یادداشت "+m.name)+'<button class="btn sm ghost ico-btn" onclick="memberForm(\''+m.id+'\')" aria-label="ویرایش">✏️</button><button class="btn sm ghost ico-btn" onclick="delMember(\''+m.id+'\')" aria-label="حذف">🗑</button></div></div>';
-}).join("")+"</div>"):('<div class="card empty-members-card"><div class="empty"><div class="empty-members-art" aria-hidden="true"><span>م</span><span>ع</span><span>ض</span></div><h3>هنوز عضوی ثبت نشده</h3><p>برای شروع، اولین عضو کلاس را اضافه کنید.</p><button class=btn onclick=memberForm()>＋ افزودن اولین عضو</button></div></div>");}
+}).join("")+"</div>"):('<div class="card empty-members-card"><div class="empty"><div class="empty-members-art" aria-hidden="true"><span>م</span><span>ع</span><span>ض</span></div><h3>هنوز عضوی ثبت نشده</h3><p>برای شروع، اولین عضو کلاس را اضافه کنید.</p><button class=btn onclick=memberForm()>＋ افزودن اولین عضو</button></div></div>');}
 function memberForm(id){const d=Store.get(),m=id?d.members.find(x=>x.id===id):null;
 const o=modal("<h3 style='font-weight:800'>"+(m?"✏️ ویرایش عضو":"＋ عضو جدید")+"</h3>"+
 '<div class="ph-pick">'+(m&&m.photo?'<img id="phPrev" src="'+m.photo+'" alt="عکس عضو">':'<div class="ph-empty" id="phPrev">👤</div>')+
