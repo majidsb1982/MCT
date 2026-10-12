@@ -2,47 +2,33 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="theme-color" content="#f4f7fe">
-<meta name="description" content="دستیار گروه درمانی — پیگیری حضور، شهریه، تکالیف و گزارش‌ها">
+<meta name="description" content="دستیار گروه درمانی — My-Class-Track">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.003/Vazirmatn-font-face.css" rel="stylesheet">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="css/app.css?v=34">
+<link rel="stylesheet" href="css/app.css">
 <title>My-Class-Track</title>
 </head>
 <body>
 <header id="hdr"><div class="hwrap">
-  <button class="hbtn" id="backBtn" onclick="goBack()" aria-label="بازگشت به صفحه قبل" title="بازگشت به صفحه قبل" style="display:none">←</button>
+  <button type="button" class="hbtn" id="backBtn" onclick="goBack()" aria-label="بازگشت" style="display:none">→</button>
   <div class="logo" aria-hidden="true">M</div>
   <div><div class="htitle">My-Class-Track</div><div class="hsub">گروه درمانی</div></div>
-  <button class="hbtn first" id="exitBtn" onclick="exitApp()" aria-label="رفتن به خانه" title="رفتن به خانه">⌂</button>
-  <button class="hbtn" onclick="toggleFS()" aria-label="تمام‌صفحه">⛶</button>
-  <button class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="تغییر تم">🌙</button>
+  <button type="button" class="hbtn first" id="exitBtn" onclick="exitApp()" aria-label="خانه یا خروج" title="خانه / خروج">⌂</button>
+  <button type="button" class="hbtn" onclick="toggleFS()" aria-label="تمام‌صفحه">⛶</button>
+  <button type="button" class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="تغییر تم">🌙</button>
 </div></header>
-<div id="app" class="page" role="main"></div>
+<main id="app" class="page" role="main"></main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <nav id="nav" aria-label="ناوبری اصلی"></nav>
-<div id="bootError" style="display:none;margin:16px;padding:16px;border:1px solid #dc2626;border-radius:14px;background:#fff;color:#7f1d1d;direction:rtl;font-family:system-ui,sans-serif;line-height:1.8"><b>برنامه کامل بارگذاری نشد</b><p id="bootErrorText" style="margin:8px 0"></p><button onclick="location.reload()" style="padding:10px 16px;border:0;border-radius:10px;background:#2563eb;color:#fff">تلاش دوباره</button></div>
-<script>
-(function(){
- function show(msg){var box=document.getElementById("bootError"),t=document.getElementById("bootErrorText");if(box&&t){box.style.display="block";t.textContent=msg||"یکی از فایل‌های برنامه بارگذاری نشد.";}}
- window.addEventListener("error",function(e){if(e&&e.message)show("خطای اجرا: "+e.message);else if(e&&e.target&&e.target.src)show("فایل بارگذاری نشد: "+e.target.src);},true);
- window.addEventListener("unhandledrejection",function(e){show("خطای برنامه: "+String(e.reason||"خطای ناشناخته"));});
- window.addEventListener("load",function(){setTimeout(function(){var app=document.getElementById("app");if(app&&!app.children.length)show("محتوای برنامه ساخته نشد. خطای بارگذاری یا اجرای فایل‌های جاوااسکریپت رخ داده است.");},1800);});
-})();
-</script>
-<script src="js/core.js?v=34" onerror="document.getElementById('bootError').style.display='block';document.getElementById('bootErrorText').textContent='فایل core.js بارگذاری نشد.'"></script>
-<script src="js/pages.js?v=34" onerror="document.getElementById('bootError').style.display='block';document.getElementById('bootErrorText').textContent='فایل pages.js بارگذاری نشد یا خطای نحوی دارد.'"></script>
-<script src="js/features.js?v=34" onerror="document.getElementById('bootError').style.display='block';document.getElementById('bootErrorText').textContent='فایل features.js بارگذاری نشد.'"></script>
-<script src="js/app.js?v=34" onerror="document.getElementById('bootError').style.display='block';document.getElementById('bootErrorText').textContent='فایل app.js بارگذاری نشد یا خطای نحوی دارد.'"></script>
-<script>
-if ("serviceWorker" in navigator && location.protocol !== "file:") {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js?v=34").then(reg => reg.update()).catch(err => console.warn("Service worker registration failed", err));
-  });
-}
-</script>
+<script src="js/core.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/features.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
