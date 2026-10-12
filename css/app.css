@@ -807,3 +807,23 @@ body:has(#app .entry-body) #nav { display:none!important; }
  .help-overlay { align-items:flex-end; padding:12px 12px calc(12px + env(safe-area-inset-bottom)); }
  .help-popover { width:100%;max-height:55dvh;border-radius:18px; }
 }
+
+/* v32 — compact members page, contextual help and friendly empty state */
+.members-hero{padding:13px 16px;margin-bottom:10px;min-height:58px;display:flex;align-items:center}
+.members-hero-title{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;position:relative;z-index:1}
+.members-hero-title h3{margin:0;font-size:1.05em;color:#fff}
+.members-help-btn{width:32px;height:32px;flex:0 0 32px;border-radius:50%;border:1px solid #ffffffa8;background:#ffffff20;color:#fff;font:800 17px/1 inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.members-help-btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.members-help-overlay{z-index:130}
+.members-help{color:var(--tx);line-height:1.85}
+.members-help-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--ln)}
+.members-help-head h3{margin:0 0 2px}.members-help-head p{margin:0;color:var(--tx2);font-size:.82em}
+.members-help-mark{width:42px;height:42px;flex:0 0 42px;border-radius:14px;background:var(--blue-t);color:var(--p);display:grid;place-items:center;font-size:1.4rem;font-weight:900}
+.members-help ul{margin:0;padding-right:20px}.members-help li{padding:5px 0}.members-help li::marker{color:var(--p)}
+.empty-members-card .empty{padding:20px 12px 22px}
+.empty-members-art{height:76px;display:flex;align-items:center;justify-content:center;gap:8px;margin:0 auto 12px}
+.empty-members-art span{display:grid;place-items:center;width:48px;height:48px;border-radius:16px;background:var(--blue-t);border:1px solid var(--ln);color:var(--p);font-size:1.2rem;font-weight:900;box-shadow:var(--sh)}
+.empty-members-art span:nth-child(2){transform:translateY(-9px);background:var(--pg);color:#fff;border:0}
+.empty-members-card .empty h3{color:var(--tx);margin:0 0 4px}.empty-members-card .empty p{margin:0 0 14px;color:var(--tx2);font-size:.88em}
+.mem-row{gap:10px;padding:11px 0}.mem-main{min-width:0;flex:1}.mem-name{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.mem-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:4px}.mem-actions{display:flex;align-items:center;gap:5px;flex-shrink:0}.mem-actions .btn{min-width:36px;padding:6px}.mem-phone{font-size:.8em;color:var(--p);text-decoration:none;direction:ltr;unicode-bidi:plaintext}.mem-muted{font-size:.76em;color:var(--tx2)}
+@media(max-width:420px){.mem-row{gap:8px}.mem-row .avatar{width:38px;height:38px;border-radius:12px}.mem-actions{gap:3px}.mem-actions .btn{min-width:32px;min-height:34px;padding:4px}.members-hero{min-height:54px}}
