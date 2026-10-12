@@ -421,7 +421,7 @@ const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>{const n=prune
 
 };
 
-function emptyState(m){return'<div class="card"><div class="empty">'+ICONS.users+"<p>"+esc(m)+"</p></div></div>";}
+function emptyState(m){return'<div class="card empty-state-card"><div class="empty-state-mark" aria-hidden="true">✓</div><h3>هنوز موردی برای نمایش نیست</h3><p>'+esc(m)+'</p><button type="button" class="btn p" onclick="go(\'members\')">＋ رفتن به اعضا</button></div>';}
 
 /* ---- اعضا: عملیات ---- */
 function showMembersHelp(){const o=modal('<div class="members-help"><div class="members-help-head"><span class="members-help-mark">?</span><div><h3>راهنمای صفحه اعضا</h3><p>مدیریت سریع اعضای کلاس</p></div></div><ul><li>برای افزودن عضو، دکمه ＋ کنار جستجو را بزنید.</li><li>با جستجو می‌توانید عضو موردنظر را سریع پیدا کنید.</li><li>آیکون‌های کنار نام، نقش‌های عضو را نشان می‌دهند: حضور، شهریه، تکلیف و حامی.</li><li>برای اصلاح اطلاعات از دکمه ویرایش استفاده کنید.</li><li>ورود و خروجی اعضا برای انتقال یا نگهداری اطلاعات در دسترس است.</li></ul><button type="button" class="btn p" style="width:100%;margin-top:8px" id="membersHelpDone">متوجه شدم</button></div>');o.classList.add("members-help-overlay");const b=o.querySelector("#membersHelpDone");if(b)b.onclick=()=>o.remove();}
