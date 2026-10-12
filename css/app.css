@@ -840,3 +840,16 @@ body:has(#app .entry-body) #nav { display:none!important; }
 
 /* v37 homework audio actions */
 .hw-audio-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hw-audio-actions .chip-mic{min-width:42px;min-height:40px;display:inline-flex;align-items:center;justify-content:center}.hw-audio-actions #hwMic{min-height:40px}@media(max-width:420px){.hw-audio-actions{gap:6px}.hw-audio-actions .btn{padding:8px 10px}}
+
+/* v38 settings usability and dark-theme contrast */
+.class-calendar-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-top:12px}
+.class-calendar-fields label{font-size:.82rem;color:var(--tx2);align-self:end}
+.class-calendar-fields input{min-width:0;width:100%}
+.user-setting-row{gap:7px;flex-wrap:wrap}
+body.dark .stat-line,body.dark .muted,body.dark .hint,body.dark .more-item .mi-txt>span{color:#b8c6dc}
+body.dark input,body.dark select,body.dark textarea{background:#111c30;color:#f1f5f9;border-color:#3a4b68;color-scheme:dark}
+body.dark input::placeholder,body.dark textarea::placeholder{color:#a8b6cb}
+body.dark .card,body.dark .more-item,body.dark .hub-tile{color:var(--tx)}
+body.dark .more-item{background:var(--sf);border-color:var(--ln)}
+body.dark .btn.ghost,body.dark .chip{color:#e2e8f0;border-color:#3a4b68}
+body.dark .role-hint,body.dark .hami-tip,body.dark .human-msg{color:#d5e5f7}
