@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="css/app.css?v=32">
+<link rel="stylesheet" href="css/app.css?v=34">
 <title>My-Class-Track</title>
 </head>
 <body>
@@ -24,14 +24,23 @@
 <div id="app" class="page" role="main"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <nav id="nav" aria-label="ناوبری اصلی"></nav>
-<script src="js/core.js?v=32"></script>
-<script src="js/pages.js?v=32"></script>
-<script src="js/features.js?v=32"></script>
-<script src="js/app.js?v=32"></script>
+<div id="bootError" style="display:none;margin:16px;padding:16px;border:1px solid #dc2626;border-radius:14px;background:#fff;color:#7f1d1d;direction:rtl;font-family:system-ui,sans-serif;line-height:1.8"><b>برنامه کامل بارگذاری نشد</b><p id="bootErrorText" style="margin:8px 0"></p><button onclick="location.reload()" style="padding:10px 16px;border:0;border-radius:10px;background:#2563eb;color:#fff">تلاش دوباره</button></div>
+<script>
+(function(){
+ function show(msg){var box=document.getElementById("bootError"),t=document.getElementById("bootErrorText");if(box&&t){box.style.display="block";t.textContent=msg||"یکی از فایل‌های برنامه بارگذاری نشد.";}}
+ window.addEventListener("error",function(e){if(e&&e.message)show("خطای اجرا: "+e.message);else if(e&&e.target&&e.target.src)show("فایل بارگذاری نشد: "+e.target.src);},true);
+ window.addEventListener("unhandledrejection",function(e){show("خطای برنامه: "+String(e.reason||"خطای ناشناخته"));});
+ window.addEventListener("load",function(){setTimeout(function(){var app=document.getElementById("app");if(app&&!app.children.length)show("محتوای برنامه ساخته نشد. خطای بارگذاری یا اجرای فایل‌های جاوااسکریپت رخ داده است.");},1800);});
+})();
+</script>
+<script src="js/core.js?v=34" onerror="document.getElementById('bootError').style.display='block';document.getElementById('bootErrorText').textContent='فایل core.js بارگذاری نشد.'"></script>
+<script src="js/pages.js?v=34" onerror="document.getElementById('bootError').style.display='block';document.getElementById('bootErrorText').textContent='فایل pages.js بارگذاری نشد یا خطای نحوی دارد.'"></script>
+<script src="js/features.js?v=34" onerror="document.getElementById('bootError').style.display='block';document.getElementById('bootErrorText').textContent='فایل features.js بارگذاری نشد.'"></script>
+<script src="js/app.js?v=34" onerror="document.getElementById('bootError').style.display='block';document.getElementById('bootErrorText').textContent='فایل app.js بارگذاری نشد یا خطای نحوی دارد.'"></script>
 <script>
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js?v=32").then(reg => reg.update()).catch(err => console.warn("Service worker registration failed", err));
+    navigator.serviceWorker.register("./sw.js?v=34").then(reg => reg.update()).catch(err => console.warn("Service worker registration failed", err));
   });
 }
 </script>
