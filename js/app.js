@@ -1917,6 +1917,8 @@ const el=$("#app");el.className="page";
 try{(Pages[route]||Pages.home)(el);wireHomeSplit();wireMineToggle(route==="fees"?"fee":"attend");}catch(err){console.warn(err);el.innerHTML='<div class="card"><h3>⚠️ خطا</h3><button class="btn p" onclick="go(\'home\')">خانه</button></div>';}
 try{decorateHelpHints(el);}catch(e){}
 window.scrollTo(0,0);}
+function exitApp(){if(route!=="home"){go("home");return;}if(typeof toast==="function")toast("شما در صفحه خانه هستید");}
+window.exitApp=exitApp;
 window.classDayModeHTML=classDayModeHTML;window.statusStripHTML=statusStripHTML;window.togglePinMember=togglePinMember;window.render=render;
 window.openEntry=openEntry;window.exitEntry=exitEntry;window.toggleEntryFilter=toggleEntryFilter;
 window.showReport=showReport;window.feeReport=feeReport;
