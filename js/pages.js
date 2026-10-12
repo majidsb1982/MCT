@@ -369,7 +369,7 @@ window.hwEdit=hwEdit;
 
 /* ---- اعضا ---- */
 Pages.members=function(el){
-el.innerHTML='<div class="card hero"><h3>👥 اعضا</h3><p style="opacity:.9;font-size:.88em;margin:0">فهرست اعضا — نقش‌ها با آیکون مشخص‌اند (حضور، شهریه، تکلیف، حامی).</p></div>'+
+el.innerHTML='<div class="card hero members-hero"><div class="members-hero-title"><h3>👥 اعضا</h3><button type="button" class="members-help-btn" onclick="showMembersHelp()" aria-label="راهنمای صفحه اعضا" title="راهنمای صفحه اعضا">?</button></div></div>'+
 '<div class="card"><div class="sec-label">جستجو و افزودن</div><div class="row"><input id="mSearch" name="member-search" aria-label="جستجوی نام عضو" placeholder="🔍 جستجوی نام…" oninput="renderMembers(this.value)" style="flex:1"><button class="btn p" onclick="memberForm()" aria-label="افزودن عضو جدید">＋</button></div>'+
 '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="exportMembersCSV()">📊 خروجی</button><button class="btn ghost sm" onclick="document.getElementById(\'mimp\').click()">⬆️ ورود</button><input type="file" id="mimp" class="sr" accept=".csv,text/csv" onchange="importMembersCSV(this)"></div>'+
 '<div class="role-legend">'+
@@ -424,6 +424,8 @@ const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>{const n=prune
 function emptyState(m){return'<div class="card"><div class="empty">'+ICONS.users+"<p>"+esc(m)+"</p></div></div>";}
 
 /* ---- اعضا: عملیات ---- */
+function showMembersHelp(){const o=modal('<div class="members-help"><div class="members-help-head"><span class="members-help-mark">?</span><div><h3>راهنمای صفحه اعضا</h3><p>مدیریت سریع اعضای کلاس</p></div></div><ul><li>برای افزودن عضو، دکمه ＋ کنار جستجو را بزنید.</li><li>با جستجو می‌توانید عضو موردنظر را سریع پیدا کنید.</li><li>آیکون‌های کنار نام، نقش‌های عضو را نشان می‌دهند: حضور، شهریه، تکلیف و حامی.</li><li>برای اصلاح اطلاعات از دکمه ویرایش استفاده کنید.</li><li>ورود و خروجی اعضا برای انتقال یا نگهداری اطلاعات در دسترس است.</li></ul><button type="button" class="btn p" style="width:100%;margin-top:8px" id="membersHelpDone">متوجه شدم</button></div>');o.classList.add("members-help-overlay");const b=o.querySelector("#membersHelpDone");if(b)b.onclick=()=>o.remove();}
+window.showMembersHelp=showMembersHelp;
 function renderMembers(q){q=(q||"").trim();const d=Store.get();
 let list=d.members.filter(m=>!q||m.name.includes(q));
 const pins=d.pinnedMembers||[];
@@ -437,7 +439,7 @@ return'<div class="mem mem-row">'+avatar(m)+'<div class="mem-main"><div class="m
 (supporterName(m)?'<span class="mem-muted"> · 🤝 '+esc(supporterName(m))+'</span>':'')+
 (m.birth?'<span class="mem-muted"> · 🎂 '+Jalali.fmt(m.birth)+'</span>':'')+
 '</div></div><div class="mem-actions">'+audBtn(m.voice,"پخش یادداشت "+m.name)+'<button class="btn sm ghost ico-btn" onclick="memberForm(\''+m.id+'\')" aria-label="ویرایش">✏️</button><button class="btn sm ghost ico-btn" onclick="delMember(\''+m.id+'\')" aria-label="حذف">🗑</button></div></div>';
-}).join("")+"</div>"):('<div class="card"><div class="empty">'+ICONS.users+"<p>عضوی ثبت نشده</p><button class='btn p' onclick='memberForm()'>＋ افزودن اولین عضو</button></div></div>");}
+}).join("")+"</div>"):('<div class="card empty-members-card"><div class="empty"><div class="empty-members-art" aria-hidden="true"><span>م</span><span>ع</span><span>ض</span></div><h3>هنوز عضوی ثبت نشده</h3><p>برای شروع، اولین عضو کلاس را اضافه کنید.</p><button class=\'btn p\' onclick=\'memberForm()\'>＋ افزودن اولین عضو</button></div></div>");}
 function memberForm(id){const d=Store.get(),m=id?d.members.find(x=>x.id===id):null;
 const o=modal("<h3 style='font-weight:800'>"+(m?"✏️ ویرایش عضو":"＋ عضو جدید")+"</h3>"+
 '<div class="ph-pick">'+(m&&m.photo?'<img id="phPrev" src="'+m.photo+'" alt="عکس عضو">':'<div class="ph-empty" id="phPrev">👤</div>')+
