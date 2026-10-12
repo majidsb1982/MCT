@@ -26,6 +26,35 @@ jobs:
             test -f "$file"
             node --check "$file"
           done
+      - name: Check duplicate static HTML IDs and cache versions
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const sw = fs.readFileSync('sw.js', 'utf8');
+          const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m => m[1]);
+          const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
+          if (duplicates.length) {
+            console.error('Duplicate static HTML IDs:', [...new Set(duplicates)].join(', '));
+            process.exit(1);
+          }
+          const htmlVersions = [...html.matchAll(/(?:src|href)="[^"]+\?v=(\d+)"/g)].map(m => m[1]);
+          const swVersions = [...sw.matchAll(/\?v=(\d+)/g)].map(m => m[1]);
+          const cache = sw.match(/const C="mct-v(\d+)"/);
+          if (htmlVersions.length && new Set(htmlVersions).size !== 1) {
+            console.error('HTML assets use inconsistent cache-busting versions:', [...new Set(htmlVersions)].join(', '));
+            process.exit(1);
+          }
+          if (cache && htmlVersions.length && cache[1] !== htmlVersions[0]) {
+            console.error('Service worker cache version does not match HTML asset version.');
+            process.exit(1);
+          }
+          if (swVersions.length && htmlVersions.length && swVersions.some(v => v !== htmlVersions[0])) {
+            console.error('Service worker asset versions do not match HTML.');
+            process.exit(1);
+          }
+          console.log('Static IDs and cache-busting versions are consistent.');
+          NODE
       - name: Check local HTML and offline-shell references
         run: |
           node <<'NODE'
