@@ -747,3 +747,24 @@ body { min-height:100dvh; overflow-x:clip; }
 /* The dedicated attendance-entry flow intentionally hides the global shell. */
 body:has(#app .entry-body) #hdr,
 body:has(#app .entry-body) #nav { display:none!important; }
+
+/* Organized More page */
+.more-hero { margin-bottom:16px; }
+.more-hero p { margin:0; color:var(--tx2); font-size:.88em; line-height:1.7; }
+.more-group { margin:0 0 20px; }
+.more-group-title { margin:0 2px 10px; font-size:1rem; font-weight:800; color:var(--tx); }
+.more-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.more-item { min-width:0; min-height:82px; padding:12px; gap:10px; align-items:center; border-radius:16px; }
+.more-item .mi-ico { width:38px; height:38px; flex:0 0 38px; font-size:1.05em; }
+.more-item .mi-txt { min-width:0; }
+.more-item .mi-txt b { line-height:1.45; overflow-wrap:anywhere; }
+.more-item .mi-txt span { display:block; line-height:1.5; margin-top:3px; overflow-wrap:anywhere; }
+.more-item .mi-go { flex:0 0 auto; }
+.more-footnote { margin:4px 2px 12px; color:var(--tx2); font-size:.78em; line-height:1.7; }
+@media (max-width:480px) {
+ .more-hero { padding:14px; }
+ .more-group { margin-bottom:16px; }
+ .more-list { grid-template-columns:minmax(0,1fr); gap:8px; }
+ .more-item { min-height:68px; padding:10px 12px; }
+ .more-item .mi-ico { width:36px; height:36px; flex-basis:36px; }
+}
