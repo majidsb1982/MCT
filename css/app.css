@@ -785,3 +785,25 @@ body:has(#app .entry-body) #nav { display:none!important; }
 .role-hint[hidden], .hami-tip[hidden], .human-msg[hidden] { display:none!important; }
 .role-hint:not([hidden]), .hami-tip:not([hidden]), .human-msg:not([hidden]) { animation:hintReveal .16s ease-out; }
 @keyframes hintReveal { from {opacity:0; transform:translateY(-3px)} to {opacity:1; transform:translateY(0)} }
+
+/* v31: contextual help popovers and clearer global navigation actions */
+.help-source-hidden[hidden] { display:none!important; }
+.hint-toggle { width:28px;height:28px;min-width:28px;flex:0 0 28px;margin:2px 4px;padding:0;border:1px solid var(--ln);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--sf);color:var(--p);font-size:15px;font-weight:800;line-height:1;cursor:pointer;vertical-align:middle;box-shadow:0 1px 3px rgba(0,0,0,.05); }
+.hint-toggle:focus-visible,.help-close:focus-visible,.help-done:focus-visible { outline:3px solid var(--p2);outline-offset:2px; }
+.help-overlay { z-index:120; padding:16px; }
+.help-popover { width:min(420px,100%); max-height:min(65dvh,520px); overflow:auto; margin:auto; padding:16px; border:1px solid var(--ln); border-radius:18px; background:var(--sf); color:var(--tx); box-shadow:0 18px 50px #0003; }
+.help-popover-head { display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--ln); }
+.help-popover-head b { font-size:1rem; }
+.help-close { width:34px;height:34px;flex:0 0 34px;border:1px solid var(--ln);border-radius:50%;background:var(--sf2);color:var(--tx);font-size:23px;line-height:1;cursor:pointer; }
+.help-popover-content { padding:12px 2px;line-height:1.8;font-size:.92rem;overflow-wrap:anywhere; }
+.help-popover-content .hami-tip,.help-popover-content .role-hint,.help-popover-content .human-msg { display:block!important;margin:0;padding:0;border:0;background:transparent;color:inherit; }
+.help-done { width:100%;min-height:42px;margin-top:8px; }
+#hdr .hbtn { display:inline-flex;align-items:center;justify-content:center; flex:0 0 38px; width:38px;height:38px;border-radius:12px; }
+#backBtn { font-size:1.1rem;font-weight:800; }
+#exitBtn { font-size:1.2rem; }
+@media(max-width:767px) {
+ .hwrap { gap:6px; }
+ #hdr .hbtn { flex-basis:36px;width:36px;height:36px; }
+ .help-overlay { align-items:flex-end; padding:12px 12px calc(12px + env(safe-area-inset-bottom)); }
+ .help-popover { width:100%;max-height:55dvh;border-radius:18px; }
+}
