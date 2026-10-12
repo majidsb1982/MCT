@@ -837,3 +837,6 @@ body:has(#app .entry-body) #nav { display:none!important; }
 #nav button{flex:1;min-width:0;padding:7px 2px;font-size:1rem}
 #nav button span{font-size:.72rem;white-space:nowrap}
 @media(max-width:390px){#nav button span{font-size:.65rem}#nav button{padding-left:0;padding-right:0}}
+
+/* v37 homework audio actions */
+.hw-audio-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.hw-audio-actions .chip-mic{min-width:42px;min-height:40px;display:inline-flex;align-items:center;justify-content:center}.hw-audio-actions #hwMic{min-height:40px}@media(max-width:420px){.hw-audio-actions{gap:6px}.hw-audio-actions .btn{padding:8px 10px}}
