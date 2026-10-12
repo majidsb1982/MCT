@@ -46,7 +46,6 @@ function buildNavHTML(){
 Pages.more=function(el){
   const groups=[
     {title:"کارهای تکمیلی",items:[
-      ["📋","تکالیف","ثبت و پیگیری تکالیف","go('homework')"],
       ["📡","گزارش‌ها و ارتباطات","گزارش حامی، پیام‌ها و استوری","go('reports')"],
       ["⚙️","تنظیمات برنامه","کلاس، کاربران و ظاهر","go('settings')"],
       ["📖","راهنما","راهنمای استفاده و توضیحات","go('help')"]
@@ -388,7 +387,7 @@ const COLORS=[["blue","آبی","#2563eb"],["teal","فیروزه‌ای","#0d9488
 const sz=JSON.stringify(d).length/1024;
 el.innerHTML=
 '<div class="card"><h3>🗓 کلاس‌های هفتگی</h3>'+(cls||'<p class="stat-line">کلاسی ثبت نشده</p>')+
-'<div class="row" style="margin-top:10px"><select id="cDow" style="flex:1.2" aria-label="روز هفته">'+DAYS.map((n,i)=>'<option value="'+i+'">'+n+"</option>").join("")+'</select><input type="time" id="cS" name="class-start" aria-label="ساعت شروع" value="19:00" style="flex:1"><input type="time" id="cE" name="class-end" aria-label="ساعت پایان" value="21:00" style="flex:1"><button class="btn p sm" onclick="addClass()" aria-label="افزودن کلاس">＋</button></div></div>'+
+'<div class="class-calendar-fields"><label for="cDate">تاریخ شروع کلاس</label><input type="date" id="cDate" aria-label="تاریخ شروع کلاس"><label for="cEndDate">تاریخ پایان (اختیاری)</label><input type="date" id="cEndDate" aria-label="تاریخ پایان کلاس"></div><div class="row" style="margin-top:10px"><select id="cDow" style="flex:1.2" aria-label="روز هفته">'+DAYS.map((n,i)=>'<option value="'+i+'">'+n+"</option>").join("")+'</select><input type="time" id="cS" name="class-start" aria-label="ساعت شروع" value="19:00" style="flex:1"><input type="time" id="cE" name="class-end" aria-label="ساعت پایان" value="21:00" style="flex:1"><button class="btn p sm" onclick="addClass()" aria-label="افزودن کلاس">＋</button></div></div>'+
 '<div class="card"><h3>📅 جلسات خاص (جبرانی / تعطیلات)</h3>'+(extras||'<p class="stat-line">جلسه خاصی ثبت نشده</p>')+
 '<div class="row" style="margin-top:8px"><button class="btn p sm" style="flex:1" onclick="addExtra()">➕ جلسه با تاریخ مشخص</button></div></div>'+
 '<div class="card"><h3>🎨 رنگ برنامه</h3><div class="row">'+COLORS.map(c=>'<button class="swatch'+(st.color===c[0]?" on":"")+'" style="background:linear-gradient(135deg,'+c[2]+',#fff3)" onclick="setColor(\''+c[0]+'\')" aria-label="رنگ '+c[1]+'"></button>').join("")+"</div>"+
@@ -407,6 +406,9 @@ el.innerHTML=
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
 '<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۴ — ماژول ES و ناوبری هوشمند<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
+const cd=document.getElementById("cDate"),dow=document.getElementById("cDow");if(cd&&dow)cd.addEventListener("change",()=>{if(cd.value)dow.value=String((new Date(cd.value+"T12:00:00").getDay()+1)%7);});
+const ul=document.getElementById("userList");if(ul){ul.innerHTML=(d.users||[]).map(u=>'<div class="mem user-setting-row"><div class="stat-ico">👤</div><div style="flex:1;min-width:0"><b>'+esc(u.name)+'</b><div class="stat-line">'+esc(({admin:"مدیر",support:"حامی",follow:"پیگیر",view:"مشاهده‌گر"})[u.role]||u.role)+'</div></div><button type="button" class="btn sm ghost" onclick="userForm(\''+u.id+'\')">ویرایش</button><button type="button" class="btn sm d" onclick="delUser(\''+u.id+'\')">حذف</button></div>').join("")||'<p class="stat-line">کاربری ثبت نشده است.</p>';}
+const addU=document.getElementById("btnAddUser");if(addU)addU.onclick=()=>userForm();const outU=document.getElementById("btnLogout");if(outU)outU.onclick=()=>logoutUser();const swL=document.getElementById("swLogin");if(swL)swL.onclick=()=>{const x=Store.get();x.settings.requireLogin=!x.settings.requireLogin;Store.save();render();toast(x.settings.requireLogin?"ورود با رمز فعال شد":"ورود با رمز غیرفعال شد");};const swC=document.getElementById("swConfirm");if(swC)swC.onclick=()=>{const x=Store.get();x.settings.quickConfirm=x.settings.quickConfirm===false;Store.save();render();toast(x.settings.quickConfirm?"تأیید عملیات فعال شد":"تأیید عملیات غیرفعال شد");};
 const gl=document.getElementById("grpList");
 if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
   const x=document.createElement("span");x.className="chip";x.style.cursor="default";
@@ -632,8 +634,8 @@ function copyHW(id){const hw=Store.get().homework.find(h=>h.id===id);
 if(hw)shareTxt("📚 تکلیف جلسه "+Jalali.fmt(Jalali.fromKey(hw.key))+":\n\n"+hw.text);}
 
 /* ---- تنظیمات: عملیات ---- */
-function addClass(){const d=Store.get();
-d.classes.push({dow:+$("#cDow").value,start:$("#cS").value,end:$("#cE").value});
+function addClass(){const d=Store.get();const startDate=$("#cDate")?$("#cDate").value:"",endDate=$("#cEndDate")?$("#cEndDate").value:"";if(startDate&&endDate&&endDate<startDate){toast("تاریخ پایان باید بعد از شروع باشد");return;}const dow=startDate?((new Date(startDate+"T12:00:00").getDay()+1)%7):+$("#cDow").value;
+d.classes.push({dow,start:$("#cS").value,end:$("#cE").value,startDate,endDate});
 Store.save();render();toast("✅ کلاس اضافه شد");}
 function delClass(i){confirm2("این کلاس حذف شود؟",()=>{const d=Store.get();d.classes.splice(i,1);Store.save();render();});}
 function setColor(c){const d=Store.get();d.settings.color=c;Store.save();applyColor();render();}
