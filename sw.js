@@ -1,5 +1,5 @@
 "use strict";
-const CACHE_NAME = "mct-v32";
+const CACHE_NAME = "mct-v34";
 const APP_SHELL = [
   "./",
   "./index.html",
