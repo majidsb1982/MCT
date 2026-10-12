@@ -1858,29 +1858,24 @@ function delGroup(g){
 const NAV=[["home","خانه",ICONS.home],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["members","اعضا",ICONS.users],["more","بیشتر","☰"]];
 function decorateHelpHints(root){
   root=root||document;
-  root.querySelectorAll(".role-hint, .hami-tip, .human-msg").forEach((hint)=>{
+  root.querySelectorAll(".role-hint, .hami-tip, .human-msg").forEach(hint=>{
     if(hint.dataset.helpDecorated==="1")return;
     hint.dataset.helpDecorated="1";
+    const content=hint.innerHTML;
     const btn=document.createElement("button");
     btn.type="button";btn.className="hint-toggle";btn.textContent="?";
-    btn.setAttribute("aria-label","نمایش راهنما");btn.setAttribute("aria-expanded","false");
-    hint.hidden=true;hint.classList.add("help-collapsed");
+    btn.setAttribute("aria-label","نمایش راهنمای این بخش");btn.setAttribute("aria-haspopup","dialog");
     btn.addEventListener("click",()=>{
-      const opening=hint.hidden;hint.hidden=!opening;
-      btn.setAttribute("aria-expanded",String(opening));
-      btn.setAttribute("aria-label",opening?"بستن راهنما":"نمایش راهنما");
-      btn.classList.toggle("is-open",opening);
+      const safeContent=content;
+      const o=modal('<div class="help-popover" role="dialog" aria-modal="true" aria-label="راهنمای این بخش"><div class="help-popover-head"><b>راهنمای این بخش</b><button type="button" class="help-close" aria-label="بستن" onclick="this.closest(\'.overlay\').remove()">×</button></div><div class="help-popover-content">'+safeContent+'</div><button type="button" class="btn p help-done" onclick="this.closest(\'.overlay\').remove()">متوجه شدم</button></div>');
+      o.classList.add("help-overlay");
+      const close=o.querySelector(".help-close");if(close)close.focus();
     });
+    hint.hidden=true;
+    hint.setAttribute("aria-hidden","true");
+    hint.classList.add("help-source-hidden");
     hint.parentNode.insertBefore(btn,hint);
   });
-}
-document.addEventListener("DOMContentLoaded",()=>decorateHelpHints(document));
-if(typeof MutationObserver!=="undefined"){
-  const helpObserver=new MutationObserver(records=>{
-    for(const rec of records)for(const node of rec.addedNodes)
-      if(node.nodeType===1)decorateHelpHints(node);
-  });
-  helpObserver.observe(document.documentElement,{childList:true,subtree:true});
 }
 function fitEntryHeader(){
   if(route!=="entry")return;
