@@ -637,7 +637,7 @@ table { max-width: 100%; }
   .entry-head { padding: max(8px,env(safe-area-inset-top)) 10px 10px; border-radius: 0 0 16px 16px; }
   .entry-head h2, .entry-head h3 { margin: 0; font-size: 1rem; }
   .entry-head .row { gap: 6px; }
-  .entry-body { padding: 0 10px calc(20px + env(safe-area-inset-bottom)); }
+  .entry-body { padding: 150px 10px calc(20px + env(safe-area-inset-bottom)); }
   .entry-body .st-btn { min-height: 46px; font-size: .88em; }
   .entry-body .avatar { width: 38px; height: 38px; }
   .entry-body .mem b { font-size: 1em; }
