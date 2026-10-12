@@ -1856,6 +1856,43 @@ function delGroup(g){
 
 /* ============ روتر ============ */
 const NAV=[["home","خانه",ICONS.home],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["members","اعضا",ICONS.users],["more","بیشتر","☰"]];
+function decorateHelpHints(root){
+  root=root||document;
+  root.querySelectorAll(".role-hint, .hami-tip, .human-msg").forEach((hint)=>{
+    if(hint.dataset.helpDecorated==="1")return;
+    hint.dataset.helpDecorated="1";
+    const btn=document.createElement("button");
+    btn.type="button";btn.className="hint-toggle";btn.textContent="?";
+    btn.setAttribute("aria-label","نمایش راهنما");btn.setAttribute("aria-expanded","false");
+    hint.hidden=true;hint.classList.add("help-collapsed");
+    btn.addEventListener("click",()=>{
+      const opening=hint.hidden;hint.hidden=!opening;
+      btn.setAttribute("aria-expanded",String(opening));
+      btn.setAttribute("aria-label",opening?"بستن راهنما":"نمایش راهنما");
+      btn.classList.toggle("is-open",opening);
+    });
+    hint.parentNode.insertBefore(btn,hint);
+  });
+}
+document.addEventListener("DOMContentLoaded",()=>decorateHelpHints(document));
+if(typeof MutationObserver!=="undefined"){
+  const helpObserver=new MutationObserver(records=>{
+    for(const rec of records)for(const node of rec.addedNodes)
+      if(node.nodeType===1)decorateHelpHints(node);
+  });
+  helpObserver.observe(document.documentElement,{childList:true,subtree:true});
+}
+function fitEntryHeader(){
+  if(route!=="entry")return;
+  const head=document.querySelector("#app .entry-head");
+  const body=document.querySelector("#app .entry-body");
+  if(!head||!body)return;
+  const height=Math.ceil(head.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--entry-head-height",height+"px");
+  body.style.paddingTop=(height+12)+"px";
+}
+window.addEventListener("resize",fitEntryHeader,{passive:true});
+
 function render(){
 try{const rp=document.querySelector(".route-progress");if(rp)rp.remove();const bar=document.createElement("div");bar.className="route-progress";document.body.appendChild(bar);setTimeout(()=>bar.remove(),400);}catch(e){}
 
@@ -1883,6 +1920,7 @@ if(route==="entry"){try{renderEntry();}catch(e){console.warn(e);}return;}
  $("#nav").innerHTML=buildNavHTML();
 const el=$("#app");el.className="page";
 try{(Pages[route]||Pages.home)(el);wireHomeSplit();wireMineToggle(route==="fees"?"fee":"attend");}catch(err){console.warn(err);el.innerHTML='<div class="card"><h3>⚠️ خطا</h3><button class="btn p" onclick="go(\'home\')">خانه</button></div>';}
+try{decorateHelpHints(el);}catch(e){}
 window.scrollTo(0,0);}
 window.classDayModeHTML=classDayModeHTML;window.statusStripHTML=statusStripHTML;window.togglePinMember=togglePinMember;window.render=render;
 window.openEntry=openEntry;window.exitEntry=exitEntry;window.toggleEntryFilter=toggleEntryFilter;

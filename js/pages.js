@@ -247,6 +247,7 @@ el.innerHTML+='<div class="card">'+(dl.length?dl.map(m=>doneRow(m,key,s[m.id]||{
 const nl=fl?need.filter(m=>m.name.includes(fl)):need;
 el.innerHTML+='<div class="card">'+(nl.length?nl.map(m=>block(m,"p2",s[m.id]||{},key)).join(""):'<div class="empty">🎉 همه حاضرند!</div>')+"</div>";}
 el.innerHTML+="</div>";
+fitEntryHeader();try{decorateHelpHints(el);}catch(e){}
 tick();window._t&&clearInterval(window._t);window._t=setInterval(tick,1000);
 window._tick=tick;
 function tick(){const r=target-Date.now(),cd=$("#cd");if(!cd)return;
