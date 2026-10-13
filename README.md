@@ -1,8 +1,8 @@
-# My-Class-Track v26
+# My-Class-Track v27
 
-PWA فارسی گروه درمانی — آفلاین
+دستیار آفلاین گروه درمانی (PWA فارسی)
 
-## ساختار تمیز
+## ساختار
 
 ```
 index.html
@@ -14,8 +14,9 @@ js/app.js
 sw.js
 ```
 
-ترتیب: core → pages → features → app
+ترتیب: `core → pages → features → app`
 
-بسته کامل: **MCT-v26.zip** را Upload کنید (۵ فایل js/css).
+بسته کامل: **MCT-v27.zip** — این فایل‌ها را Upload کنید:
+`js/core.js` `js/pages.js` `js/features.js` `js/app.js` `css/app.css`
 
-Pages: https://majidsb1982.github.io/MCT/
+https://majidsb1982.github.io/MCT/
