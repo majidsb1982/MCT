@@ -120,3 +120,33 @@ test("mobile viewport screenshot is captured for visual review", async ({ page }
     .toBeLessThanOrEqual(dimensions.viewport + 1);
   await page.screenshot({ path: testInfo.outputPath("mct-mobile-full-page.png"), fullPage: true });
 });
+
+test("session pruning removes only fees tied to pruned sessions", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem("mct:data"));
+    d.settings.maxSessions = 1;
+    d.sessions = {
+      "1405-01-01": { memberA: { p1: "present" } },
+      "1405-01-02": { memberA: { p1: "absent" } }
+    };
+    d.fees = {
+      "1405-01-01": { memberA: { paid: true } },
+      "1405-01-02": { memberA: { paid: false } },
+      "1399-01-01": { memberB: { paid: true } }
+    };
+    localStorage.setItem("mct:data", JSON.stringify(d));
+    location.reload();
+  });
+  await page.waitForFunction(() => typeof window.pruneSessions === "function");
+  const removed = await page.evaluate(() => window.pruneSessions(1));
+  expect(removed).toBe(1);
+  const result = await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem("mct:data"));
+    return { sessions: Object.keys(d.sessions), fees: Object.keys(d.fees) };
+  });
+  expect(result.sessions).toEqual(["1405-01-02"]);
+  expect(result.fees).toContain("1405-01-02");
+  expect(result.fees).toContain("1399-01-01");
+  expect(result.fees).not.toContain("1405-01-01");
+});
