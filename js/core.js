@@ -160,14 +160,16 @@ function storageInfo(){
 function pruneSessions(keep){
   const d=Store.get();
   const keys=Object.keys(d.sessions||{}).sort().reverse();
-  const max=keep|| (d.settings.maxSessions||40);
-  let n=0;
-  for(let i=max;i<keys.length;i++){delete d.sessions[keys[i]];n++;}
-  // also prune fees for deleted session keys older than keep
-  const feeKeys=Object.keys(d.fees||{}).sort().reverse();
-  for(let i=max;i<feeKeys.length;i++){delete d.fees[feeKeys[i]];}
+  const configured=Number(d.settings&&d.settings.maxSessions);
+  const requested=keep==null?configured: Number(keep);
+  const max=Number.isFinite(requested)?Math.max(0,Math.floor(requested)):40;
+  const removedKeys=keys.slice(max);
+  removedKeys.forEach(key=>{delete d.sessions[key];});
+  // Fees share session keys: only remove fees belonging to sessions actually pruned.
+  // Do not prune fees by their independent count; fee-only records may still be valid.
+  removedKeys.forEach(key=>{if(d.fees&&Object.prototype.hasOwnProperty.call(d.fees,key))delete d.fees[key];});
   Store.save();
-  return n;
+  return removedKeys.length;
 }
 
 /* ============ ابزارها ============ */
