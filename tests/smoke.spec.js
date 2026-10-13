@@ -96,7 +96,8 @@ test("homework can be saved, archived and survives reload", async ({ page }) => 
 
 test("user form saves a new role and four-digit PIN", async ({ page }) => {
   await page.goto("/");
-  await page.locator('#nav button[aria-label="تنظیمات"]').click();
+  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
   await page.locator("#btnAddUser").click();
   await page.locator("#uName").fill("کاربر آزمون");
   await page.locator("#uPin").fill("2468");
