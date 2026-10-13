@@ -10,7 +10,7 @@ test("app shell loads without uncaught errors or missing local assets", async ({
 
   const response = await page.goto("/");
   expect(response && response.ok()).toBeTruthy();
-  await expect(page.locator("body")).toHaveAttribute("dir", "rtl");
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
   await expect(page.locator("#app")).toBeAttached();
   await expect(page.locator("#nav")).toBeAttached();
   await expect(page.locator("#hdr")).toBeVisible();
@@ -97,7 +97,7 @@ test("homework can be saved, archived and survives reload", async ({ page }) => 
 test("user form saves a new role and four-digit PIN", async ({ page }) => {
   await page.goto("/");
   await page.locator('#nav button[aria-label="تنظیمات"]').click();
-  await page.evaluate(() => userForm());
+  await page.locator("#btnAddUser").click();
   await page.locator("#uName").fill("کاربر آزمون");
   await page.locator("#uPin").fill("2468");
   await page.locator("#uRole").selectOption("view");
@@ -124,6 +124,7 @@ test("mobile viewport screenshot is captured for visual review", async ({ page }
 test("session pruning removes only fees tied to pruned sessions", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
+    Store.save();
     const d = JSON.parse(localStorage.getItem("mct:data"));
     d.settings.maxSessions = 1;
     d.sessions = {
@@ -136,6 +137,7 @@ test("session pruning removes only fees tied to pruned sessions", async ({ page 
       "1399-01-01": { memberB: { paid: true } }
     };
     localStorage.setItem("mct:data", JSON.stringify(d));
+    if (typeof Store !== "undefined") Store.load?.();
     location.reload();
   });
   await page.waitForFunction(() => typeof window.pruneSessions === "function");
