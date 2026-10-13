@@ -1858,25 +1858,32 @@ function delGroup(g){
 const NAV=[["home","خانه",ICONS.home],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["homework","تکالیف","📋"],["members","اعضا",ICONS.users],["more","بیشتر","☰"]];
 function decorateHelpHints(root){
   root=root||document;
-  root.querySelectorAll(".role-hint, .hami-tip, .human-msg").forEach(hint=>{
-    if(hint.dataset.helpDecorated==="1")return;
-    hint.dataset.helpDecorated="1";
-    const content=hint.innerHTML;
-    const btn=document.createElement("button");
-    btn.type="button";btn.className="hint-toggle";btn.textContent="?";
-    btn.setAttribute("aria-label","نمایش راهنمای این بخش");btn.setAttribute("aria-haspopup","dialog");
+  const selector=".role-hint, .hami-tip, .human-msg";
+  const decorate=(hint)=>{
+    if(!(hint instanceof Element)||hint.dataset.helpDecorated==="1")return;
+    const content=hint.innerHTML.trim();
+    if(!content)return;
+    hint.dataset.helpDecorated="1";hint.hidden=true;hint.setAttribute("aria-hidden","true");hint.classList.add("help-source-hidden");
+    let btn=hint.previousElementSibling;
+    if(!btn||!btn.classList.contains("hint-toggle")){
+      btn=document.createElement("button");btn.type="button";btn.className="hint-toggle";btn.textContent="?";
+      btn.setAttribute("aria-label","نمایش راهنمای این بخش");btn.setAttribute("aria-haspopup","dialog");btn.setAttribute("aria-expanded","false");
+      hint.parentNode.insertBefore(btn,hint);
+    }
     btn.addEventListener("click",()=>{
-      const safeContent=content;
-      const o=modal('<div class="help-popover" role="dialog" aria-modal="true" aria-label="راهنمای این بخش"><div class="help-popover-head"><b>راهنمای این بخش</b><button type="button" class="help-close" aria-label="بستن" onclick="this.closest(\'.overlay\').remove()">×</button></div><div class="help-popover-content">'+safeContent+'</div><button type="button" class="btn p help-done" onclick="this.closest(\'.overlay\').remove()">متوجه شدم</button></div>');
-      o.classList.add("help-overlay");
-      const close=o.querySelector(".help-close");if(close)close.focus();
+      document.querySelectorAll(".help-overlay").forEach(old=>old.remove());
+      const overlay=modal('<section class="help-popover" role="dialog" aria-modal="true" aria-label="راهنمای این بخش"><header class="help-popover-head"><button type="button" class="help-back" aria-label="بازگشت">←</button><b>راهنمای این بخش</b><button type="button" class="help-close" aria-label="بستن و خروج">×</button></header><div class="help-popover-content">'+content+'</div><footer class="help-popover-actions"><button type="button" class="btn p help-done">متوجه شدم</button></footer></section>');
+      overlay.classList.add("help-overlay");btn.setAttribute("aria-expanded","true");
+      const close=()=>{overlay.remove();btn.setAttribute("aria-expanded","false");btn.focus({preventScroll:true});};
+      overlay.querySelectorAll(".help-close,.help-back,.help-done").forEach(control=>control.addEventListener("click",close));
+      overlay.addEventListener("keydown",event=>{if(event.key==="Escape"){event.preventDefault();close();}});
+      const closeButton=overlay.querySelector(".help-close");if(closeButton)closeButton.focus();
     });
-    hint.hidden=true;
-    hint.setAttribute("aria-hidden","true");
-    hint.classList.add("help-source-hidden");
-    hint.parentNode.insertBefore(btn,hint);
-  });
+  };
+  if(root.matches&&root.matches(selector))decorate(root);
+  root.querySelectorAll(selector).forEach(decorate);
 }
+
 function fitEntryHeader(){
   if(route!=="entry")return;
   const head=document.querySelector("#app .entry-head");
