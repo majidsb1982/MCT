@@ -880,3 +880,9 @@ body.dark .help-back,body.dark .help-close{background:#17243a;color:#f1f5f9;bord
 .fee-summary .row{gap:10px;flex-wrap:wrap}
 .hub-tile .ht-ico{flex:0 0 40px;width:40px;height:40px;min-width:40px;min-height:40px}
 .hub-tile .ht-title{min-height:1.35em}
+
+
+/* v39 — persistent member creation action, positioned above the mobile navigation */
+.members-add-bar{position:sticky;bottom:calc(var(--mobile-nav-h,68px) + env(safe-area-inset-bottom) + 8px);z-index:35;display:flex;justify-content:center;margin:10px 0 8px;padding:8px;border:1px solid var(--ln);border-radius:16px;background:color-mix(in srgb,var(--sf) 92%,transparent);backdrop-filter:blur(10px);box-shadow:0 8px 24px #0002}
+.members-add-bar .btn{width:100%;max-width:440px;min-height:44px;font-weight:800}
+@media(min-width:768px){.members-add-bar{bottom:12px;max-width:600px;margin:14px auto}}
