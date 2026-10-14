@@ -153,3 +153,50 @@ test("session pruning removes only fees tied to pruned sessions", async ({ page 
   expect(result.fees).toContain("1399-01-01");
   expect(result.fees).not.toContain("1405-01-01");
 });
+
+
+test("attendance page uses a clear title without the redundant instruction banner", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  await expect(page.locator("#app")).toContainText("پیگیری تماس‌های قبل از جلسه");
+  await expect(page.locator("#app .round-banner")).toHaveCount(0);
+});
+
+test("member list offers name, family name, birth date and phone sorting", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem("mct:data"));
+    d.members = [
+      { id: "m-a", name: "علی زارعی", phones: ["09120000002"], birth: { jy: 1370, jm: 2, jd: 3 }, roles: [], group: "عمومی" },
+      { id: "m-b", name: "رضا احمدی", phones: ["09120000001"], birth: { jy: 1365, jm: 1, jd: 1 }, roles: [], group: "عمومی" },
+      { id: "m-c", name: "مریم بهرامی", phones: ["09120000003"], birth: { jy: 1375, jm: 5, jd: 7 }, roles: [], group: "عمومی" }
+    ];
+    d.pinnedMembers = [];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="اعضا"]').click();
+  await expect(page.locator("#memberSort")).toBeVisible();
+  await page.locator("#memberSort").selectOption("family");
+  let names = await page.locator("#mList .mem-name b").allTextContents();
+  expect(names[0]).toBe("رضا احمدی");
+  await page.locator("#memberSort").selectOption("birth");
+  names = await page.locator("#mList .mem-name b").allTextContents();
+  expect(names[0]).toBe("رضا احمدی");
+  await page.locator("#memberSort").selectOption("phone");
+  names = await page.locator("#mList .mem-name b").allTextContents();
+  expect(names[0]).toBe("رضا احمدی");
+});
+
+test("fees page presents a compact summary and supporter report action", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = JSON.parse(localStorage.getItem("mct:data"));
+    d.members = [{ id: "fee-test", name: "عضو شهریه", phones: ["09120000000"], roles: [], group: "عمومی" }];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="شهریه"]').click();
+  await expect(page.locator("#app .fee-summary")).toContainText("خلاصه شهریه جلسه");
+  await expect(page.locator("#btnFeeHami")).toBeVisible();
+});
