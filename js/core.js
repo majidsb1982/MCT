@@ -303,7 +303,7 @@ function roleIconsHTML(roles){
 }
 
 function sessionSel(){const d=Store.get();return d._lastSession||curKey();}
-function curFeeKey(){return curKey()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
+function curFeeKey(){return sessionSel()||(Store.get()._lastFee||curKey()||Jalali.toKey(Jalali.today()));}
 const needsCall=st=>st!=="present";
 function absCount(id){const s=Store.get().sessions;let a=0;
 for(const k in s){const st=(s[k][id]||{}).p2||(s[k][id]||{}).p1;if(st==="absent")a++;}return a;}
