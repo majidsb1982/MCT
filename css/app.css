@@ -870,3 +870,13 @@ body.dark .role-hint,body.dark .hami-tip,body.dark .human-msg{color:#d5e5f7}
 body.dark .help-popover,body.dark .help-popover-head{background:var(--sf);color:var(--tx)}
 body.dark .help-back,body.dark .help-close{background:#17243a;color:#f1f5f9;border-color:#3a4b68}
 @media(max-width:520px){.help-overlay{align-items:flex-end!important;padding:10px 10px calc(10px + env(safe-area-inset-bottom))!important}.help-overlay .modal{max-height:78dvh!important}.help-popover{max-height:78dvh;border-radius:20px 20px 16px 16px}}
+
+
+/* v30: compact navigation and summary panels */
+.more-hero-compact{display:flex;justify-content:flex-start;align-items:center;margin:0 0 8px;min-height:38px}
+.more-hero-compact .members-help-btn{flex:0 0 38px;width:38px;height:38px}
+.fee-summary{padding:14px}
+.fee-summary .progress{margin-top:10px}
+.fee-summary .row{gap:10px;flex-wrap:wrap}
+.hub-tile .ht-ico{flex:0 0 40px;width:40px;height:40px;min-width:40px;min-height:40px}
+.hub-tile .ht-title{min-height:1.35em}
