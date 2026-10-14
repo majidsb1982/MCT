@@ -138,11 +138,28 @@ function doorChecklistHTML(){
   items.forEach(([min,act])=>{
     const done=!!st[String(min)];
     h+='<div class="door-item'+(done?" done":"")+'"><span class="min">'+Jalali.toFa(min)+"'</span><span class=\"act\">"+act+'</span>';
-    h+='<button class="btn sm '+(done?"ghost":"p")+'" onclick="toggleDoorCheck('+min+')">'+(done?"✓":"ثبت")+'</button></div>';
+    h+='<button type="button" class="btn sm '+(done?"ghost":"p")+'" data-door-check="'+min+'">'+(done?"✓":"ثبت")+'</button></div>';
   });
   h+='</div></div>';
   return h;
 }
+function bindDoorChecklist(container){
+  if(!container)return;
+  container.querySelectorAll("[data-door-check]").forEach(btn=>{
+    btn.onclick=()=>{
+      const min=Number(btn.getAttribute("data-door-check"));
+      const st=doorState();st[String(min)]=!st[String(min)];Store.save();
+      const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
+      toast(msg);container.innerHTML=doorChecklistHTML();bindDoorChecklist(container);
+    };
+  });
+}
+function showDoorChecklist(){
+  const o=modal('<div id="doorChecklistDialog"></div><button type="button" class="btn ghost" id="doorChecklistClose" style="width:100%;margin-top:8px">بستن</button>');
+  const host=o.querySelector("#doorChecklistDialog");host.innerHTML=doorChecklistHTML();bindDoorChecklist(host);
+  const close=o.querySelector("#doorChecklistClose");if(close)close.onclick=()=>o.remove();
+}
+window.showDoorChecklist=showDoorChecklist;
 
 /* مهلت شهریه: یک روز قبل از کلاس */
 function feeDeadlineInfo(){
