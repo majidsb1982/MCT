@@ -96,12 +96,12 @@ function hubTilesHTML(){
   let c={attend:0,fee:0};
   try{c=myPendingCount();}catch(e){}
   return '<div class="sec-label">دسترسی سریع</div><div class="hub-grid">'+
-    '<button type="button" class="hub-tile accent" onclick="go(\'attend\')"><span class="ht-ico">📞</span><span class="ht-title">حضور</span><span class="ht-sub">نوبت ۱ · باز: '+Jalali.toFa(c.attend)+'</span></button>'+
-    '<button type="button" class="hub-tile" onclick="openEntry()"><span class="ht-ico">🚪</span><span class="ht-title">نوبت ۲</span><span class="ht-sub">پشت در + یادآور درمانگر</span></button>'+
+    '<button type="button" class="hub-tile accent" onclick="go(\'attend\')"><span class="ht-ico">📞</span><span class="ht-title">پیگیری تماس</span><span class="ht-sub">نوبت ۱ · ثبت‌نشده: '+Jalali.toFa(c.attend)+'</span></button>'+
+    '<button type="button" class="hub-tile" onclick="openEntry()"><span class="ht-ico">🚪</span><span class="ht-title">ثبت ورود</span><span class="ht-sub">نوبت ۲ · پشت در کلاس</span></button>'+
     '<button type="button" class="hub-tile" onclick="go(\'fees\')"><span class="ht-ico">💰</span><span class="ht-title">شهریه</span><span class="ht-sub">واریز · باز: '+Jalali.toFa(c.fee)+'</span></button>'+
     '<button type="button" class="hub-tile" onclick="go(\'reports\')"><span class="ht-ico">📡</span><span class="ht-title">گزارش‌ها</span><span class="ht-sub">حامی و شبکه‌ها</span></button>'+
     '<button type="button" class="hub-tile" onclick="go(\'members\')"><span class="ht-ico">👥</span><span class="ht-title">اعضا</span><span class="ht-sub">'+Jalali.toFa(d.members.length)+' نفر</span></button>'+
-    '<button type="button" class="hub-tile" onclick="go(\'more\')"><span class="ht-ico">☰</span><span class="ht-title">همه بخش‌ها</span><span class="ht-sub">تکالیف، تنظیمات، راهنما</span></button>'+
+    '<button type="button" class="hub-tile" onclick="go(\'homework\')"><span class="ht-ico">📚</span><span class="ht-title">تکالیف</span><span class="ht-sub">ثبت و مشاهده آرشیو تکالیف</span></button>'+
     '</div>';
 }
 
@@ -187,7 +187,7 @@ let sel='<select name="session-select" aria-label="انتخاب جلسه" onchan
 sel+='<option value="'+key+'"'+(key===curKey()?"":" selected")+">"+(key===curKey()?"📅 جلسه بعد: ":"جلسه: ")+(key?Jalali.fmt(Jalali.fromKey(key)):"—")+"</option>";
 for(const k of pastKeys)sel+='<option value="'+k+'"'+(k===key?" selected":"")+">جلسه گذشته: "+Jalali.fmt(Jalali.fromKey(k))+"</option>";
 sel+="</select>";
-let h='<div class="card"><h3>📞 پیگیری تماس‌های قبل از جلسه</h3>'+onlyMineToggleHTML("attend")+filterChipsHTML()+batchBarHTML()+teamBoardHTML("attend")+'<div class="row" style="margin-bottom:8px">'+sel+"</div>";
+let h='<div class="card"><h3>📞 پیگیری تماس‌های قبل از جلسه</h3>'+onlyMineToggleHTML("attend")+filterChipsHTML()+batchBarHTML()+'<div class="row" style="margin-bottom:8px">'+sel+"</div>";
 h+='<div class="progress"><i style="width:'+pct+'%"></i></div><p class="stat-line">ثبت‌شده: <b style="color:var(--p)">'+Jalali.toFa(done.length)+"</b> از "+Jalali.toFa(d.members.length)+'</p>'+
 '<div class="row" style="margin:10px 0 6px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">⏳ ثبت‌نشده ('+Jalali.toFa(need.length)+')</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">✓ ثبت‌شده ('+Jalali.toFa(done.length)+')</button></div>'+
 '<div class="row" style="margin-bottom:6px">'+filterBar("جستجوی نام در لیست")+
