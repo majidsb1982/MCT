@@ -175,7 +175,7 @@ toast("↩️ "+((d.members.find(m=>m.id===mid)||{}).name||"")+" به لیست �
 
 /* ---- نوبت ۱: تماس‌های قبلی ---- */
 Pages.attend=function(el){const d=Store.get();
-if(!d.members.length){el.innerHTML=emptyState("اول از تب «اعضا» اعضا را اضافه کن");return;}
+if(!d.members.length){el.innerHTML='<div class="card"><h3>📞 پیگیری تماس‌های قبل از جلسه</h3></div>'+emptyState("اول از تب «اعضا» اعضا را اضافه کن");return;}
 const nc=nextClass(),key=sessionSel()||"",s=d.sessions[key]||{};
 let done=d.members.filter(m=>(s[m.id]||{}).p1);
 let need=d.members.filter(m=>!(s[m.id]||{}).p1);
