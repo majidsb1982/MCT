@@ -200,3 +200,14 @@ test("fees page presents a compact summary and supporter report action", async (
   await expect(page.locator("#app .fee-summary")).toContainText("خلاصه شهریه جلسه");
   await expect(page.locator("#btnFeeHami")).toBeVisible();
 });
+
+
+test("therapist door reminders open in a separate dialog from the home screen", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /یادآور درمانگر/ }).click();
+  await expect(page.locator("#doorChecklistDialog")).toContainText("یادآور پشت در");
+  await page.locator("#doorChecklistDialog [data-door-check='15']").click();
+  await expect(page.locator("#doorChecklistDialog .door-item").first()).toContainText("✓");
+  await page.locator("#doorChecklistClose").click();
+  await expect(page.locator("#doorChecklistDialog")).toHaveCount(0);
+});
