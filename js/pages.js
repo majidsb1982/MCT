@@ -277,7 +277,9 @@ const pct=d.members.length?Math.round((d.members.length-np)/d.members.length*100
 let unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));unpaid=smartSortMembers(filterMembersForMe(unpaid,"fee"),"fee");
 const follow=unpaid.filter(m=>!(f[m.id]||{}).fc);
 const contacted=d.members.filter(m=>(f[m.id]&&f[m.id].paid)||((f[m.id]||{}).fc));
-let h='<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">'+(nc?Jalali.fmt(nc.date):"جلسه بعدی تنظیم نشده")+' · مهلت: '+esc(feeInfo.text)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
+const feeKeys=[...new Set([key,...Object.keys(d.fees||{}),...Object.keys(d.sessions||{})].filter(Boolean))].sort().reverse();
+let feeSel='<label for="feeSessionSelect">جلسهٔ مربوط به این شهریه</label><select id="feeSessionSelect" name="fee-session" aria-label="انتخاب جلسه برای شهریه" onchange="setSel(this.value)" style="width:100%;margin-bottom:8px">'+feeKeys.map(k=>'<option value="'+k+'"'+(k===key?" selected":"")+'>جلسه: '+Jalali.fmt(Jalali.fromKey(k))+'</option>').join("")+'</select>';
+let h=feeSel+'<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">جلسه: '+(key?Jalali.fmt(Jalali.fromKey(key)):"جلسه تنظیم نشده")+' · مهلت: '+esc(feeInfo.text)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
 '<div class="row" style="margin:6px 0 8px;flex-wrap:wrap"><button class="btn sm ghost" type="button" id="btnFeeXls">⬇️ خروجی اکسل</button><button class="btn sm ghost" type="button" onclick="feeReport()">📨 مشاهده گزارش</button><button class="btn sm ghost" type="button" onclick="window.print()">🖨️ چاپ / PDF</button></div>'+
 '<div class="row" style="margin:4px 0 10px"><button class="chip'+(UI.feeTab===0?" on":"")+'" style="flex:1" onclick="setFeeTab(0)">💰 پرداخت‌ها</button><button class="chip'+(UI.feeTab===1?" on":"")+'" style="flex:1" onclick="setFeeTab(1)">📞 پیگیری ('+Jalali.toFa(follow.length)+')</button><button class="chip'+(UI.feeTab===2?" on":"")+'" style="flex:1" onclick="setFeeTab(2)">✓ انجام‌شده ('+Jalali.toFa(contacted.length)+')</button></div>'+
 filterBar("جستجوی نام");
@@ -575,8 +577,8 @@ for(const m of d.members){const st=ph===2?((s[m.id]||{}).p2||(s[m.id]||{}).p1):(
 const fm=m=>{const ex=s[m.id]||{};let t=m.name;
 if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(ex.time2||ex.time)+")";
 else if(ex.note)t+=" ("+ex.note+")";return t;};
-const nc=nextClass(),icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",none:"—"};
-let out="📋 گزارش حضور — "+(nc?Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date):"")+" — "+(ph===1?"نوبت ۱ (تماس‌های قبلی)":"نوبت ۲ (ثبت ورود)")+"\n";
+const nc=nextClass(),sessionDate=key?Jalali.fromKey(key):null,icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",none:"—"};
+let out="📋 گزارش حضور — "+(sessionDate?Jalali.fmt(sessionDate):"جلسه تنظیم نشده")+" — "+(ph===1?"نوبت ۱ (تماس‌های قبلی)":"نوبت ۲ (ثبت ورود)")+"\n";
 const keys=full?["present","delay","absent","problem","none"]:["delay","absent","problem"];
 for(const k of keys)
 if(g[k].length)out+=icon[k]+" "+ST.lbl[k]+": "+g[k].map(fm).join("، ")+"\n";
@@ -588,8 +590,8 @@ const un=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));
 const promised=un.filter(m=>(f[m.id]||{}).fc==="promised");
 const noans=un.filter(m=>(f[m.id]||{}).fc==="noanswer");
 const notYet=un.filter(m=>!(f[m.id]||{}).fc);
-const nc=nextClass();
-return"💰 گزارش شهریه — "+(nc?Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date):"")+"\n"+
+const sessionDate=key?Jalali.fromKey(key):null;
+return"💰 گزارش شهریه — "+(sessionDate?Jalali.fmt(sessionDate):"جلسه تنظیم نشده")+"\n"+
 "✅ پرداخت‌شده ("+Jalali.toFa(paid.length)+"): "+(paid.map(m=>m.name).join("، ")||"—")+"\n"+
 "🗣 قول داده ("+Jalali.toFa(promised.length)+"): "+(promised.map(m=>m.name).join("، ")||"—")+"\n"+
 "📵 بی‌پاسخ ("+Jalali.toFa(noans.length)+"): "+(noans.map(m=>m.name).join("، ")||"—")+"\n"+
