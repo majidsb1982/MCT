@@ -100,7 +100,7 @@ function hubTilesHTML(){
     '<button type="button" class="hub-tile" onclick="openEntry()"><span class="ht-ico">🚪</span><span class="ht-title">ثبت ورود</span><span class="ht-sub">نوبت ۲ · پشت در کلاس</span></button>'+
     '<button type="button" class="hub-tile" onclick="go(\'fees\')"><span class="ht-ico">💰</span><span class="ht-title">شهریه</span><span class="ht-sub">واریز · باز: '+Jalali.toFa(c.fee)+'</span></button>'+
     '<button type="button" class="hub-tile" onclick="go(\'reports\')"><span class="ht-ico">📡</span><span class="ht-title">گزارش‌ها</span><span class="ht-sub">حامی و شبکه‌ها</span></button>'+
-    '<button type="button" class="hub-tile" onclick="go(\'members\')"><span class="ht-ico">👥</span><span class="ht-title">اعضا</span><span class="ht-sub">'+Jalali.toFa(d.members.length)+' نفر</span></button>'+
+    '<button type="button" class="hub-tile" onclick="showDoorChecklist()"><span class="ht-ico">⏰</span><span class="ht-title">یادآور درمانگر</span><span class="ht-sub">اعلام زمان و باز کردن در</span></button>'+
     '<button type="button" class="hub-tile" onclick="go(\'homework\')"><span class="ht-ico">📚</span><span class="ht-title">تکالیف</span><span class="ht-sub">ثبت و مشاهده آرشیو تکالیف</span></button>'+
     '</div>';
 }
@@ -234,7 +234,7 @@ el.innerHTML='<div class="entry-head"><div class="row" style="justify-content:sp
 '<div class="timer-sm" id="cd">--:--</div>'+
 '<div class="row" style="justify-content:center;gap:6px;flex-wrap:wrap"><button class="chip" style="background:#10b981;color:#fff;border:none" onclick="allPresent()">✅ همه حاضر شدند</button>'+
 '<button class="chip" style="background:'+(UI.callOnly?"#fff":"rgba(255,255,255,.16)")+';color:'+(UI.callOnly?"#1d4ed8":"#fff")+'" onclick="toggleEntryFilter()">🎯 فقط ثبت‌نشده‌ها</button></div></div>'+
-'<div class="entry-body">'+doorChecklistHTML()+
+'<div class="entry-body">'+
 '<div class="row" style="margin-bottom:8px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">⏳ ثبت‌نشده ('+Jalali.toFa(need.length)+')</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">✓ ثبت‌شده ('+Jalali.toFa(done.length)+')</button></div>'+
 filterBar("جستجوی نام");
 const fl=UI.filter;
