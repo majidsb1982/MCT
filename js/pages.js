@@ -57,9 +57,9 @@ Pages.more=function(el){
       ["⌘","جستجوی دستورات","پیدا کردن سریع عملیات برنامه","openCommandPalette()"]
     ]}
   ];
-  let h='<div class="card hero more-hero"><h3>☰ بخش‌های بیشتر</h3><p>ابزارهای تکمیلی و مدیریتی، بدون تکرار بخش‌های اصلی نوار پایین.</p></div>';
+  let h='<div class="more-hero-compact"><button type="button" class="members-help-btn" onclick="go(\'help\')" aria-label="راهنما" title="راهنما">?</button></div>';
   groups.forEach((group,index)=>{
-    h+='<section class="more-group" aria-labelledby="more-group-'+index+'"><h3 id="more-group-'+index+'" class="more-group-title">'+group.title+'</h3><div class="more-list">';
+    h+='<section class="more-group" aria-labelledby="more-group-'+index+'">'+(index===0?'<h3 id="more-group-'+index+'" class="more-group-title">'+group.title+'</h3>':'')+'<div class="more-list">';
     group.items.forEach(item=>{
       h+='<button type="button" class="more-item" onclick="'+item[3]+'"><span class="mi-ico">'+item[0]+'</span><span class="mi-txt"><b>'+item[1]+'</b><span>'+item[2]+'</span></span><span class="mi-go" aria-hidden="true">←</span></button>';
     });
@@ -187,8 +187,7 @@ let sel='<select name="session-select" aria-label="انتخاب جلسه" onchan
 sel+='<option value="'+key+'"'+(key===curKey()?"":" selected")+">"+(key===curKey()?"📅 جلسه بعد: ":"جلسه: ")+(key?Jalali.fmt(Jalali.fromKey(key)):"—")+"</option>";
 for(const k of pastKeys)sel+='<option value="'+k+'"'+(k===key?" selected":"")+">جلسه گذشته: "+Jalali.fmt(Jalali.fromKey(k))+"</option>";
 sel+="</select>";
-let h='<div class="round-banner r1"><b>نوبت ۱ — تماس قبلی</b><br>چند ساعت یا یک روز قبل از کلاس با اعضا تماس بگیرید. بعد از تکمیل، گزارش را برای حامی‌ها بفرستید.</div>'+
-'<div class="card"><h3>📞 نوبت ۱: تماس‌های قبلی</h3>'+onlyMineToggleHTML("attend")+filterChipsHTML()+batchBarHTML()+teamBoardHTML("attend")+'<div class="row" style="margin-bottom:8px">'+sel+"</div>";
+let h='<div class="card"><h3>📞 پیگیری تماس‌های قبل از جلسه</h3>'+onlyMineToggleHTML("attend")+filterChipsHTML()+batchBarHTML()+teamBoardHTML("attend")+'<div class="row" style="margin-bottom:8px">'+sel+"</div>";
 h+='<div class="progress"><i style="width:'+pct+'%"></i></div><p class="stat-line">ثبت‌شده: <b style="color:var(--p)">'+Jalali.toFa(done.length)+"</b> از "+Jalali.toFa(d.members.length)+'</p>'+
 '<div class="row" style="margin:10px 0 6px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">⏳ ثبت‌نشده ('+Jalali.toFa(need.length)+')</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">✓ ثبت‌شده ('+Jalali.toFa(done.length)+')</button></div>'+
 '<div class="row" style="margin-bottom:6px">'+filterBar("جستجوی نام در لیست")+
@@ -278,13 +277,8 @@ const pct=d.members.length?Math.round((d.members.length-np)/d.members.length*100
 let unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));unpaid=smartSortMembers(filterMembersForMe(unpaid,"fee"),"fee");
 const follow=unpaid.filter(m=>!(f[m.id]||{}).fc);
 const contacted=d.members.filter(m=>(f[m.id]&&f[m.id].paid)||((f[m.id]||{}).fc));
-let h=onlyMineToggleHTML("fee")+'<div class="'+(feeInfo.past&&feeInfo.overdue.length?'deadline-warn':'round-banner r1')+'"><b>مهلت واریز:</b> '+esc(feeInfo.text)+'<br><span style="font-size:.9em">اعضا باید تا یک روز قبل از کلاس واریز کنند و فیش را در واتساپ برای مسئولان شهریه بفرستند. اینجا وضعیت را ثبت و برای حامی‌ها گزارش کنید.</span></div>';
-h+='<div class="row" style="margin:6px 0 8px;flex-wrap:wrap"><button class="btn sm g" type="button" id="btnFeeHami">📤 گزارش شهریه به حامی‌ها</button><button class="btn sm ghost" type="button" id="btnFeeXls">⬇️ خروجی اکسل</button></div>';
-h+='<div class="card hero"><h3>💰 شهریه جلسه</h3><div style="position:relative;z-index:1">';
-if(nc)h+='<div style="font-size:.85em;opacity:.9;margin-bottom:3px">'+Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date)+" — مهلت: قبل از شروع کلاس</div>";
-h+='<div style="font-weight:800;font-size:1em">'+(np?"⏳ "+Jalali.toFa(np)+" نفر پرداخت‌نشده":"✅ همه پرداخت کرده‌اند")+"</div>"+
-'<div class="progress" style="background:rgba(255,255,255,.2)"><i style="width:'+pct+'%;background:#fff"></i></div>'+
-'<div class="row" style="margin-top:8px"><button class="btn" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.28)" onclick="feeReport()">📨 گزارش</button><button class="btn" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.28)" onclick="exportCSV(\'fees\',\''+key+'\')">📊 اکسل</button><button class="btn" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.28)" onclick="window.print()">🖨️ PDF</button></div></div></div>'+
+let h=onlyMineToggleHTML("fee")+'<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">'+(nc?Jalali.fmt(nc.date):"جلسه بعدی تنظیم نشده")+' · مهلت: '+esc(feeInfo.text)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
+'<div class="row" style="margin:6px 0 8px;flex-wrap:wrap"><button class="btn sm ghost" type="button" id="btnFeeXls">⬇️ خروجی اکسل</button><button class="btn sm ghost" type="button" onclick="feeReport()">📨 مشاهده گزارش</button><button class="btn sm ghost" type="button" onclick="window.print()">🖨️ چاپ / PDF</button></div>'+
 '<div class="row" style="margin:4px 0 10px"><button class="chip'+(UI.feeTab===0?" on":"")+'" style="flex:1" onclick="setFeeTab(0)">💰 پرداخت‌ها</button><button class="chip'+(UI.feeTab===1?" on":"")+'" style="flex:1" onclick="setFeeTab(1)">📞 پیگیری ('+Jalali.toFa(follow.length)+')</button><button class="chip'+(UI.feeTab===2?" on":"")+'" style="flex:1" onclick="setFeeTab(2)">✓ انجام‌شده ('+Jalali.toFa(contacted.length)+')</button></div>'+
 filterBar("جستجوی نام");
 const fl=UI.filter;
@@ -370,7 +364,7 @@ window.hwEdit=hwEdit;
 Pages.members=function(el){
 el.innerHTML='<div class="card hero members-hero"><div class="members-hero-title"><h3>👥 اعضا</h3><button type="button" class="members-help-btn" onclick="showMembersHelp()" aria-label="راهنمای صفحه اعضا" title="راهنمای صفحه اعضا">?</button></div></div>'+
 '<div class="card"><div class="sec-label">جستجو و افزودن</div><div class="row"><input id="mSearch" name="member-search" aria-label="جستجوی نام عضو" placeholder="🔍 جستجوی نام…" oninput="renderMembers(this.value)" style="flex:1"><button class="btn p" onclick="memberForm()" aria-label="افزودن عضو جدید">＋</button></div>'+
-'<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="exportMembersCSV()">📊 خروجی</button><button class="btn ghost sm" onclick="document.getElementById(\'mimp\').click()">⬆️ ورود</button><input type="file" id="mimp" class="sr" accept=".csv,text/csv" onchange="importMembersCSV(this)"></div>'+
+'<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="exportMembersCSV()">📊 خروجی کامل</button><button class="btn ghost sm" onclick="document.getElementById(\'mimp\').click()">⬆️ ورود</button><input type="file" id="mimp" class="sr" accept=".csv,text/csv" onchange="importMembersCSV(this)"><select id="memberSort" aria-label="مرتب‌سازی اعضا" onchange="memberSortMode=this.value;renderMembers(document.getElementById(\'mSearch\').value)" style="flex:1;min-width:130px"><option value="name">مرتب‌سازی: نام</option><option value="family">نام خانوادگی</option><option value="birth">تاریخ تولد</option><option value="phone">شماره تلفن</option></select></div>'+
 '<div class="role-legend">'+
 '<span class="role-ico" title="پیگیری حضور">📞</span><span class="leg">حضور</span>'+
 '<span class="role-ico" title="شهریه">💰</span><span class="leg">شهریه</span>'+
@@ -428,10 +422,15 @@ function emptyState(m){return'<div class="card empty-state-card"><div class="emp
 /* ---- اعضا: عملیات ---- */
 function showMembersHelp(){const o=modal('<div class="members-help"><div class="members-help-head"><span class="members-help-mark">?</span><div><h3>راهنمای صفحه اعضا</h3><p>مدیریت سریع اعضای کلاس</p></div></div><ul><li>برای افزودن عضو، دکمه ＋ کنار جستجو را بزنید.</li><li>با جستجو می‌توانید عضو موردنظر را سریع پیدا کنید.</li><li>آیکون‌های کنار نام، نقش‌های عضو را نشان می‌دهند: حضور، شهریه، تکلیف و حامی.</li><li>برای اصلاح اطلاعات از دکمه ویرایش استفاده کنید.</li><li>ورود و خروجی اعضا برای انتقال یا نگهداری اطلاعات در دسترس است.</li></ul><button type="button" class="btn p" style="width:100%;margin-top:8px" id="membersHelpDone">متوجه شدم</button></div>');o.classList.add("members-help-overlay");const b=o.querySelector("#membersHelpDone");if(b)b.onclick=()=>o.remove();}
 window.showMembersHelp=showMembersHelp;
+let memberSortMode="name";
 function renderMembers(q){q=(q||"").trim();const d=Store.get();
 let list=d.members.filter(m=>!q||m.name.includes(q));
 const pins=d.pinnedMembers||[];
-list=list.slice().sort((a,b)=>((pins.indexOf(b.id)>=0?1:0)-(pins.indexOf(a.id)>=0?1:0))||a.name.localeCompare(b.name,"fa"));
+const familyName=m=>{const p=String(m.name||"").trim().split(/\\s+/);return p.length>1?p[p.length-1]:p[0]||"";};
+const birthKey=m=>m.birth?String(m.birth.jy).padStart(4,"0")+"-"+String(m.birth.jm).padStart(2,"0")+"-"+String(m.birth.jd).padStart(2,"0"):"9999-99-99";
+const phoneKey=m=>(m.phones||[]).filter(Boolean)[0]||"~~~~~~~~";
+const cmp=(a,b)=>memberSortMode==="family"?familyName(a).localeCompare(familyName(b),"fa")||a.name.localeCompare(b.name,"fa"):memberSortMode==="birth"?birthKey(a).localeCompare(birthKey(b)):memberSortMode==="phone"?phoneKey(a).localeCompare(phoneKey(b)):a.name.localeCompare(b.name,"fa");
+list=list.slice().sort((a,b)=>((pins.indexOf(b.id)>=0?1:0)-(pins.indexOf(a.id)>=0?1:0))||cmp(a,b));
  $("#mList").innerHTML=list.length?('<div class="card">'+list.map(m=>{
 const rl=roleIconsHTML(m.roles)+(m.group&&m.group!=="عمومی"?'<span class="role-ico" title="گروه: '+esc(m.group)+'">🏷</span>':"");
 const p0=(m.phones||[]).filter(Boolean)[0];
