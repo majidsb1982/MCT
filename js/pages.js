@@ -187,7 +187,7 @@ let sel='<select name="session-select" aria-label="انتخاب جلسه" onchan
 sel+='<option value="'+key+'"'+(key===curKey()?"":" selected")+">"+(key===curKey()?"📅 جلسه بعد: ":"جلسه: ")+(key?Jalali.fmt(Jalali.fromKey(key)):"—")+"</option>";
 for(const k of pastKeys)sel+='<option value="'+k+'"'+(k===key?" selected":"")+">جلسه گذشته: "+Jalali.fmt(Jalali.fromKey(k))+"</option>";
 sel+="</select>";
-let h='<div class="card"><h3>📞 پیگیری تماس‌های قبل از جلسه</h3>'+onlyMineToggleHTML("attend")+filterChipsHTML()+batchBarHTML()+'<div class="row" style="margin-bottom:8px">'+sel+"</div>";
+let h='<div class="card"><h3>📞 پیگیری تماس‌های قبل از جلسه</h3>'+'<div class="row" style="margin-bottom:8px">'+sel+"</div>";
 h+='<div class="progress"><i style="width:'+pct+'%"></i></div><p class="stat-line">ثبت‌شده: <b style="color:var(--p)">'+Jalali.toFa(done.length)+"</b> از "+Jalali.toFa(d.members.length)+'</p>'+
 '<div class="row" style="margin:10px 0 6px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">⏳ ثبت‌نشده ('+Jalali.toFa(need.length)+')</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">✓ ثبت‌شده ('+Jalali.toFa(done.length)+')</button></div>'+
 '<div class="row" style="margin-bottom:6px">'+filterBar("جستجوی نام در لیست")+
@@ -277,7 +277,7 @@ const pct=d.members.length?Math.round((d.members.length-np)/d.members.length*100
 let unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));unpaid=smartSortMembers(filterMembersForMe(unpaid,"fee"),"fee");
 const follow=unpaid.filter(m=>!(f[m.id]||{}).fc);
 const contacted=d.members.filter(m=>(f[m.id]&&f[m.id].paid)||((f[m.id]||{}).fc));
-let h=onlyMineToggleHTML("fee")+'<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">'+(nc?Jalali.fmt(nc.date):"جلسه بعدی تنظیم نشده")+' · مهلت: '+esc(feeInfo.text)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
+let h='<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">'+(nc?Jalali.fmt(nc.date):"جلسه بعدی تنظیم نشده")+' · مهلت: '+esc(feeInfo.text)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
 '<div class="row" style="margin:6px 0 8px;flex-wrap:wrap"><button class="btn sm ghost" type="button" id="btnFeeXls">⬇️ خروجی اکسل</button><button class="btn sm ghost" type="button" onclick="feeReport()">📨 مشاهده گزارش</button><button class="btn sm ghost" type="button" onclick="window.print()">🖨️ چاپ / PDF</button></div>'+
 '<div class="row" style="margin:4px 0 10px"><button class="chip'+(UI.feeTab===0?" on":"")+'" style="flex:1" onclick="setFeeTab(0)">💰 پرداخت‌ها</button><button class="chip'+(UI.feeTab===1?" on":"")+'" style="flex:1" onclick="setFeeTab(1)">📞 پیگیری ('+Jalali.toFa(follow.length)+')</button><button class="chip'+(UI.feeTab===2?" on":"")+'" style="flex:1" onclick="setFeeTab(2)">✓ انجام‌شده ('+Jalali.toFa(contacted.length)+')</button></div>'+
 filterBar("جستجوی نام");
@@ -371,7 +371,10 @@ el.innerHTML='<div class="card hero members-hero"><div class="members-hero-title
 '<span class="role-ico" title="تکالیف">📋</span><span class="leg">تکلیف</span>'+
 '<span class="role-ico" title="حامی">🤝</span><span class="leg">حامی</span>'+
 '</div></div><div class="sec-label">فهرست اعضا</div><div id="mList"></div>';
-renderMembers("");};
+renderMembers("");
+/* Persistent add action stays available after saving each member. */
+const addBar=document.createElement("div");addBar.className="members-add-bar";addBar.innerHTML='<button type="button" class="btn p" onclick="memberForm()">＋ ثبت عضو جدید</button>';el.appendChild(addBar);
+};
 
 /* ---- تنظیمات ---- */
 Pages.settings=function(el){if(!can("settings")){el.innerHTML='<div class="card"><p>فقط مدیر به تنظیمات دسترسی دارد.</p><button class="btn ghost" onclick="logoutUser()">خروج</button></div>';return;}const d=Store.get(),DAYS=Jalali.DN,st=d.settings;
