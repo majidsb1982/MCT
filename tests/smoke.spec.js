@@ -72,7 +72,7 @@ test("attendance status can be recorded and persists", async ({ page }) => {
   await statusButton.click();
 
   await expect.poll(async () => page.evaluate(() => {
-    const d = JSON.parse(localStorage.getItem("mct:data"));
+    const d = Store.get();
     return Object.values(d.sessions || {}).some(session =>
       Object.values(session || {}).some(entry => entry && (entry.p1 || entry.p2))
     );
@@ -104,7 +104,7 @@ test("user form saves a new role and four-digit PIN", async ({ page }) => {
   await page.locator("#uRole").selectOption("view");
   await page.locator("#uSave").click();
   await expect.poll(() => page.evaluate(() => {
-    const d = JSON.parse(localStorage.getItem("mct:data"));
+    const d = Store.get();
     return (d.users || []).some(u => u.name === "کاربر آزمون" && u.pin === "2468" && u.role === "view");
   })).toBeTruthy();
 });
@@ -126,7 +126,7 @@ test("session pruning removes only fees tied to pruned sessions", async ({ page 
   await page.goto("/");
   await page.evaluate(() => {
     Store.save();
-    const d = JSON.parse(localStorage.getItem("mct:data"));
+    const d = Store.get();
     d.settings.maxSessions = 1;
     d.sessions = {
       "1405-01-01": { memberA: { p1: "present" } },
@@ -145,7 +145,7 @@ test("session pruning removes only fees tied to pruned sessions", async ({ page 
   const removed = await page.evaluate(() => window.pruneSessions(1));
   expect(removed).toBe(1);
   const result = await page.evaluate(() => {
-    const d = JSON.parse(localStorage.getItem("mct:data"));
+    const d = Store.get();
     return { sessions: Object.keys(d.sessions), fees: Object.keys(d.fees) };
   });
   expect(result.sessions).toEqual(["1405-01-02"]);
@@ -165,7 +165,7 @@ test("attendance page uses a clear title without the redundant instruction banne
 test("member list offers name, family name, birth date and phone sorting", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
-    const d = JSON.parse(localStorage.getItem("mct:data"));
+    const d = Store.get();
     d.members = [
       { id: "m-a", name: "علی زارعی", phones: ["09120000002"], birth: { jy: 1370, jm: 2, jd: 3 }, roles: [], group: "عمومی" },
       { id: "m-b", name: "رضا احمدی", phones: ["09120000001"], birth: { jy: 1365, jm: 1, jd: 1 }, roles: [], group: "عمومی" },
@@ -191,7 +191,7 @@ test("member list offers name, family name, birth date and phone sorting", async
 test("fees page presents a compact summary and supporter report action", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
-    const d = JSON.parse(localStorage.getItem("mct:data"));
+    const d = Store.get();
     d.members = [{ id: "fee-test", name: "عضو شهریه", phones: ["09120000000"], roles: [], group: "عمومی" }];
     localStorage.setItem("mct:data", JSON.stringify(d));
   });
