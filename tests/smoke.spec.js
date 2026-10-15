@@ -277,9 +277,11 @@ test("absence reason is saved against the selected session and survives reload",
   await page.locator('#nav button[aria-label="حضور"]').click();
   const member = page.locator('.mblk[data-mid="reason-member"]');
   await member.locator('.st-btn[data-s="absent"]').click();
+  await page.getByRole("button", { name: /ثبت‌شده/ }).click();
+  const memberRecorded = page.locator('.mblk[data-mid="reason-member"]');
   const reason = "بیماری و اطلاع قبلی";
-  await member.locator('input[name="note-reason-member"]').fill(reason);
-  await member.locator('input[name="note-reason-member"]').press("Tab");
+  await memberRecorded.locator('input[name="note-reason-member"]').fill(reason);
+  await memberRecorded.locator('input[name="note-reason-member"]').press("Tab");
   await expect.poll(() => page.evaluate(() => {
     const d = Store.get();
     return d.sessions["1405-01-08"]["reason-member"]?.note;
@@ -288,6 +290,7 @@ test("absence reason is saved against the selected session and survives reload",
   expect(stored).toBe("present");
   await page.reload();
   await page.locator('#nav button[aria-label="حضور"]').click();
+  await page.getByRole("button", { name: /ثبت‌شده/ }).click();
   await expect(page.locator('.mblk[data-mid="reason-member"] input[name="note-reason-member"]')).toHaveValue(reason);
 });
 
