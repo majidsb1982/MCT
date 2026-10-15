@@ -73,7 +73,7 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
   const s=d.sessions[key]||{};
   const g={present:[],delay:[],absent:[],problem:[],none:[]};
   for(const m of d.members){
-    const st=ph===2?((s[m.id]||{}).p2||(s[m.id]||{}).p1):(s[m.id]||{}).p1;
+    const st=ph===2?(s[m.id]||{}).p2:(s[m.id]||{}).p1;
     (g[st||"none"]||g.none).push(m);
   }
   const roundName=ph===1?"نوبت ۱ — تماس قبلی (روز/ساعت‌های قبل)":"نوبت ۲ — پشت در کلاس";
@@ -89,8 +89,8 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
     arr.forEach(m=>{
       const ex=s[m.id]||{};
       let t="• "+m.name;
-      const status=ph===2?((ex.p2)||ex.p1):ex.p1;
-      const time=ph===2?(ex.time2||ex.time):(ex.time);
+      const status=ph===2?ex.p2:ex.p1;
+      const time=ph===2?ex.time2:ex.time;
       const note=ph===2?(ex.note2||""):(ex.note||"");
       if(status==="delay"&&time)t+=" (ساعت "+Jalali.toFa(time)+")";
       // Only share a note for a non-present status; notes may contain personal information.
