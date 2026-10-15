@@ -294,3 +294,36 @@ test("absence reason is saved against the selected session and survives reload",
   await expect(page.locator('.mblk[data-mid="reason-member"] input[name="note-reason-member"]')).toHaveValue(reason);
 });
 
+
+
+test("supporter attendance report is isolated to the selected session", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.shareSupport = true;
+    d.members = [
+      { id: "report-member", name: "عضو گزارش", phones: [], roles: [], group: "عمومی" },
+      { id: "old-member", name: "عضو جلسه قدیمی", phones: [], roles: [], group: "عمومی" }
+    ];
+    d.sessions = {
+      "1405-01-01": {
+        "report-member": { p1: "present", note: "یادداشت جلسه قدیمی که نباید بیاید" },
+        "old-member": { p1: "absent", note: "دلیل قدیمی" }
+      },
+      "1405-01-08": {
+        "report-member": { p1: "absent", note: "بیماری همان جلسه" }
+      }
+    };
+    d._lastSession = "1405-01-08";
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  await page.getByRole("button", { name: /گزارش به حامی/ }).click();
+  const report = page.locator("#rndRep");
+  await expect(report).toBeVisible();
+  await expect(report).toContainText("جلسه: ۱۴۰۵/۰۱/۰۸");
+  await expect(report).toContainText("بیماری همان جلسه");
+  await expect(report).not.toContainText("یادداشت جلسه قدیمی که نباید بیاید");
+  await expect(report).not.toContainText("عضو جلسه قدیمی");
+});
