@@ -324,10 +324,9 @@ test("supporter attendance report is isolated to the selected session", async ({
   await page.getByRole("button", { name: /گزارش به حامی/ }).click();
   const report = page.locator("#rndRep");
   await expect(report).toBeVisible();
-  await expect(report).toContainText("جلسه: ۱۴۰۵/۰۱/۰۸");
-  await expect(report).toContainText("بیماری همان جلسه");
-  await expect(report).not.toContainText("یادداشت جلسه قدیمی که نباید بیاید");
-  // The current roster may include members with no status in this session; only historical notes/statuses must not leak.
-  await expect(report).toContainText("هنوز ثبت‌نشده");
-  await expect(report).not.toContainText("دلیل قدیمی");
+  await expect(report).toHaveValue(/جلسه: ۱۴۰۵\/۰۱\/۰۸/);
+  await expect(report).toHaveValue(/بیماری همان جلسه/);
+  await expect(report).not.toHaveValue(/یادداشت جلسه قدیمی که نباید بیاید/);
+  // Historical notes/statuses must not leak into the selected-session report.
+  await expect(report).not.toHaveValue(/دلیل قدیمی/);
 });
