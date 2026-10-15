@@ -165,8 +165,10 @@ if(st&&st!=="present")h+='<input name="note-'+m.id+'" aria-label="یادداشت
 if(st&&st!=="present")h+='<div class="row" style="margin:-2px 0 8px;gap:6px"><button class="btn sm ghost" data-mic="1" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" aria-label="ضبط یادداشت صوتی">🎙 صدا</button>'+audBtn(cur[aF],"پخش یادداشت صوتی")+"</div>";
 return h;}
 const block=(m,ph,cur,key)=>'<div class="mblk" data-mid="'+m.id+'">'+memberRow(m,ph,cur,key)+"</div>";
-function doneRow(m,key,cur,ph){const st=cur[ph];const t=ph==="p1"?cur.time:cur.time2;
-return'<div class="mblk" data-mid="'+m.id+'"><div class="mem done">'+avatar(m)+"<b>"+esc(m.name)+'</b><span class="badge '+(ST.cls[st]||"b-m")+'" style="margin-right:auto">'+ST.lbl[st||"none"]+(t?" — "+Jalali.toFa(t):"")+'</span><button class="btn sm ghost" data-restore="1" data-mid="'+m.id+'" data-key="'+key+'" data-ph="'+ph+'" aria-label="بازگرداندن '+esc(m.name)+'">↩️ بازگردانی</button></div></div>';}
+function doneRow(m,key,cur,ph){const st=cur[ph];const t=ph==="p1"?cur.time:cur.time2;const nF=ph==="p1"?"note":"note2",tF=ph==="p1"?"time":"time2";let extra="";
+if(st==="delay")extra+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+(cur[tF]||"")+'" style="margin:6px 0">';
+if(st&&st!=="present")extra+='<input name="note-'+m.id+'" aria-label="یادداشت برای '+esc(m.name)+'" class="ex-input" placeholder="دلیل یا یادداشت (اختیاری)" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+nF+'" value="'+esc(cur[nF]||"")+'" style="margin:6px 0">';
+return'<div class="mblk" data-mid="'+m.id+'"><div class="mem done">'+avatar(m)+"<b>"+esc(m.name)+'</b><span class="badge '+(ST.cls[st]||"b-m")+'" style="margin-right:auto">'+ST.lbl[st||"none"]+(t?" — "+Jalali.toFa(t):"")+'</span><button class="btn sm ghost" data-restore="1" data-mid="'+m.id+'" data-key="'+key+'" data-ph="'+ph+'" aria-label="بازگرداندن '+esc(m.name)+'">↩️ بازگردانی</button></div>'+extra+'</div>';}
 function restoreAtt(key,mid,ph){const d=Store.get(),cur=(d.sessions[key]||{})[mid];if(!cur)return;
 cur[ph]=null;
 if(ph==="p1"){delete cur.time;delete cur.note;delete cur.a1;}else{delete cur.time2;delete cur.note2;delete cur.a2;}
