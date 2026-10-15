@@ -327,5 +327,7 @@ test("supporter attendance report is isolated to the selected session", async ({
   await expect(report).toContainText("جلسه: ۱۴۰۵/۰۱/۰۸");
   await expect(report).toContainText("بیماری همان جلسه");
   await expect(report).not.toContainText("یادداشت جلسه قدیمی که نباید بیاید");
-  await expect(report).not.toContainText("عضو جلسه قدیمی");
+  // The current roster may include members with no status in this session; only historical notes/statuses must not leak.
+  await expect(report).toContainText("هنوز ثبت‌نشده");
+  await expect(report).not.toContainText("دلیل قدیمی");
 });
