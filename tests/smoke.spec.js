@@ -260,3 +260,34 @@ test("fee session selector switches the active session without mixing payment re
   });
   expect(records).toEqual([true, false]);
 });
+
+test("absence reason is saved against the selected session and survives reload", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "reason-member", name: "عضو دلیل غیبت", phones: [], roles: [], group: "عمومی" }];
+    d.sessions = {
+      "1405-01-01": { "reason-member": { p1: "present" } },
+      "1405-01-08": {}
+    };
+    d._lastSession = "1405-01-08";
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  const member = page.locator('.mblk[data-mid="reason-member"]');
+  await member.locator('.st-btn[data-s="absent"]').click();
+  const reason = "بیماری و اطلاع قبلی";
+  await member.locator('input[name="note-reason-member"]').fill(reason);
+  await member.locator('input[name="note-reason-member"]').press("Tab");
+  await expect.poll(() => page.evaluate(() => {
+    const d = Store.get();
+    return d.sessions["1405-01-08"]["reason-member"]?.note;
+  })).toBe(reason);
+  const stored = await page.evaluate(() => Store.get().sessions["1405-01-01"]["reason-member"].p1);
+  expect(stored).toBe("present");
+  await page.reload();
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  await expect(page.locator('.mblk[data-mid="reason-member"] input[name="note-reason-member"]')).toHaveValue(reason);
+});
+
