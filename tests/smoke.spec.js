@@ -303,9 +303,9 @@ test("supporter attendance report is isolated to the selected session", async ({
     d.users = [{ id: "report-admin", name: "آزمون مدیر", pin: "2468", role: "admin" }];
     d.currentUserId = "report-admin";
     d.settings.requireLogin = false;
+    // The former member remains only in historical session data, not the current roster.
     d.members = [
-      { id: "report-member", name: "عضو گزارش", phones: [], roles: [], group: "عمومی" },
-      { id: "old-member", name: "عضو جلسه قدیمی", phones: [], roles: [], group: "عمومی" }
+      { id: "report-member", name: "عضو گزارش", phones: [], roles: [], group: "عمومی" }
     ];
     d.sessions = {
       "1405-01-01": {
