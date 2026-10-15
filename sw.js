@@ -1,4 +1,4 @@
-const C="mct-v40",A=["./","./index.html","./css/app.css?v=40","./js/core.js?v=40","./js/pages.js?v=40","./js/features.js?v=40","./js/app.js?v=40","./manifest.webmanifest","./icon.svg"];
+const C="mct-v41",A=["./","./index.html","./css/app.css?v=41","./js/core.js?v=41","./js/pages.js?v=41","./js/features.js?v=41","./js/app.js?v=41","./manifest.webmanifest","./icon.svg"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting()));});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request).then(cached=>{const fetched=fetch(e.request).then(res=>{if(res&&res.ok&&res.type==="basic"){const cp=res.clone();caches.open(C).then(c=>c.put(e.request,cp));}return res;}).catch(()=>cached||caches.match("./index.html"));return cached||fetched;}));});
