@@ -211,3 +211,52 @@ test("therapist door reminders open in a separate dialog from the home screen", 
   await page.locator("#doorChecklistClose").click();
   await expect(page.locator("#doorChecklistDialog")).toHaveCount(0);
 });
+
+
+test("member creation action remains available after the member list", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "ux-member", name: "عضو تجربه", phones: [], roles: [], group: "عمومی" }];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="اعضا"]').click();
+  await expect(page.locator(".members-add-bar button")).toContainText("ثبت عضو جدید");
+  await expect(page.locator(".members-add-bar")).toBeVisible();
+});
+
+test("fee session selector switches the active session without mixing payment records", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "ux-fee-member", name: "عضو آزمایشی", phones: [], roles: [], group: "عمومی" }];
+    d.sessions = {
+      "1405-01-01": { "ux-fee-member": { p1: "present" } },
+      "1405-01-08": { "ux-fee-member": { p1: "absent" } }
+    };
+    d.fees = {
+      "1405-01-01": { "ux-fee-member": { paid: true } },
+      "1405-01-08": { "ux-fee-member": { paid: false } }
+    };
+    d._lastSession = "1405-01-08";
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="شهریه"]').click();
+  await expect(page.locator("#feeSessionSelect")).toBeVisible();
+  await expect(page.locator("#app .fee-summary")).toContainText("پرداخت‌نشده");
+  await page.locator("#feeSessionSelect").selectOption("1405-01-01");
+  await expect(page.locator("#app .fee-summary")).toContainText("تسویه کامل");
+  const selected = await page.evaluate(() => ({
+    active: Store.get()._lastSession,
+    feeKey: document.querySelector(".payrow")?.getAttribute("data-key")
+  }));
+  expect(selected.active).toBe("1405-01-01");
+  expect(selected.feeKey).toBe("1405-01-01");
+  const records = await page.evaluate(() => {
+    const d = Store.get();
+    return [d.fees["1405-01-01"]["ux-fee-member"].paid, d.fees["1405-01-08"]["ux-fee-member"].paid];
+  });
+  expect(records).toEqual([true, false]);
+});
