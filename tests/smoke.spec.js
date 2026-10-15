@@ -330,3 +330,34 @@ test("supporter attendance report is isolated to the selected session", async ({
   // Historical notes/statuses must not leak into the selected-session report.
   await expect(report).not.toHaveValue(/دلیل قدیمی/);
 });
+
+
+test("second-round supporter report uses only second-round status, time, and note", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.users = [{ id: "report-admin", name: "آزمون مدیر", pin: "2468", role: "admin" }];
+    d.currentUserId = "report-admin";
+    d.settings.requireLogin = false;
+    d.members = [{ id: "round-member", name: "عضو نوبت دوم", phones: [], roles: [], group: "عمومی" }];
+    d.sessions = {
+      "1405-01-08": {
+        "round-member": {
+          p1: "absent", note: "یادداشت نوبت اول",
+          p2: "delay", time: "18:10", note2: "توضیح نوبت دوم", time2: "18:25"
+        }
+      }
+    };
+    d._lastSession = "1405-01-08";
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.evaluate(() => window.reportRoundToHami(2));
+  const report = page.locator("#rndRep");
+  await expect(report).toBeVisible();
+  await expect(report).toHaveValue(/نوبت ۲/);
+  await expect(report).toHaveValue(/توضیح نوبت دوم/);
+  await expect(report).toHaveValue(/۱۸:۲۵/);
+  await expect(report).not.toHaveValue(/یادداشت نوبت اول/);
+  await expect(report).not.toHaveValue(/۱۸:۱۰/);
+});
