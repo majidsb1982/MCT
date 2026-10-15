@@ -89,9 +89,12 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
     arr.forEach(m=>{
       const ex=s[m.id]||{};
       let t="• "+m.name;
-      if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(ex.time2||ex.time)+")";
-      if(ph===1&&ex.note)t+=" — "+ex.note;
-      if(ph===2&&ex.note2)t+=" — "+ex.note2;
+      const status=ph===2?((ex.p2)||ex.p1):ex.p1;
+      const time=ph===2?(ex.time2||ex.time):(ex.time);
+      const note=ph===2?(ex.note2||""):(ex.note||"");
+      if(status==="delay"&&time)t+=" (ساعت "+Jalali.toFa(time)+")";
+      // Only share a note for a non-present status; notes may contain personal information.
+      if(status&&status!=="present"&&note)t+=" — "+note;
       lines.push(t);
     });
     lines.push("");
@@ -101,7 +104,7 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
   block("بدون حضور",g.absent,"📭");
   block("مشکل / نیاز هماهنگی",g.problem,"💬");
   block("هنوز ثبت‌نشده",g.none,"—");
-  lines.push("— برای حامی‌ها (اعضای قدیمی پشتیبان) — بدون یادداشت محرمانه —");
+  lines.push("— گزارش مربوط به همین جلسه است؛ یادداشت‌ها ممکن است اطلاعات شخصی داشته باشند، پیش از ارسال بازبینی کنید. —");
   const txt=lines.join("\n");
   const o=modal('<h3 style="font-weight:800">📤 گزارش '+esc(roundName)+'</h3>'+
     '<p class="role-hint">این متن برای حامی‌هاست: پشتیبان مسئولان جدید و رابط با درمانگر.</p>'+
