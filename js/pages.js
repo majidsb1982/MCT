@@ -69,74 +69,110 @@ Pages.more=function(el){
   el.innerHTML=h;
 };
 Pages.reports=function(el){
-  let h='<div class="card hero"><h3>📡 گزارش و ارتباطات</h3><p style="opacity:.9;font-size:.9em;margin:0">همه کانال‌های گزارش — با حفظ حریم خصوصی اعضا.</p></div>';
-  h+='<div class="sec-label">ارسال به حامی‌ها</div><div class="hub-grid">';
+  let h='<div class="card hero"><h3>📡 گزارش و ارتباطات</h3><p style="opacity:.9;font-size:.9em;margin:0">گزارش‌های جلسه و هماهنگی مسئولان.</p></div>';
+  h+='<div class="sec-label">ارسال گزارش</div><div class="hub-grid">';
   [
     ["📤","نوبت ۱","گزارش تماس قبلی","reportRoundToHami(1)"],
     ["📤","نوبت ۲","گزارش پشت در","reportRoundToHami(2)"],
     ["💰","شهریه","گزارش پرداخت‌ها","reportFeesToHami()"],
-    ["🤝","خلاصه انسانی","لحن حمایتگر","humanHamiSummary()"],
+    ["🤝","خلاصه انسانی","گزارش حمایتگر","humanHamiSummary()"],
     ["📊","هفتگی","چند جلسه اخیر","weeklyDigest()"],
     ["📸","استوری","کارت تصویری","shareStoryCard()"]
   ].forEach(t=>{
     h+='<button type="button" class="hub-tile" onclick="'+t[3]+'"><span class="ht-ico">'+t[0]+'</span><span class="ht-title">'+t[1]+'</span><span class="ht-sub">'+t[2]+'</span></button>';
   });
-  h+='</div><div class="sec-label">هماهنگی بین مسئولان</div><div class="hub-grid">';
+  h+='</div><div class="sec-label">یادآوری و ابزارهای مدیریتی</div><div class="hub-grid">';
   [
     ["💬","یادآوری حضور","واتساپ اعضا","attendRemindWA()"],
-    ["💚","یادآوری شهریه","واتساپ بدهکاران","remindUnpaidWA()"]
+    ["💚","یادآوری شهریه","واتساپ بدهکاران","remindUnpaidWA()"],
+    ["📈","آمار و روند","خلاصه حضور و مقایسه جلسات","openReportPanel('stats')"],
+    ["🧭","گردش کار","کارهای باز و مسئولان دوره","openReportPanel('workflow')"],
+    ["🤝","پیگیری حمایتی","اولویت پیگیری و هماهنگی حامی‌ها","openReportPanel('support')"],
+    ["🛡","سلامت اطلاعات","کیفیت داده، پشتیبان و فعالیت‌ها","openReportPanel('system')"]
   ].forEach(t=>{
     h+='<button type="button" class="hub-tile" onclick="'+t[3]+'"><span class="ht-ico">'+t[0]+'</span><span class="ht-title">'+t[1]+'</span><span class="ht-sub">'+t[2]+'</span></button>';
   });
   h+='</div>';
   el.innerHTML=h;
 };
-function hubTilesHTML(){
-  const d=Store.get();
-  let c={attend:0,fee:0};
-  try{c=myPendingCount();}catch(e){}
-  return '<div class="sec-label">دسترسی سریع</div><div class="hub-grid">'+
-    '<button type="button" class="hub-tile accent" onclick="go(\'attend\')"><span class="ht-ico">📞</span><span class="ht-title">پیگیری تماس</span><span class="ht-sub">نوبت ۱ · ثبت‌نشده: '+Jalali.toFa(c.attend)+'</span></button>'+
-    '<button type="button" class="hub-tile" onclick="openEntry()"><span class="ht-ico">🚪</span><span class="ht-title">ثبت ورود</span><span class="ht-sub">نوبت ۲ · پشت در کلاس</span></button>'+
-    '<button type="button" class="hub-tile" onclick="go(\'fees\')"><span class="ht-ico">💰</span><span class="ht-title">شهریه</span><span class="ht-sub">واریز · باز: '+Jalali.toFa(c.fee)+'</span></button>'+
-    '<button type="button" class="hub-tile" onclick="go(\'reports\')"><span class="ht-ico">📡</span><span class="ht-title">گزارش‌ها</span><span class="ht-sub">حامی و شبکه‌ها</span></button>'+
-    '<button type="button" class="hub-tile" onclick="showDoorChecklist()"><span class="ht-ico">⏰</span><span class="ht-title">یادآور درمانگر</span><span class="ht-sub">اعلام زمان و باز کردن در</span></button>'+
-    '<button type="button" class="hub-tile" onclick="go(\'homework\')"><span class="ht-ico">📚</span><span class="ht-title">تکالیف</span><span class="ht-sub">ثبت و مشاهده آرشیو تکالیف</span></button>'+
-    '</div>';
+function openReportPanel(kind){
+  const titles={stats:"آمار و روند جلسات",workflow:"گردش کار و مسئولان",support:"پیگیری حمایتی",system:"سلامت اطلاعات و نگهداری"};
+  let body="";
+  if(kind==="stats"){
+    body=kpiRowHTML()+sessionCompareHTML()+heatmapHTML()+
+      '<div class="card"><h3>تحلیل جزئی‌تر</h3><p class="stat-line">میانگین حضور و روند تغییرات جلسات.</p><button type="button" class="btn p" onclick="showInsights()">📊 باز کردن تحلیل کامل</button></div>';
+  }else if(kind==="workflow"){
+    body=workflowStripHTML()+myTasksBannerHTML()+periodSummaryHTML();
+  }else if(kind==="support"){
+    body=roleDashboardHTML();
+  }else if(kind==="system"){
+    body=dataHealthHTML()+activityHTML();
+  }else{
+    return;
+  }
+  const o=modal('<h3 style="font-weight:800">'+titles[kind]+'</h3>'+body+
+    '<div class="row" style="margin-top:12px"><button type="button" class="btn ghost" id="reportPanelClose" style="flex:1">بستن</button></div>');
+  const close=$("#reportPanelClose",o);
+  if(close)close.onclick=()=>o.remove();
+  o.addEventListener("click",event=>{
+    const button=event.target.closest("button");
+    if(button&&button.id!=="reportPanelClose")o.remove();
+  });
 }
+window.openReportPanel=openReportPanel;
 
-Pages.home=function(el){const d=Store.get(),nc=nextClass(),key=curKey();const ins=computeInsights();
+Pages.home=function(el){const d=Store.get(),nc=nextClass(),key=curKey();
 let cd="";
-if(nc){const diff=nc.t-Date.now();
-if(diff>0){const dd=~~(diff/864e5),hh=~~(diff%864e5/36e5),mm=~~(diff%36e5/6e5);
-cd=(dd?Jalali.toFa(dd)+" روز و ":"")+Jalali.toFa(hh)+" ساعت و "+Jalali.toFa(mm)+" دقیقه";}
-else cd="🎬 کلاس در جریان است";}
+if(nc){
+  const diff=nc.t-Date.now();
+  if(diff>0){
+    const dd=Math.floor(diff/864e5),hh=Math.floor((diff%864e5)/36e5),mm=Math.floor((diff%36e5)/6e4);
+    cd=(dd?Jalali.toFa(dd)+" روز و ":"")+Jalali.toFa(hh)+" ساعت و "+Jalali.toFa(mm)+" دقیقه";
+  }else cd="کلاس در جریان است";
+}
 const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
 const unC=d.members.filter(m=>!(s[m.id]||{}).p1).length;
 const unE=d.members.filter(m=>!(s[m.id]||{}).p2).length;
 const unP=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
-let bdToday="";
-for(const mm of d.members){if(!mm.birth)continue;
-for(let a=0;a<=1;a++){const dt=new Date();dt.setDate(dt.getDate()+a);
-const tj=Jalali.toJ(dt.getFullYear(),dt.getMonth()+1,dt.getDate());
-if(tj.jm===mm.birth.jm&&tj.jd===mm.birth.jd)bdToday+=esc(mm.name)+" ("+(a===0?"امروز 🎉":"فردا")+") ";}}
+const birthdays=[];
+const today=new Date();
+for(let offset=0;offset<=1;offset++){
+  const date=new Date(today);date.setDate(today.getDate()+offset);
+  const tj=Jalali.toJ(date.getFullYear(),date.getMonth()+1,date.getDate());
+  for(const m of d.members){
+    if(m.birth&&m.birth.jm===tj.jm&&m.birth.jd===tj.jd)birthdays.push({name:m.name,today:offset===0});
+  }
+}
 let tasks="";
-if(unC)tasks+='<div class="task-row" onclick="go(\'attend\')"><div class="stat-ico">📞</div><div><div class="t-title">تماس‌های قبلی</div><div class="t-sub">'+Jalali.toFa(unC)+" نفر ثبت‌نشده</div></div><span class='t-go'>‹</span></div>";
-if(unE)tasks+='<div class="task-row" onclick="openEntry()"><div class="stat-ico">✅</div><div><div class="t-title">ثبت ورود</div><div class="t-sub">'+Jalali.toFa(unE)+" نفر ثبت‌نشده</div></div><span class='t-go'>‹</span></div>";
-if(unP)tasks+='<div class="task-row" onclick="go(\'fees\')"><div class="stat-ico">💰</div><div><div class="t-title">شهریه</div><div class="t-sub">'+Jalali.toFa(unP)+" نفر پرداخت‌نشده</div></div><span class='t-go'>‹</span></div>";
-if(bdToday)tasks+='<div class="task-row" onclick="go(\'members\')"><div class="stat-ico">🎂</div><div><div class="t-title">تولد!</div><div class="t-sub">'+bdToday+"</div></div></div>";
-if(!tasks)tasks='<div class="empty">🎉 همه‌چیز انجام شده — عالی!</div>';
-const insightCard='<div class="card fade-up"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:6px"><h3 style="margin:0">✨ نمای کلی <span class="badge-ai">AI</span></h3><button class="btn sm ghost" onclick="showInsights()">جزئیات</button></div><div class="row" style="gap:12px;align-items:center">'+ringSVG(ins.avg,64)+'<div style="flex:1">'+sparkHTML(ins.spark)+'<p class="stat-line" style="margin:4px 0 0">میانگین حضور '+Jalali.toFa(ins.avg)+'٪'+(ins.trend?(' · '+(ins.trend>0?'+':'')+Jalali.toFa(ins.trend)+'٪'):'')+'</p></div></div></div>';
-
-el.innerHTML=classDayModeHTML()+statusStripHTML()+hubTilesHTML()+workflowStripHTML()+dataHealthHTML()+smartNextActionHTML()+kpiRowHTML()+heatmapHTML()+myTasksBannerHTML()+activityHTML()+backupReminderHTML()+periodSummaryHTML()+sessionCompareHTML()+roleDashboardHTML()+insightCard+
-'<div class="card hero"><h3>🎯 کلاس بعدی</h3>'+(nc?
-'<div style="position:relative;z-index:1"><div style="font-size:1.05em;font-weight:800">'+Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date)+(nc.c.extra?" (جلسه خاص)":"")+" — ساعت "+Jalali.toFa(nc.c.start)+'</div><div style="font-weight:900;font-size:clamp(1.2em,6vw,1.5em);margin:4px 0 8px">'+cd+"</div>"+
-'<div class="row"><button class="btn" style="flex:1;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.28)" onclick="go(\'attend\')">📞 تماس‌ها</button><button class="btn" style="flex:1;background:#fff;color:#1d4ed8;border:none" onclick="openEntry()">✅ ثبت ورود</button></div></div>'
-:'<div class="empty" style="color:rgba(255,255,255,.9)">کلاسی تنظیم نشده — از تنظیمات اضافه کنید</div>')+"</div>"+
-'<div class="card"><h3>✅ اقدامات جلسه</h3>'+tasks+"</div>"+
-'<div class="card"><div class="row" style="gap:10px"><div style="flex:1;text-align:center"><div style="font-weight:900;font-size:1.2em">'+Jalali.toFa(d.members.length)+'</div><div class="stat-line">عضو</div></div><div style="width:1px;height:30px;background:var(--ln)"></div><div style="flex:1;text-align:center"><div style="font-weight:900;font-size:1.2em;color:'+(unP?"var(--bad)":"var(--ok)")+'">'+Jalali.toFa(d.members.length-unP)+'</div><div class="stat-line">پرداخت‌شده</div></div><div style="width:1px;height:30px;background:var(--ln)"></div><div style="flex:1;text-align:center"><div style="font-weight:900;font-size:1.2em;color:var(--warn)">'+Jalali.toFa(d.members.length-unC)+'</div><div class="stat-line">تماس‌شده</div></div></div></div>';
+if(unC)tasks+='<button type="button" class="task-row" onclick="go(\'attend\')"><span class="stat-ico">📞</span><span class="home-task-copy"><span class="t-title">تماس‌های قبلی</span><span class="t-sub">'+Jalali.toFa(unC)+" نفر ثبت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
+if(unE)tasks+='<button type="button" class="task-row" onclick="openEntry()"><span class="stat-ico">✅</span><span class="home-task-copy"><span class="t-title">ثبت ورود</span><span class="t-sub">'+Jalali.toFa(unE)+" نفر ثبت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
+if(unP)tasks+='<button type="button" class="task-row" onclick="go(\'fees\')"><span class="stat-ico">💰</span><span class="home-task-copy"><span class="t-title">شهریه</span><span class="t-sub">'+Jalali.toFa(unP)+" نفر پرداخت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
+if(birthdays.length){
+  const names=birthdays.slice(0,2).map(x=>esc(x.name)+(x.today?" (امروز)":" (فردا)")).join("، ");
+  const more=birthdays.length>2?" و "+Jalali.toFa(birthdays.length-2)+" نفر دیگر":"";
+  tasks+='<button type="button" class="task-row" onclick="go(\'members\')"><span class="stat-ico">🎂</span><span class="home-task-copy"><span class="t-title">تولد نزدیک</span><span class="t-sub">'+names+more+'</span></span><span class="t-go" aria-hidden="true">‹</span></button>';
+}
+if(!d.members.length){
+  tasks='<div class="home-empty"><p>برای شروع، اعضای کلاس را ثبت کنید.</p><button type="button" class="btn p sm" onclick="go(\'members\')">＋ ثبت عضو</button></div>';
+}else if(!tasks){
+  tasks='<div class="home-empty">همه پیگیری‌های این جلسه ثبت شده‌اند.</div>';
+}
+let classCard='<div class="card hero home-class-card"><h3>🎯 جلسه پیش‌رو</h3>';
+if(nc){
+  classCard+='<div class="home-class-name">'+esc(d.settings.className||"کلاس")+'</div>'+
+    '<div class="home-class-date">'+Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date)+(nc.c.extra?" · جلسه خاص":"")+'</div>'+
+    '<div class="home-class-time">ساعت '+Jalali.toFa(nc.c.start)+(nc.c.end?" تا "+Jalali.toFa(nc.c.end):"")+'</div>'+
+    '<div class="home-countdown">'+cd+'</div>';
+}else{
+  classCard+='<div class="home-empty-class">کلاسی تعریف نشده است.</div><button type="button" class="btn sm" style="background:#fff;color:var(--p);margin-top:8px" onclick="go(\'settings\')">تنظیم برنامه کلاس</button>';
+}
+classCard+='</div>';
+el.innerHTML=statusStripHTML()+classCard+
+  '<div class="card home-task-card"><div class="home-task-heading"><h3>✅ اقدامات باقی‌مانده</h3><span class="home-task-count">'+Jalali.toFa((unC?1:0)+(unE?1:0)+(unP?1:0)+(birthdays.length?1:0))+' مورد</span></div>'+tasks+'</div>'+
+  '<div class="home-utility-row"><button type="button" class="btn sm ghost" onclick="openEntry()">🚪 نوبت ۲</button><button type="button" class="btn sm ghost" onclick="showDoorChecklist()">⏰ یادآور درمانگر</button><button type="button" class="btn sm ghost" onclick="go(\'reports\')">📊 گزارش‌ها</button></div>';
 window._cdTimer&&clearInterval(window._cdTimer);
-if(nc&&nc.t>Date.now())window._cdTimer=setInterval(()=>{if(route==="home")Pages.home(el);},60000);};
+if(nc&&nc.t>Date.now())window._cdTimer=setInterval(()=>{if(route==="home")Pages.home(el);},60000);
+};
 
 /* ---- دکمه‌های تماس (چند شماره) ---- */
 function callBtns(m){if(m.consentContact===false)return'<span style="margin-right:auto;font-size:.75em;color:var(--tx2)">بدون رضایت تماس</span>';

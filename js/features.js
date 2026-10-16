@@ -37,32 +37,7 @@ function togglePinMember(id){
 "use strict";
 
 
-/* ============ v23: حالت روز کلاس + سنجاق اعضا + نوار وضعیت ============ */
-function isClassDaySoon(){
-  const nc=typeof nextClass==="function"?nextClass():null;
-  if(!nc)return null;
-  const diff=nc.t-Date.now();
-  return {nc,diff,hours:diff/36e5,soon:diff>0&&diff<36e5*36};
-}
-function classDayModeHTML(){
-  const info=isClassDaySoon();
-  if(!info||!info.soon)return"";
-  const h=info.hours;
-  let phase="آماده‌سازی";
-  if(h<=0)phase="کلاس در جریان / نوبت ۲";
-  else if(h<=0.5)phase="نوبت ۲ — پشت در";
-  else if(h<=6)phase="نوبت ۱ — تماس نهایی";
-  else phase="پیگیری شهریه و نوبت ۱";
-  return '<div class="card class-day-mode noprint">'+
-    '<div class="cdm-head"><span class="cdm-badge">🎯 حالت روز کلاس</span><span class="cdm-phase">'+phase+'</span></div>'+
-    '<p class="stat-line" style="margin:6px 0 10px">تا شروع: <b>'+(info.diff>0?(Jalali.toFa(Math.floor(info.hours))+" س و "+Jalali.toFa(Math.floor((info.diff%36e5)/6e4))+" د"):"اکنون")+'</b></p>'+
-    '<div class="cdm-steps">'+
-    '<button type="button" class="cdm-step" onclick="go(\'fees\')"><span>۱</span>شهریه</button>'+
-    '<button type="button" class="cdm-step" onclick="go(\'attend\')"><span>۲</span>نوبت ۱</button>'+
-    '<button type="button" class="cdm-step" onclick="openEntry()"><span>۳</span>نوبت ۲</button>'+
-    '<button type="button" class="cdm-step" onclick="go(\'reports\')"><span>۴</span>گزارش حامی</button>'+
-    '</div></div>';
-}
+/* ============ نوار وضعیت + سنجاق اعضا ============ */
 function statusStripHTML(){
   try{
     const d=Store.get();const key=typeof curKey==="function"?curKey():null;
@@ -73,9 +48,9 @@ function statusStripHTML(){
     const p2=d.members.filter(m=>(s[m.id]||{}).p2).length;
     const paid=d.members.filter(m=>f[m.id]&&f[m.id].paid).length;
     return '<div class="status-strip noprint" role="status">'+
-      '<span title="نوبت ۱">📞 '+Jalali.toFa(p1)+'/'+Jalali.toFa(tot)+'</span>'+
-      '<span title="نوبت ۲">🚪 '+Jalali.toFa(p2)+'/'+Jalali.toFa(tot)+'</span>'+
-      '<span title="شهریه">💰 '+Jalali.toFa(paid)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد ثبت‌های تماس نوبت ۱">📞 تماس '+Jalali.toFa(p1)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد ثبت‌های ورود نوبت ۲">🚪 ورود '+Jalali.toFa(p2)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد پرداخت‌شده شهریه">💰 پرداخت '+Jalali.toFa(paid)+'/'+Jalali.toFa(tot)+'</span>'+
       '</div>';
   }catch(e){return"";}
 }

@@ -542,19 +542,25 @@ nav button{position:relative}
 .mem-list .mem{padding:11px 0}
 .page-sec{margin:12px 0 6px}
 
-/* v23 class day + status strip */
-.class-day-mode{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;border:none}
-.class-day-mode .stat-line{color:rgba(255,255,255,.9)}
-.cdm-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.cdm-badge{font-weight:800;font-size:.9em}
-.cdm-phase{font-size:.78em;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:99px}
-.cdm-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.cdm-step{border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:12px;padding:10px 4px;font-family:inherit;font-size:.72em;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
-.cdm-step span{width:22px;height:22px;border-radius:50%;background:#fff;color:#1e3a8a;display:flex;align-items:center;justify-content:center;font-size:.85em;font-weight:900}
-.cdm-step:active{transform:scale(.96)}
 .status-strip{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:8px 12px;margin-bottom:8px;background:var(--sf);border:1px solid var(--ln);border-radius:12px;font-size:.8em;font-weight:700;color:var(--tx2)}
 .status-strip span{white-space:nowrap}
-@media(max-width:400px){.cdm-steps{grid-template-columns:repeat(2,1fr)}}
+.home-class-card{padding:14px;margin-bottom:8px}
+.home-class-name{position:relative;z-index:1;font-size:1.08em;font-weight:900;margin-top:2px}
+.home-class-date,.home-class-time{position:relative;z-index:1;font-size:.86em;margin-top:4px;color:rgba(255,255,255,.92)}
+.home-countdown{position:relative;z-index:1;font-size:1.2em;font-weight:900;margin-top:8px}
+.home-empty-class{position:relative;z-index:1;font-size:.92em;margin-top:6px}
+.home-task-card{padding:12px;margin-bottom:8px}
+.home-task-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.home-task-heading h3{margin:0}
+.home-task-count{font-size:.75em;color:var(--tx2);white-space:nowrap}
+.home-task-copy{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.home-task-card .task-row{width:100%;text-align:right;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;padding:9px 0;border-bottom:1px solid var(--ln);margin:0}
+.home-task-card .task-row:last-child{border-bottom:0}
+.home-task-card .task-row:focus-visible,.home-utility-row button:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.home-empty{padding:8px 0;font-size:.88em;color:var(--tx2)}
+.home-empty p{margin:0 0 8px}
+.home-utility-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.home-utility-row button{min-width:0;min-height:42px;padding:8px 5px;white-space:normal;line-height:1.35;font-size:.78em}
 
 /* Mobile UX: compact, windowed home dashboard */
 @media (max-width: 767px) {
@@ -617,9 +623,6 @@ table { max-width: 100%; }
 .empty { line-height: 1.7; }
 .status-strip { align-items: center; }
 .status-strip span { display: inline-flex; align-items: center; gap: 4px; }
-.cdm-steps { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
-.cdm-step { min-width: 0; overflow-wrap: anywhere; }
-.cdm-step span { display: inline-flex; align-items: center; justify-content: center; }
 .hub-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .hub-tile { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 767px) {
@@ -642,9 +645,10 @@ table { max-width: 100%; }
   .entry-body .avatar { width: 38px; height: 38px; }
   .entry-body .mem b { font-size: 1em; }
   .status-strip { gap: 6px 12px; margin: 0 0 8px; padding: 8px; font-size: .76em; }
-  .class-day-mode { padding: 12px; }
-  .cdm-steps { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .cdm-step { min-height: 40px; padding: 8px 5px; font-size: .8em; }
+  .home-class-card{padding:12px}
+  .home-task-card{padding:10px}
+  .home-utility-row{gap:5px}
+  .home-utility-row button{font-size:.74em}
   .insight { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .modal { padding: 16px; border-radius: 17px; max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
   .modal > h3:first-child { top: -16px; }
