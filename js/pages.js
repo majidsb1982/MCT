@@ -419,7 +419,7 @@ if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
 const sb=document.getElementById("storBody");
 if(sb){const si=storageInfo();
 sb.innerHTML='<p class="stat-line">حجم داده: <b>'+Jalali.toFa(si.kb)+'</b> کیلوبایت ('+si.mb+' MB) — حدود <b>'+Jalali.toFa(si.pct)+'٪</b> ظرفیت</p><div class="progress"><i style="width:'+Math.min(100,si.pct)+'%"></i></div><p class="stat-line">جلسات: '+Jalali.toFa(si.sessions)+' | اعضا: '+Jalali.toFa(si.members)+'</p><button class="btn sm ghost" style="margin-top:8px" id="pruneBtn">🧹 پاکسازی جلسات قدیمی</button>';
-const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>{const n=pruneSessions();toast(n?("🧹 "+Jalali.toFa(n)+" جلسه قدیمی پاک شد"):"✅ جلسه‌ای برای پاک کردن نبود");render();};}
+const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>pruneSessions();}
 
 };
 
