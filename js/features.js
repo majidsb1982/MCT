@@ -94,7 +94,12 @@ else{toast("⚠️ عدد معتبر وارد کنید (مثلاً 15,8,5,3)");t
 if(t.classList.contains("ex-input")){const d=Store.get();
 d.sessions[t.dataset.key]=d.sessions[t.dataset.key]||{};
 const cur=d.sessions[t.dataset.key][t.dataset.mid]=d.sessions[t.dataset.key][t.dataset.mid]||{};
-cur[t.dataset.f]=t.value;d._lastSession=t.dataset.key;Store.save();return;}
+if(t.dataset.f==="time"||t.dataset.f==="time2"){
+ if(t.value&&!isClockTime(t.value)){toast("⚠️ ساعت را به‌شکل صحیح وارد کنید");t.value="";return;}
+ if(t.value)cur[t.dataset.f]=t.value;else delete cur[t.dataset.f];
+}else cur[t.dataset.f]=t.value;
+cur.updatedAt=Date.now();cur.by=(currentUser()||{}).name||"";
+d._lastSession=t.dataset.key;Store.save();return;}
 if(t.classList.contains("fee-note")){feeNote(t.dataset.key,t.dataset.mid,t.value);return;}});
 
 
