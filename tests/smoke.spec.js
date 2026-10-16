@@ -149,11 +149,31 @@ test("session pruning removes only fees tied to pruned sessions", async ({ page 
 });
 
 
-test("attendance page uses a clear title without the redundant instruction banner", async ({ page }) => {
+test("attendance workspace keeps controls visible and confines scrolling to the member list", async ({ page }) => {
   await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = Array.from({ length: 18 }, (_, i) => ({
+      id: "attend-pane-" + i, name: "عضو آزمون " + (i + 1), phones: [], roles: [], group: "عمومی", needs: []
+    }));
+    Store.save();
+  });
+  await page.setViewportSize({ width: 375, height: 812 });
   await page.locator('#nav button[aria-label="حضور"]').click();
   await expect(page.locator("#app")).toContainText("پیگیری تماس‌های قبل از جلسه");
   await expect(page.locator("#app .round-banner")).toHaveCount(0);
+  await expect(page.locator("#app")).toHaveClass(/attend-pane/);
+  await expect(page.locator("#app .attend-list-pane")).toBeVisible();
+  await expect(page.locator("#app .attend-list-pane")).toHaveCSS("overflow-y", "auto");
+  const bounds = await page.evaluate(() => ({
+    root: document.querySelector("#app").getBoundingClientRect(),
+    header: document.querySelector("#hdr").getBoundingClientRect(),
+    nav: document.querySelector("#nav").getBoundingClientRect(),
+    list: document.querySelector("#app .attend-list-pane").getBoundingClientRect()
+  }));
+  expect(bounds.root.top).toBeGreaterThanOrEqual(bounds.header.bottom - 1);
+  expect(bounds.root.bottom).toBeLessThanOrEqual(bounds.nav.top + 1);
+  expect(bounds.list.height).toBeGreaterThan(80);
 });
 
 test("member list offers name, family name, birth date and phone sorting", async ({ page }) => {
