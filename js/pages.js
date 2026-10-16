@@ -433,7 +433,7 @@ let memberSortMode="name";
 function renderMembers(q){q=(q||"").trim();const d=Store.get();
 let list=d.members.filter(m=>!q||m.name.includes(q));
 const pins=d.pinnedMembers||[];
-const familyName=m=>{const p=String(m.name||"").trim().split(/\\s+/);return p.length>1?p[p.length-1]:p[0]||"";};
+const familyName=m=>{const p=String(m.name||"").trim().split(/\s+/);return p.length>1?p[p.length-1]:p[0]||"";};
 const birthKey=m=>m.birth?String(m.birth.jy).padStart(4,"0")+"-"+String(m.birth.jm).padStart(2,"0")+"-"+String(m.birth.jd).padStart(2,"0"):"9999-99-99";
 const phoneKey=m=>(m.phones||[]).filter(Boolean)[0]||"~~~~~~~~";
 const cmp=(a,b)=>memberSortMode==="family"?familyName(a).localeCompare(familyName(b),"fa")||a.name.localeCompare(b.name,"fa"):memberSortMode==="birth"?birthKey(a).localeCompare(birthKey(b)):memberSortMode==="phone"?phoneKey(a).localeCompare(phoneKey(b)):a.name.localeCompare(b.name,"fa");
@@ -455,7 +455,7 @@ function latinPhoneDigits(value){
   .replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
 }
 function canonicalPhone(value){
- let p=latinPhoneDigits(value).replace(/[\\s().-]/g,"");
+ let p=latinPhoneDigits(value).replace(/[\s().-]/g,"");
  if(p.startsWith("+98"))p="0"+p.slice(3);
  else if(p.startsWith("0098"))p="0"+p.slice(4);
  else if(p.startsWith("98")&&p.length===12)p="0"+p.slice(2);
@@ -463,7 +463,7 @@ function canonicalPhone(value){
 }
 function validPhone(value){
  const p=canonicalPhone(value);
- return !p || /^0?9\\d{9}$/.test(p) || /^\\+?\\d{8,15}$/.test(p);
+ return !p || /^0?9\d{9}$/.test(p) || /^\+?\d{8,15}$/.test(p);
 }
 function memberForm(id){const d=Store.get(),m=id?d.members.find(x=>x.id===id):null;
 const o=modal("<h3 style='font-weight:800'>"+(m?"✏️ ویرایش عضو":"＋ عضو جدید")+"</h3>"+
