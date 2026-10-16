@@ -22,7 +22,7 @@
 | [group-therapy-management](https://github.com/majidsb1982/group-therapy-management) | PWA آفلاین سبک‌تر با src/app.js و src/styles.css؛ امکانات مشابه جلسات، حضور، پیگیری و گزارش. | مرجع مقایسه برای سادگی و قابلیت‌های کم‌هزینه؛ ادغام کامل لازم نیست |
 | [Mctgem](https://github.com/majidsb1982/Mctgem) | React 19، TypeScript، Vite و Tailwind؛ اجزای رابط و صفحه‌های تفکیک‌شده. | استخراج ایده‌های UX و رفتارها؛ **عدم کپی مستقیم** کد React در MCT جاوااسکریپت ساده |
 | [Mctgem-v13](https://github.com/majidsb1982/Mctgem-v13) | نسخه قدیمی‌تر خانواده Mctgem؛ شامل تاریخچه ایده‌های UI/UX. | مرجع تاریخی فقط؛ قابلیت جدید را ابتدا با Mctgem فعلی مقایسه کنیم |
-| [class-tracker-pro](https://github.com/majidsb1982/class-tracker-pro) | React/TypeScript، ساختار Convex و Auth در مسیر اصلی؛ اسکریپت ساخت نسخه آفلاین نیز وجود دارد. | پروژه مستقل؛ بررسی نسخه آفلاین و ماژول‌های قابل استفاده به‌صورت جدا، بدون وارد کردن وابستگی backend به MCT |
+| [class-tracker-pro](https://github.com/majidsb1982/class-tracker-pro) | React/TypeScript، ساختار Convex و Auth در مسیر اصلی؛ اسکریپت ساخت نسخه آفلاین نیز وجود دارد. در Actions سه workflow با نام‌های Python application، NodeJS with Webpack و Android CI در ۲۰۲۶-۱۰-۱۶ شکست خورده‌اند؛ علت/ارتباط آن‌ها با پروژه هنوز بررسی نشده است. | پروژه مستقل؛ ابتدا workflowهای نامرتبط/قدیمی را بررسی کنیم، سپس نسخه آفلاین و ماژول‌های مستقل را جداگانه ارزیابی کنیم؛ backend به MCT منتقل نشود |
 | [classtra](https://github.com/majidsb1982/classtra) | پروژه Android/Gradle؛ فراداده به Room آفلاین و قابلیت Gemini API اشاره می‌کند. | اپ بومی جدا؛ نه هم‌مخزن با PWA و نه ادغام مستقیم |
 | [MCT-v16](https://github.com/majidsb1982/MCT-v16) | مخزن خالی؛ API محتوا پاسخ خالی می‌دهد. | فعلاً بدون کد و نامزد پاک‌سازی؛ تا روشن شدن اینکه هیچ لینک/وابستگی‌ای ندارد، حذف نشود |
 | [forklift-spare-parts-system](https://github.com/majidsb1982/forklift-spare-parts-system) | پروژه کسب‌وکار قطعات و انبار لیفتراک. | **کاملاً جدا نگه داشته شود**؛ دامنه و مدل داده نامرتبط است |
@@ -48,4 +48,4 @@
 
 ## وضعیت کنترل کیفیت
 
-در بررسی ۲۰۲۶-۱۰-۱۶، اجرای Workflowهای **Validate MCT**، **MCT Browser and Visual Checks** و انتشار Pages روی سرشاخه فعلی موفق گزارش شده‌اند. این نتیجه برای همان commitهاست و جایگزین تست همه دستگاه‌ها، تست داده‌های واقعی یا تأیید کامل عملکرد نیست.
+در بررسی ۲۰۲۶-۱۰-۱۶، اجرای Workflowهای **Validate MCT**، **MCT Browser and Visual Checks** و انتشار Pages روی سرشاخه فعلی موفق گزارش شده‌اند. این نتیجه برای همان commitهاست و جایگزین تست همه دستگاه‌ها، تست داده‌های واقعی یا تأیید کامل عملکرد نیست. در My-Class-Track آخرین CI قابل مشاهده در ۲۰۲۶-۱۰-۰۷ موفق بود؛ گروه-therapy-management، Mctgem و classtra نیز در همین روز اجرای انتشار Pages موفق داشتند. در class-tracker-pro چند workflow نام‌برده‌شده شکست خورده‌اند و باید جداگانه بررسی شوند؛ شکست workflow به‌تنهایی ثابت نمی‌کند که اپ اصلی خراب است.
