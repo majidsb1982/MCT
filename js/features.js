@@ -37,7 +37,7 @@ function togglePinMember(id){
 "use strict";
 
 
-/* ============ v23: حالت روز کلاس + سنجاق اعضا + نوار وضعیت ============ */
+/* ============ نوار وضعیت + سنجاق اعضا ============ */
 function statusStripHTML(){
   try{
     const d=Store.get();const key=typeof curKey==="function"?curKey():null;
