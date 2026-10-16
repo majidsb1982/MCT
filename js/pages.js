@@ -448,6 +448,23 @@ return'<div class="mem mem-row">'+avatar(m)+'<div class="mem-main"><div class="m
 (m.birth?'<span class="mem-muted"> · 🎂 '+Jalali.fmt(m.birth)+'</span>':'')+
 '</div></div><div class="mem-actions">'+audBtn(m.voice,"پخش یادداشت "+m.name)+'<button class="btn sm ghost ico-btn" onclick="memberForm(\''+m.id+'\')" aria-label="ویرایش">✏️</button><button class="btn sm ghost ico-btn" onclick="delMember(\''+m.id+'\')" aria-label="حذف">🗑</button></div></div>';
 }).join("")+"</div>"):('<div class="card empty-members-card"><div class="empty"><div class="empty-members-art" aria-hidden="true"><span>م</span><span>ع</span><span>ض</span></div><h3>هنوز عضوی ثبت نشده</h3><p>برای شروع، اولین عضو کلاس را اضافه کنید.</p><button class=btn onclick=memberForm()>＋ افزودن اولین عضو</button></div></div>');}
+/* Canonicalise Persian/Arabic phone digits so validation and duplicate checks agree. */
+function latinPhoneDigits(value){
+ return String(value||"")
+  .replace(/[۰-۹]/g,d=>String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+  .replace(/[٠-٩]/g,d=>String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
+}
+function canonicalPhone(value){
+ let p=latinPhoneDigits(value).replace(/[\\s().-]/g,"");
+ if(p.startsWith("+98"))p="0"+p.slice(3);
+ else if(p.startsWith("0098"))p="0"+p.slice(4);
+ else if(p.startsWith("98")&&p.length===12)p="0"+p.slice(2);
+ return p;
+}
+function validPhone(value){
+ const p=canonicalPhone(value);
+ return !p || /^0?9\\d{9}$/.test(p) || /^\\+?\\d{8,15}$/.test(p);
+}
 function memberForm(id){const d=Store.get(),m=id?d.members.find(x=>x.id===id):null;
 const o=modal("<h3 style='font-weight:800'>"+(m?"✏️ ویرایش عضو":"＋ عضو جدید")+"</h3>"+
 '<div class="ph-pick">'+(m&&m.photo?'<img id="phPrev" src="'+m.photo+'" alt="عکس عضو">':'<div class="ph-empty" id="phPrev">👤</div>')+
@@ -513,8 +530,14 @@ const name=$("#fName",o).value.trim();
 const phs=phones.map(x=>x.trim()).filter(Boolean);
 if(!name){toast("⚠️ نام را وارد کنید");return;}
 if(!m&&d.members.some(x=>x.name===name)){toast("⚠️ عضوی با همین نام از قبل ثبت شده");return;}
-for(const p of phs){const ph=p.replace(/[۰-۹]/g,x=>"۰۱۲۳۴۵۶۷۸۹".indexOf(x));
-if(!/^0?9\d{9}$|^\+?\d{8,15}$/.test(ph)){toast("⚠️ شماره «"+p+"» معتبر نیست");return;}}
+for(const p of phs){if(!validPhone(p)){toast("⚠️ شماره «"+p+"» معتبر نیست");return;}}
+const canonicalPhones=phs.map(canonicalPhone);
+if(new Set(canonicalPhones).size!==canonicalPhones.length){toast("⚠️ یک شماره تماس بیش از یک‌بار وارد شده است");return;}
+const duplicateOwners=[];
+d.members.filter(x=>!m||x.id!==m.id).forEach(x=>{
+ const existing=(x.phones||[]).map(canonicalPhone).filter(Boolean);
+ if(canonicalPhones.some(p=>p&&existing.includes(p))&&!duplicateOwners.includes(x.name))duplicateOwners.push(x.name);
+});
 const roles=[...o.querySelectorAll(".fRole:checked")].map(c=>c.value);
 const grp=($("#fGroup",o)&&$("#fGroup",o).value)||"عمومی";
 const needs=[...o.querySelectorAll(".fNeed:checked")].map(c=>c.value);
@@ -527,8 +550,15 @@ supporterId:suppEl&&suppEl.value?suppEl.value:null,
 consentContact:consC?consC.checked:true,
 consentPhoto:consP?consP.checked:true,
 photo:o._photo,voice:o._voice,group:grp};
+const commitMember=()=>{
 if(m)Object.assign(m,obj);else d.members.push(Object.assign({id:Store.uid()},obj));
-Store.save();o.remove();render();toast("✅ ذخیره شد");};}
+Store.save();o.remove();render();toast("✅ ذخیره شد");
+};
+if(duplicateOwners.length){
+ confirm2("این شماره با عضو دیگری مشترک است: "+duplicateOwners.join("، ")+". اگر اشتراک شماره عمدی است، ادامه دهید.",commitMember);
+ return;
+}
+commitMember();};}
 function delMember(id){if(!requirePerm("delete","اجازه حذف ندارید"))return;const d=Store.get();const i=d.members.findIndex(m=>m.id===id);if(i<0)return;
 const mm=d.members.splice(i,1)[0];Store.save();render();
 toastUndo("🗑 "+mm.name+" حذف شد",()=>{d.members.splice(i,0,mm);Store.save();render();});}
