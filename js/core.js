@@ -277,7 +277,10 @@ o.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{sel={jy:y,jm:m,jd:+b.da
 function nextClass(){const d=Store.get();if(!d.classes.length&&!(d.extra||[]).length)return null;
 const now=new Date();let best=null;
 for(let i=0;i<8;i++){const dt=new Date(now);dt.setDate(now.getDate()+i);const dw=(dt.getDay()+1)%7;
+const iso=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
 for(const c of d.classes){if(c.dow!==dw)continue;
+if(c.startDate&&iso<c.startDate)continue;
+if(c.endDate&&iso>c.endDate)continue;
 const[h,mi]=c.start.split(":").map(Number);
 const t=new Date(dt);t.setHours(h,mi,0,0);
 if(t>now-2*3600e3&&(!best||t<best.t))best={t,c,date:Jalali.toJ(dt.getFullYear(),dt.getMonth()+1,dt.getDate())};}}

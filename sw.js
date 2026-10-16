@@ -1,4 +1,4 @@
-const C="mct-v29",A=["./","./index.html","./css/app.css?v=29","./js/core.js?v=29","./js/pages.js?v=29","./js/features.js?v=29","./js/app.js?v=29","./manifest.webmanifest","./icon.svg"];
+const C="mct-v30",A=["./","./index.html","./css/app.css?v=30","./js/core.js?v=30","./js/pages.js?v=30","./js/features.js?v=30","./js/app.js?v=30","./manifest.webmanifest","./icon.svg"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting()));});
-self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
-self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.match(e.request).then(cached=>{const fetched=fetch(e.request).then(res=>{if(res&&res.ok&&res.type==="basic"){const cp=res.clone();caches.open(C).then(c=>c.put(e.request,cp));}return res;}).catch(()=>cached||caches.match("./index.html"));return cached||fetched;}));});
+self.addEventListener("activate",e=>{e.waitUntil(self.clients.claim());});
+self.addEventListener("fetch",e=>{if(e.request.method!=="GET")return;e.respondWith(caches.open(C).then(cache=>cache.match(e.request).then(cached=>{const fetched=fetch(e.request).then(res=>{if(res&&res.ok&&res.type==="basic"){const cp=res.clone();cache.put(e.request,cp);}return res;}).catch(()=>cached||cache.match("./index.html"));return cached||fetched;})));});
