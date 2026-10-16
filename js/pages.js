@@ -659,9 +659,27 @@ const file=new File([j],"My-Class-Track-data.json",{type:"application/json"});
 if(navigator.canShare&&navigator.canShare({files:[file]}))
 navigator.share({files:[file],title:"پشتیبان My-Class-Track"}).catch(()=>{});
 else{toast("📤 ارسال فایل پشتیبان");backup();}}
-function restore(inp){const f=inp.files[0];if(!f)return;
-const r=new FileReader();r.onload=()=>{try{Store.importObj(JSON.parse(r.result));applyTheme();applyColor();applyFS();route="home";resetUI();render();toast("✅ بازیابی شد");}catch(e){toast("⚠️ فایل نامعتبر است");}};
-r.readAsText(f);inp.value="";}
+function restore(inp){
+ const f=inp&&inp.files&&inp.files[0];
+ if(!f)return;
+ if(f.size===0){toast("⚠️ فایل پشتیبان خالی است");inp.value="";return;}
+ const r=new FileReader();
+ r.onerror=()=>{toast("⚠️ خواندن فایل ناموفق بود");inp.value="";};
+ r.onload=()=>{
+   let parsed;
+   try{parsed=JSON.parse(r.result);}catch(e){toast("⚠️ فایل JSON معتبر نیست");inp.value="";return;}
+   confirm2("بازیابی، داده‌های فعلی این برنامه را با اطلاعات فایل جایگزین می‌کند. قبل از ادامه مطمئن شوید از اطلاعات فعلی نسخه پشتیبان دارید. ادامه می‌دهید؟",()=>{
+     try{
+       Store.importObj(parsed);
+       applyTheme();applyColor();applyFS();route="home";resetUI();render();
+       toast("✅ بازیابی انجام شد");
+     }catch(e){toast("⚠️ "+(e&&e.message?e.message:"بازیابی انجام نشد؛ داده فعلی حفظ شد"));}
+     inp.value="";
+   });
+   if(inp)inp.value="";
+ };
+ r.readAsText(f);
+}
 function wipeAll(){if(!requirePerm("backup","فقط مدیر"))return;confirm2("همه داده‌ها پاک شود؟",()=>confirm2("واقعاً مطمئنی؟ اول پشتیبان بگیر!",()=>{Store.reset();applyTheme();applyColor();applyFS();route="home";resetUI();render();toast("همه داده‌ها پاک شد");}))}
 
 /* ============ اکسل: خروج و ورود ============ */
