@@ -75,27 +75,42 @@ test("member can be created and remains in local storage", async ({ page }) => {
   await expect(page.locator("#mList")).toContainText(name);
 });
 
-test("attendance status can be recorded and persists", async ({ page }) => {
+test("attendance status is timestamped separately from delay time and persists", async ({ page }) => {
   await page.goto("/");
   const name = "عضو آزمون حضور";
   await page.locator('#nav button[aria-label="اعضا"]').click();
   await page.getByRole("button", { name: /افزودن عضو جدید/ }).click();
   await page.locator("#fName").fill(name);
   await page.locator("#fSave").click();
+  const mid = await page.evaluate(() => Store.get().members.find(m => m.name === "عضو آزمون حضور").id);
   await page.locator('#nav button[aria-label="حضور"]').click();
 
-  const memberRow = page.locator("#app .mem, #app .mblk").filter({ hasText: name }).first();
+  const memberRow = page.locator('.mblk[data-mid="' + mid + '"]');
   await expect(memberRow).toBeVisible();
-  const statusButton = memberRow.locator(".st-btn").first();
-  await expect(statusButton).toBeVisible();
-  await statusButton.click();
+  await memberRow.locator('.st-btn[data-s="present"]').click();
 
-  await expect.poll(async () => page.evaluate(() => {
+  const presentRecord = await page.evaluate(({mid}) => {
     const d = Store.get();
-    return Object.values(d.sessions || {}).some(session =>
-      Object.values(session || {}).some(entry => entry && (entry.p1 || entry.p2))
-    );
-  })).toBeTruthy();
+    const key = d._lastSession;
+    return { key, value: d.sessions[key][mid] };
+  }, {mid});
+  expect(presentRecord.value.p1).toBe("present");
+  expect(typeof presentRecord.value.updatedAt).toBe("number");
+  expect(presentRecord.value).not.toHaveProperty("time");
+
+  await page.getByRole("button", { name: /ثبت‌شده/ }).click();
+  const delayButton = page.locator('.mblk[data-mid="' + mid + '"] .st-btn[data-s="delay"]');
+  await delayButton.click();
+  const delayTime = page.locator('.mblk[data-mid="' + mid + '"] input[type="time"][data-f="time"]');
+  await expect(delayTime).toBeVisible();
+  await expect(delayTime).toHaveValue("");
+
+  await delayTime.fill("18:25");
+  await delayTime.press("Tab");
+  await expect.poll(() => page.evaluate(({mid,key}) => Store.get().sessions[key][mid]?.time, {mid,key:presentRecord.key})).toBe("18:25");
+  const delayRecord = await page.evaluate(({mid,key}) => Store.get().sessions[key][mid], {mid,key:presentRecord.key});
+  expect(delayRecord.p1).toBe("delay");
+  expect(typeof delayRecord.updatedAt).toBe("number");
 });
 
 test("homework can be saved, archived and survives reload", async ({ page }) => {
@@ -163,11 +178,39 @@ test("session pruning removes only fees tied to pruned sessions", async ({ page 
 });
 
 
-test("attendance page uses a clear title without the redundant instruction banner", async ({ page }) => {
+test("attendance page uses a compact fixed workspace on mobile", async ({ page }) => {
   await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = Array.from({ length: 18 }, (_, i) => ({
+      id: "attend-pane-" + i, name: "عضو آزمون " + (i + 1), phones: [], roles: [], group: "عمومی", needs: []
+    }));
+    Store.save();
+  });
+  await page.setViewportSize({ width: 375, height: 812 });
   await page.locator('#nav button[aria-label="حضور"]').click();
   await expect(page.locator("#app")).toContainText("پیگیری تماس‌های قبل از جلسه");
   await expect(page.locator("#app .round-banner")).toHaveCount(0);
+  await expect(page.locator("#app")).toHaveClass(/attend-pane/);
+  const list = page.locator("#app .attend-list-pane");
+  await expect(list).toBeVisible();
+  await expect(list).toHaveCSS("overflow-y", "auto");
+  const bounds = await page.evaluate(() => ({
+    root: document.querySelector("#app").getBoundingClientRect(),
+    header: document.querySelector("#hdr").getBoundingClientRect(),
+    nav: document.querySelector("#nav").getBoundingClientRect(),
+    list: document.querySelector("#app .attend-list-pane").getBoundingClientRect()
+  }));
+  expect(bounds.root.top).toBeGreaterThanOrEqual(bounds.header.bottom - 1);
+  expect(bounds.root.bottom).toBeLessThanOrEqual(bounds.nav.top + 1);
+  expect(bounds.list.height).toBeGreaterThan(80);
+  await list.evaluate(el => { el.scrollTop = Math.min(240, el.scrollHeight - el.clientHeight); });
+  const target = page.locator('.mblk[data-mid="attend-pane-6"] .st-btn[data-s="present"]');
+  await target.scrollIntoViewIfNeeded();
+  const before = await list.evaluate(el => el.scrollTop);
+  await target.click();
+  const after = await page.locator("#app .attend-list-pane").evaluate(el => el.scrollTop);
+  expect(Math.abs(after - before)).toBeLessThanOrEqual(2);
 });
 
 test("member list offers name, family name, birth date and phone sorting", async ({ page }) => {
@@ -356,12 +399,18 @@ test("second-round supporter report uses only second-round status, time, and not
     d.users = [{ id: "report-admin", name: "آزمون مدیر", pin: "2468", role: "admin" }];
     d.currentUserId = "report-admin";
     d.settings.requireLogin = false;
-    d.members = [{ id: "round-member", name: "عضو نوبت دوم", phones: [], roles: [], group: "عمومی" }];
+    d.members = [
+      { id: "round-member", name: "عضو نوبت دوم", phones: [], roles: [], group: "عمومی" },
+      { id: "legacy-time-member", name: "عضو با ساعت قدیمی نامعتبر", phones: [], roles: [], group: "عمومی" }
+    ];
     d.sessions = {
       "1405-01-08": {
         "round-member": {
           p1: "absent", note: "یادداشت نوبت اول",
           p2: "delay", time: "18:10", note2: "توضیح نوبت دوم", time2: "18:25"
+        },
+        "legacy-time-member": {
+          p2: "delay", note2: "یادداشت ساعت قدیمی", time2: 1760610000000
         }
       }
     };
@@ -377,6 +426,7 @@ test("second-round supporter report uses only second-round status, time, and not
   await expect(report).toHaveValue(/۱۸:۲۵/);
   await expect(report).not.toHaveValue(/یادداشت نوبت اول/);
   await expect(report).not.toHaveValue(/۱۸:۱۰/);
+  await expect(report).not.toHaveValue(/1760610000000/);
 });
 
 
