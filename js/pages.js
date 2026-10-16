@@ -398,12 +398,12 @@ el.innerHTML=
 '<div class="row" style="margin-top:8px"><button class="chip'+(st.sound?" on":"")+'" onclick="toggleSound()">'+(st.sound?"🔔 صدا روشن":"🔕 صدا خاموش")+'</button><span class="stat-line">ویبره همیشه فعال است</span></div></div>'+
 '<div class="card"><h3>🎨 نمایش</h3><label>تم</label><div class="row"><button class="btn sm '+(theme()==="dark"?"p":"ghost")+'" onclick="setTheme(\'dark\')">🌙 تیره</button><button class="btn sm '+(theme()==="light"?"p":"ghost")+'" onclick="setTheme(\'light\')">☀️ روشن</button></div>'+
 '<label>اندازه متن</label><div class="row">'+[["s","کوچک"],["m","متوسط"],["l","بزرگ"]].map(f=>'<button class="btn sm '+(st.fs===f[0]?"p":"ghost")+'" onclick="setFS(\''+f[0]+'\')">'+f[1]+"</button>").join("")+"</div></div>"+
-'<div class="card"><h3>💾 پشتیبان و همگام‌سازی</h3><div class="focus-banner" style="margin:0 0 10px">⚠️ داده‌ها فقط در همین مرورگر است!</div>'+
+'<div class="card"><h3>💾 پشتیبان و همگام‌سازی</h3><div class="focus-banner" style="margin:0 0 10px">⚠️ داده‌ها فقط در همین مرورگر است!</div></div>'+
 '<div class="card"><h3>🏫 نام کلاس</h3><input id="classNameIn" value="'+esc(st.className||"کلاس من")+'" placeholder="مثلاً کلاس ریاضی" onchange="setClassName(this.value)" aria-label="نام کلاس"></div>'+
 '<div class="card"><h3>👥 گروه‌ها</h3><div id="grpList" class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:8px"></div><button class="btn sm ghost" onclick="addGroup()">＋ گروه جدید</button></div>'+
 '<div class="card" id="storCard"><h3>💾 فضای ذخیره‌سازی</h3><div id="storBody"></div></div>'+
 '<div class="card"><h3>🔔 هوشمندسازی</h3><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm ghost" onclick="enableNotifs()">🔔 اعلان کلاس</button><button class="btn sm ghost" onclick="togglePrivacyMode()">🔒 حریم خصوصی</button><button class="btn sm ghost" onclick="editTemplates()">📝 الگوهای پیام</button><button class="btn sm ghost" onclick="toggleAutoTheme()">🌓 تم خودکار</button><button class="btn sm ghost" onclick="toggleA11y()">♿ دسترسی‌پذیری</button><button class="btn sm ghost" onclick="toggleOled()">⬛ OLED</button><button class="btn sm ghost" onclick="openCommandPalette()">⌘ دستورات</button><button class="btn sm ghost" onclick="performUndo()">↩ بازگشت</button><button class="btn sm ghost" onclick="handoffPackage()">📦 تحویل شیفت</button><button class="btn sm ghost" onclick="compactSyncExport()">🔗 همگام فشرده</button><button class="btn sm ghost" onclick="communicationHub()">📡 ارتباطات</button><button class="btn sm ghost" onclick="copyPrevSession()">📋 کپی جلسه قبل</button><button class="btn sm ghost" onclick="transferMyTasks()">🔄 انتقال وظایف</button><button class="btn sm ghost" onclick="toggleFocusMode()">🎯 تمرکز پشت‌در</button><button class="btn sm ghost" onclick="shareStoryCard()">📸 کارت استوری</button><button class="btn sm ghost" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" onclick="shareClassCode()">📲 اشتراک QR</button><button class="btn sm ghost" onclick="showInsights()">✨ بینش</button></div><p class="stat-line" style="margin-top:8px">اعلان ۱۵ دقیقه قبل از کلاس · تقویم ICS · اشتراک برنامه</p></div>'+
-'<div class="card"><h3>👥 کاربران و دسترسی</h3><p class="role-hint">استفاده مشترک: برای هر نفر کاربر و رمز جدا بسازید.</p><div class="toggle-row"><span>ورود با رمز اجباری</span><button type="button" class="sw '+(st.requireLogin?"on":"")+'" id="swLogin"></button></div><div class="toggle-row"><span>تأیید قبل از کارهای مهم</span><button type="button" class="sw '+(st.quickConfirm!==false?"on":"")+'" id="swConfirm"></button></div><div id="userList" style="margin-top:8px"></div><button class="btn sm p" style="margin-top:8px" id="btnAddUser">＋ کاربر جدید</button> <button class="btn sm ghost" style="margin-top:8px" id="btnLogout">خروج</button></div>'+'<div class="row"><button class="btn p" style="flex:1" onclick="backup()">⬇️ پشتیبان</button><button class="btn ghost" style="flex:1" onclick="document.getElementById(\'rf\').click()">⬆️ بازیابی</button><input type="file" id="rf" class="sr" accept=".json" onchange="restore(this)"></div>'+
+'<div class="card"><h3>👥 کاربران و دسترسی</h3><p class="role-hint">استفاده مشترک: برای هر نفر کاربر و رمز جدا بسازید.</p><div class="toggle-row"><span>ورود با رمز اجباری</span><button type="button" class="sw '+(st.requireLogin?"on":"")+'" id="swLogin"></button></div><div class="toggle-row"><span>تأیید قبل از کارهای مهم</span><button type="button" class="sw '+(st.quickConfirm!==false?"on":"")+'" id="swConfirm"></button></div><div id="userList" style="margin-top:8px"></div><button class="btn sm p" style="margin-top:8px" id="btnAddUser">＋ کاربر جدید</button> <button class="btn sm ghost" style="margin-top:8px" id="btnLogout">خروج</button></div>'+'<div class="card"><h3>💾 پشتیبان و بازیابی</h3><div class="row"><button class="btn p" style="flex:1" onclick="backup()">⬇️ پشتیبان</button><button class="btn ghost" style="flex:1" onclick="document.getElementById(\'rf\').click()">⬆️ بازیابی</button><input type="file" id="rf" class="sr" accept=".json" onchange="restore(this)"></div>'+
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
 '<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۴ — ماژول ES و ناوبری هوشمند<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
@@ -420,7 +420,7 @@ if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
 const sb=document.getElementById("storBody");
 if(sb){const si=storageInfo();
 sb.innerHTML='<p class="stat-line">حجم داده: <b>'+Jalali.toFa(si.kb)+'</b> کیلوبایت ('+si.mb+' MB) — حدود <b>'+Jalali.toFa(si.pct)+'٪</b> ظرفیت</p><div class="progress"><i style="width:'+Math.min(100,si.pct)+'%"></i></div><p class="stat-line">جلسات: '+Jalali.toFa(si.sessions)+' | اعضا: '+Jalali.toFa(si.members)+'</p><button class="btn sm ghost" style="margin-top:8px" id="pruneBtn">🧹 پاکسازی جلسات قدیمی</button>';
-const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>{const n=pruneSessions();toast(n?("🧹 "+Jalali.toFa(n)+" جلسه قدیمی پاک شد"):"✅ جلسه‌ای برای پاک کردن نبود");render();};}
+const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>pruneSessions();}
 
 };
 
@@ -665,9 +665,27 @@ const file=new File([j],"My-Class-Track-data.json",{type:"application/json"});
 if(navigator.canShare&&navigator.canShare({files:[file]}))
 navigator.share({files:[file],title:"پشتیبان My-Class-Track"}).catch(()=>{});
 else{toast("📤 ارسال فایل پشتیبان");backup();}}
-function restore(inp){const f=inp.files[0];if(!f)return;
-const r=new FileReader();r.onload=()=>{try{Store.importObj(JSON.parse(r.result));applyTheme();applyColor();applyFS();route="home";resetUI();render();toast("✅ بازیابی شد");}catch(e){toast("⚠️ فایل نامعتبر است");}};
-r.readAsText(f);inp.value="";}
+function restore(inp){
+ const f=inp&&inp.files&&inp.files[0];
+ if(!f)return;
+ if(f.size===0){toast("⚠️ فایل پشتیبان خالی است");inp.value="";return;}
+ const r=new FileReader();
+ r.onerror=()=>{toast("⚠️ خواندن فایل ناموفق بود");inp.value="";};
+ r.onload=()=>{
+   let parsed;
+   try{parsed=JSON.parse(r.result);}catch(e){toast("⚠️ فایل JSON معتبر نیست");inp.value="";return;}
+   confirm2("بازیابی، داده‌های فعلی این برنامه را با اطلاعات فایل جایگزین می‌کند. قبل از ادامه مطمئن شوید از اطلاعات فعلی نسخه پشتیبان دارید. ادامه می‌دهید؟",()=>{
+     try{
+       Store.importObj(parsed);
+       applyTheme();applyColor();applyFS();route="home";resetUI();render();
+       toast("✅ بازیابی انجام شد");
+     }catch(e){toast("⚠️ "+(e&&e.message?e.message:"بازیابی انجام نشد؛ داده فعلی حفظ شد"));}
+     inp.value="";
+   });
+   if(inp)inp.value="";
+ };
+ r.readAsText(f);
+}
 function wipeAll(){if(!requirePerm("backup","فقط مدیر"))return;confirm2("همه داده‌ها پاک شود؟",()=>confirm2("واقعاً مطمئنی؟ اول پشتیبان بگیر!",()=>{Store.reset();applyTheme();applyColor();applyFS();route="home";resetUI();render();toast("همه داده‌ها پاک شد");}))}
 
 /* ============ اکسل: خروج و ورود ============ */
