@@ -757,7 +757,7 @@ function exportMembersCSV(){exportCSV("members","members");}
 function importMembersCSV(inp){const f=inp&&inp.files&&inp.files[0];if(!f)return;
 const r=new FileReader();r.onload=()=>{try{
 const rows=parseCSV(String(r.result||""));if(rows.length<2){toast("⚠️ فایل خالی است");return;}
-const normalizeHeader=v=>String(v||"").trim().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/[\\s\\u200c_\\-]/g,"");
+const normalizeHeader=v=>String(v||"").trim().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/[\s\u200c_\-]/g,"");
 const headers=rows[0].map(normalizeHeader);
 const findCol=names=>{for(const n of names){const i=headers.indexOf(normalizeHeader(n));if(i>=0)return i;}return -1;};
 const hasHead=headers.includes(normalizeHeader("نام"));
@@ -769,23 +769,23 @@ const iGroup=hasHead?findCol(["گروه"]):-1;
 const iNote=hasHead?findCol(["یادداشت عمومی","یادداشت","توضیحات"]):4;
 const iNeeds=hasHead?findCol(["نیازها","نیاز"]):-1;
 if(iName<0){toast("⚠️ ستون «نام» در فایل پیدا نشد");return;}
-const d=Store.get(),existingNames=new Set((d.members||[]).map(m=>normalizeHeader((m.name||"").replace(/\\s+/g," ").trim())));
+const d=Store.get(),existingNames=new Set((d.members||[]).map(m=>normalizeHeader((m.name||"").replace(/\s+/g," ").trim())));
 const seenNames=new Set(existingNames),candidates=[];let skip=0,sharedPhoneCount=0;
 const phoneOwners=new Map();
 (d.members||[]).forEach(m=>(m.phones||[]).forEach(p=>{const key=canonicalPhone(p);if(key)phoneOwners.set(key,(phoneOwners.get(key)||0)+1);}));
 for(let i=hasHead?1:0;i<rows.length;i++){
  const row=rows[i],name=(row[iName]||"").trim();
  if(!name)continue;
- const nameKey=normalizeHeader(name.replace(/\\s+/g," "));
+ const nameKey=normalizeHeader(name.replace(/\s+/g," "));
  if(seenNames.has(nameKey)){skip++;continue;}
- const phones=iPhone>=0?(row[iPhone]||"").split(/[\\/؛;|]/).map(x=>x.trim()).filter(Boolean):[];
+ const phones=iPhone>=0?(row[iPhone]||"").split(/[\/؛;|]/).map(x=>x.trim()).filter(Boolean):[];
  for(const p of phones){if(!validPhone(p)){toast("⚠️ شماره تماس ردیف "+Jalali.toFa(i+1)+" معتبر نیست؛ هیچ عضوی وارد نشد");return;}}
  const phoneKeys=phones.map(canonicalPhone).filter(Boolean);
  if(new Set(phoneKeys).size!==phoneKeys.length){toast("⚠️ در ردیف "+Jalali.toFa(i+1)+" یک شماره تکراری است؛ هیچ عضوی وارد نشد");return;}
  let birth=null;
  const bs=iBirth>=0?latinPhoneDigits((row[iBirth]||"").trim()):"";
  if(bs){
-  const bm=bs.match(/^(\\d{4})[\\/\\-\\.](\\d{1,2})[\\/\\-\\.](\\d{1,2})$/);
+  const bm=bs.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
   if(!bm||+bm[2]<1||+bm[2]>12||+bm[3]<1||+bm[3]>31){toast("⚠️ تاریخ تولد ردیف "+Jalali.toFa(i+1)+" معتبر نیست؛ هیچ عضوی وارد نشد");return;}
   birth={jy:+bm[1],jm:+bm[2],jd:+bm[3]};
  }
