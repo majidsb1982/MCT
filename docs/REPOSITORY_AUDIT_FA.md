@@ -73,5 +73,5 @@
 
 - در `My-Class-Track/src/app.js` توضیح داده شده که پروژه در چند فاز در حال توسعه است؛ بخش‌هایی هنوز از placeholder استفاده می‌کنند. مسیرهای واقعی متصل‌شده در `PAGES` عبارت‌اند از خانه، اعضا، تنظیمات، حضور، شهریه، تکالیف، یادآورها و برنامه‌ها. بنابراین README به‌تنهایی اثبات نمی‌کند که تمام قابلیت‌های اعلام‌شده کامل هستند.
 - در `Mctgem/.github/workflows/validate.yml`، CI قدیمی فایل‌های `js/core.js`، `js/pages.js`، `js/features.js` و `js/app.js` را انتظار داشت؛ این فایل‌ها در شاخه اصلی Mctgem یافت نشدند و workflow در مرحله بررسی فایل‌ها شکست خورد. در PR شماره ۱، workflow با `npm ci`، `npx tsc --noEmit` و `npm run build` جایگزین شده است.
-- در همان PR، حذف خودکار Service Worker/Cache Storage و پاک‌کردن `localStorage`/`sessionStorage` از مسیر بازیابی اضطراری حذف شده است. این PR هنوز نباید ادغام شود تا اجرای جدید CI نتیجه موفق بدهد.
+- در همان PR، حذف خودکار Service Worker/Cache Storage و پاک‌کردن `localStorage`/`sessionStorage` از مسیر بازیابی اضطراری حذف شده است. CI جدید سپس یک خطای واقعی TypeScript را هم پیدا کرد: آیکن `Sparkles` در `src/screens/MembersScreen.tsx` استفاده شده ولی import نشده بود؛ import در همان شاخه اضافه شده است. PR تا سبزشدن CI باز می‌ماند.
 - لینک PR اصلاحات Mctgem: https://github.com/majidsb1982/Mctgem/pull/1
