@@ -5,6 +5,9 @@
 
 "use strict";
 
+/* Valid local clock value; timestamps belong in updatedAt, never in time/time2. */
+function isClockTime(value){return typeof value==="string"&&/^([01]\d|2[0-3]):[0-5]\d$/.test(value);}
+
 /* ============ تقویم شمسی (jalaali) ============ */
 const Jalali=(()=>{const br=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
 const div=(a,b)=>~~(a/b),mod=(a,b)=>a-~~(a/b)*b;
