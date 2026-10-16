@@ -38,31 +38,6 @@ function togglePinMember(id){
 
 
 /* ============ v23: حالت روز کلاس + سنجاق اعضا + نوار وضعیت ============ */
-function isClassDaySoon(){
-  const nc=typeof nextClass==="function"?nextClass():null;
-  if(!nc)return null;
-  const diff=nc.t-Date.now();
-  return {nc,diff,hours:diff/36e5,soon:diff>0&&diff<36e5*36};
-}
-function classDayModeHTML(){
-  const info=isClassDaySoon();
-  if(!info||!info.soon)return"";
-  const h=info.hours;
-  let phase="آماده‌سازی";
-  if(h<=0)phase="کلاس در جریان / نوبت ۲";
-  else if(h<=0.5)phase="نوبت ۲ — پشت در";
-  else if(h<=6)phase="نوبت ۱ — تماس نهایی";
-  else phase="پیگیری شهریه و نوبت ۱";
-  return '<div class="card class-day-mode noprint">'+
-    '<div class="cdm-head"><span class="cdm-badge">🎯 حالت روز کلاس</span><span class="cdm-phase">'+phase+'</span></div>'+
-    '<p class="stat-line" style="margin:6px 0 10px">تا شروع: <b>'+(info.diff>0?(Jalali.toFa(Math.floor(info.hours))+" س و "+Jalali.toFa(Math.floor((info.diff%36e5)/6e4))+" د"):"اکنون")+'</b></p>'+
-    '<div class="cdm-steps">'+
-    '<button type="button" class="cdm-step" onclick="go(\'fees\')"><span>۱</span>شهریه</button>'+
-    '<button type="button" class="cdm-step" onclick="go(\'attend\')"><span>۲</span>نوبت ۱</button>'+
-    '<button type="button" class="cdm-step" onclick="openEntry()"><span>۳</span>نوبت ۲</button>'+
-    '<button type="button" class="cdm-step" onclick="go(\'reports\')"><span>۴</span>گزارش حامی</button>'+
-    '</div></div>';
-}
 function statusStripHTML(){
   try{
     const d=Store.get();const key=typeof curKey==="function"?curKey():null;
