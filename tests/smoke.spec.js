@@ -427,3 +427,23 @@ test("member phone validation normalizes Persian and Arabic digits and warns bef
   await page.locator("#cy").click();
   await expect.poll(() => page.evaluate(() => Store.get().members.length)).toBe(2);
 });
+
+
+test("weekly class schedule rejects invalid time ranges and accepts valid times", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
+
+  const before = await page.evaluate(() => Store.get().classes.length);
+  await page.locator("#cS").fill("20:00");
+  await page.locator("#cE").fill("19:00");
+  await page.getByRole("button", { name: "افزودن کلاس" }).click();
+  await expect.poll(() => page.evaluate(() => Store.get().classes.length)).toBe(before);
+
+  await page.locator("#cS").fill("19:00");
+  await page.locator("#cE").fill("21:00");
+  await page.getByRole("button", { name: "افزودن کلاس" }).click();
+  await expect.poll(() => page.evaluate(() => Store.get().classes.length)).toBe(before + 1);
+  const saved = await page.evaluate(() => Store.get().classes.at(-1));
+  expect(saved).toMatchObject({ start: "19:00", end: "21:00" });
+});
