@@ -21,17 +21,22 @@ test("app shell loads without uncaught errors or missing local assets", async ({
   expect(failedLocalRequests, "Local application resources should load successfully").toEqual([]);
 });
 
-test("desktop and mobile layouts do not overflow horizontally", async ({ page }) => {
+test("desktop and mobile layouts fit the viewport without horizontal overflow", async ({ page }, testInfo) => {
   await page.goto("/");
   await expect(page.locator("#hdr")).toBeVisible();
-  const dimensions = await page.evaluate(() => ({
-    viewport: document.documentElement.clientWidth,
-    page: document.documentElement.scrollWidth,
-    height: document.documentElement.scrollHeight
-  }));
-  expect(dimensions.page, `Horizontal overflow: page ${dimensions.page}px, viewport ${dimensions.viewport}px`)
-    .toBeLessThanOrEqual(dimensions.viewport + 1);
-  expect(dimensions.height).toBeGreaterThan(200);
+
+  for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 812 }]) {
+    await page.setViewportSize(viewport);
+    const dimensions = await page.evaluate(() => ({
+      viewport: document.documentElement.clientWidth,
+      page: document.documentElement.scrollWidth,
+      height: document.documentElement.scrollHeight
+    }));
+    expect(dimensions.page, `Horizontal overflow: page ${dimensions.page}px, viewport ${dimensions.viewport}px`)
+      .toBeLessThanOrEqual(dimensions.viewport + 1);
+    expect(dimensions.height).toBeGreaterThan(200);
+  }
+  await page.screenshot({ path: testInfo.outputPath("mct-mobile-full-page.png"), fullPage: true });
 });
 
 test("theme switch persists after rerender", async ({ page }) => {
@@ -109,18 +114,7 @@ test("user form saves a new role and four-digit PIN", async ({ page }) => {
   })).toBeTruthy();
 });
 
-test("mobile viewport screenshot is captured for visual review", async ({ page }, testInfo) => {
-  await page.goto("/");
-  await expect(page.locator("#hdr")).toBeVisible();
-  const dimensions = await page.evaluate(() => ({
-    viewport: document.documentElement.clientWidth,
-    page: document.documentElement.scrollWidth,
-    height: document.documentElement.scrollHeight
-  }));
-  expect(dimensions.page, `Mobile horizontal overflow: page ${dimensions.page}px, viewport ${dimensions.viewport}px`)
-    .toBeLessThanOrEqual(dimensions.viewport + 1);
-  await page.screenshot({ path: testInfo.outputPath("mct-mobile-full-page.png"), fullPage: true });
-});
+
 
 test("session pruning removes only fees tied to pruned sessions", async ({ page }) => {
   await page.goto("/");
@@ -446,4 +440,34 @@ test("weekly class schedule rejects invalid time ranges and accepts valid times"
   await expect.poll(() => page.evaluate(() => Store.get().classes.length)).toBe(before + 1);
   const saved = await page.evaluate(() => Store.get().classes.at(-1));
   expect(saved).toMatchObject({ start: "19:00", end: "21:00" });
+});
+
+
+test("member CSV import preserves exported headers, Persian dates and all mapped fields", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('#nav button[aria-label="اعضا"]').click();
+
+  const csv = [
+    "نام,تلفن‌ها,تولد,نقش‌ها,گروه,یادداشت عمومی,نیازها",
+    "\"عضو انتقال\",\"۰۹۱۲۳۴۵۶۷۸۹ / ٠٩٣٥١٢٣٤٥٦٧\",۱۴۰۵/۰۲/۰۳,\"حامی|داوطلب\",پیگیری,یادداشت آزمایشی,\"تماس|توجه\""
+  ].join("\\r\\n");
+  await page.locator("#mimp").setInputFiles({
+    name: "members-roundtrip.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(csv, "utf8")
+  });
+
+  await expect.poll(() => page.evaluate(() => Store.get().members.some(m => m.name === "عضو انتقال"))).toBeTruthy();
+  const member = await page.evaluate(() => {
+    const m = Store.get().members.find(x => x.name === "عضو انتقال");
+    return { phones: m.phones, birth: m.birth, roles: m.roles, group: m.group, note: m.note, needs: m.needs };
+  });
+  expect(member).toMatchObject({
+    phones: ["۰۹۱۲۳۴۵۶۷۸۹", "٠٩٣٥١٢٣٤٥٦٧"],
+    birth: { jy: 1405, jm: 2, jd: 3 },
+    roles: ["حامی", "داوطلب"],
+    group: "پیگیری",
+    note: "یادداشت آزمایشی",
+    needs: ["تماس", "توجه"]
+  });
 });
