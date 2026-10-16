@@ -800,7 +800,7 @@ for(let i=hasHead?1:0;i<rows.length;i++){
  seenNames.add(nameKey);
 }
 if(!candidates.length){toast("ℹ️ عضو جدیدی برای افزودن پیدا نشد"+(skip?"؛ نام‌های تکراری رد شدند":""));return;}
-const commit=()=>{d.members.push(...candidates);const saved=Store.save();if(saved===false){d.members.splice(d.members.length-candidates.length,candidates.length);return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
+const commit=()=>{const oldGroups=Array.isArray(d.groups)?d.groups.slice():["عمومی"];if(!Array.isArray(d.groups))d.groups=["عمومی"];candidates.forEach(m=>{if(m.group&&!d.groups.includes(m.group))d.groups.push(m.group);});d.members.push(...candidates);const saved=Store.save();if(saved===false){d.members.splice(d.members.length-candidates.length,candidates.length);d.groups=oldGroups;return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
 if(sharedPhoneCount){confirm2("در "+Jalali.toFa(sharedPhoneCount)+" مورد، شماره تماس بین اعضا مشترک است. اگر عمدی است، واردکردن اعضا را ادامه دهید؟",commit);return;}
 commit();
 }catch(e){console.error("MCT CSV import:",e);toast("⚠️ خواندن فایل ناموفق بود؛ قالب و ستون‌های فایل را بررسی کنید");}finally{inp.value="";}};
