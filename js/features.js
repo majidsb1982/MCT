@@ -48,9 +48,9 @@ function statusStripHTML(){
     const p2=d.members.filter(m=>(s[m.id]||{}).p2).length;
     const paid=d.members.filter(m=>f[m.id]&&f[m.id].paid).length;
     return '<div class="status-strip noprint" role="status">'+
-      '<span title="نوبت ۱">📞 '+Jalali.toFa(p1)+'/'+Jalali.toFa(tot)+'</span>'+
-      '<span title="نوبت ۲">🚪 '+Jalali.toFa(p2)+'/'+Jalali.toFa(tot)+'</span>'+
-      '<span title="شهریه">💰 '+Jalali.toFa(paid)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد ثبت‌های تماس نوبت ۱">📞 تماس '+Jalali.toFa(p1)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد ثبت‌های ورود نوبت ۲">🚪 ورود '+Jalali.toFa(p2)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد پرداخت‌شده شهریه">💰 پرداخت '+Jalali.toFa(paid)+'/'+Jalali.toFa(tot)+'</span>'+
       '</div>';
   }catch(e){return"";}
 }
