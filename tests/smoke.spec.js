@@ -398,12 +398,18 @@ test("second-round supporter report uses only second-round status, time, and not
     d.users = [{ id: "report-admin", name: "آزمون مدیر", pin: "2468", role: "admin" }];
     d.currentUserId = "report-admin";
     d.settings.requireLogin = false;
-    d.members = [{ id: "round-member", name: "عضو نوبت دوم", phones: [], roles: [], group: "عمومی" }];
+    d.members = [
+      { id: "round-member", name: "عضو نوبت دوم", phones: [], roles: [], group: "عمومی" },
+      { id: "legacy-time-member", name: "عضو با ساعت قدیمی نامعتبر", phones: [], roles: [], group: "عمومی" }
+    ];
     d.sessions = {
       "1405-01-08": {
         "round-member": {
           p1: "absent", note: "یادداشت نوبت اول",
           p2: "delay", time: "18:10", note2: "توضیح نوبت دوم", time2: "18:25"
+        },
+        "legacy-time-member": {
+          p2: "delay", note2: "یادداشت ساعت قدیمی", time2: 1760610000000
         }
       }
     };
