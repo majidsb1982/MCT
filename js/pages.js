@@ -196,13 +196,13 @@ h+='<div class="row" style="gap:4px;margin-bottom:8px">';
 STK.forEach((k,i)=>{const hint=(ph==="p2"&&k==="present"&&st!==k)?" hint1":"";
 h+='<button class="st-btn'+(st===k?" on"+(i+1):hint)+'" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-s="'+k+'">'+STL[i]+"</button>";});
 h+="</div>";
-if(st==="delay")h+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+(cur[tF]||"")+'" style="margin-bottom:6px">';
+if(st==="delay")h+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+(isClockTime(cur[tF])?cur[tF]:"")+'" style="margin-bottom:6px">';
 if(st&&st!=="present")h+='<input name="note-'+m.id+'" aria-label="یادداشت برای '+esc(m.name)+'" class="ex-input" placeholder="یادداشت (اختیاری)" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+nF+'" value="'+esc(cur[nF]||"")+'" style="margin-bottom:6px">';
 if(st&&st!=="present")h+='<div class="row" style="margin:-2px 0 8px;gap:6px"><button class="btn sm ghost" data-mic="1" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" aria-label="ضبط یادداشت صوتی">🎙 صدا</button>'+audBtn(cur[aF],"پخش یادداشت صوتی")+"</div>";
 return h;}
 const block=(m,ph,cur,key)=>'<div class="mblk" data-mid="'+m.id+'">'+memberRow(m,ph,cur,key)+"</div>";
-function doneRow(m,key,cur,ph){const st=cur[ph];const t=ph==="p1"?cur.time:cur.time2;const nF=ph==="p1"?"note":"note2",tF=ph==="p1"?"time":"time2";let extra="";
-if(st==="delay")extra+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+(cur[tF]||"")+'" style="margin:6px 0">';
+function doneRow(m,key,cur,ph){const st=cur[ph],rawTime=ph==="p1"?cur.time:cur.time2;const t=st==="delay"&&isClockTime(rawTime)?rawTime:"";const nF=ph==="p1"?"note":"note2",tF=ph==="p1"?"time":"time2";let extra="";
+if(st==="delay")extra+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+(isClockTime(cur[tF])?cur[tF]:"")+'" style="margin:6px 0">';
 if(st&&st!=="present")extra+='<input name="note-'+m.id+'" aria-label="یادداشت برای '+esc(m.name)+'" class="ex-input" placeholder="دلیل یا یادداشت (اختیاری)" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+nF+'" value="'+esc(cur[nF]||"")+'" style="margin:6px 0">';
 return'<div class="mblk" data-mid="'+m.id+'"><div class="mem done">'+avatar(m)+"<b>"+esc(m.name)+'</b><span class="badge '+(ST.cls[st]||"b-m")+'" style="margin-right:auto">'+ST.lbl[st||"none"]+(t?" — "+Jalali.toFa(t):"")+'</span><button class="btn sm ghost" data-restore="1" data-mid="'+m.id+'" data-key="'+key+'" data-ph="'+ph+'" aria-label="بازگرداندن '+esc(m.name)+'">↩️ بازگردانی</button></div>'+extra+'</div>';}
 function restoreAtt(key,mid,ph){const d=Store.get(),cur=(d.sessions[key]||{})[mid];if(!cur)return;
@@ -625,21 +625,32 @@ function setAtt(key,mid,ph,st){const d=Store.get();
 if(!key){toast("⚠️ اول کلاس را در تنظیمات ثبت کنید");return;}
 d._lastSession=key;d.sessions[key]=d.sessions[key]||{};
 const _prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
-const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};cur.time=Date.now();cur.by=(currentUser()||{}).name||"";
-const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2";
+const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
+const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2",aF=ph==="p1"?"a1":"a2";
 const was=cur[ph];
-if(cur[ph]===st){cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[ph==="p1"?"a1":"a2"];}
-else cur[ph]=st;
+cur.updatedAt=Date.now();cur.by=(currentUser()||{}).name||"";
+if(was===st){
+ cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[aF];
+}else{
+ cur[ph]=st;
+ if(st!=="delay"||was!=="delay"||!isClockTime(cur[tF]))delete cur[tF];
+ if(was!==st){delete cur[nF];delete cur[aF];}
+}
 pushUndo({type:"att",key:key,mid:mid,prev:_prev,label:"ثبت حضور"});Store.save();
 const y=window.scrollY;
+const listBefore=document.querySelector("#app.attend-pane .attend-list-pane");
+const listScrollTop=listBefore?listBefore.scrollTop:null;
 if(route==="entry")renderEntry();else render();
 window.scrollTo(0,y);
+const listAfter=document.querySelector("#app.attend-pane .attend-list-pane");
+if(listAfter&&listScrollTop!==null)listAfter.scrollTop=listScrollTop;
 if(cur[ph]&&was!==cur[ph]){
-const mm=d.members.find(m=>m.id===mid);if(!mm)return;
-toastUndo("📝 "+mm.name+": "+ST.lbl[cur[ph]],()=>{
-const c=d.sessions[key][mid];c[ph]=null;
-delete c[ph==="p1"?"time":"time2"];delete c[ph==="p1"?"note":"note2"];delete c[ph==="p1"?"a1":"a2"];
-Store.save();route==="entry"?renderEntry():render();});
+ const mm=d.members.find(m=>m.id===mid);if(!mm)return;
+ toastUndo("📝 "+mm.name+": "+ST.lbl[cur[ph]],()=>{
+  const bucket=d.sessions[key];
+  if(_prev)bucket[mid]=JSON.parse(JSON.stringify(_prev));else delete bucket[mid];
+  Store.save();route==="entry"?renderEntry():render();
+ });
 }
 if(ph==="p2"&&d.members.length&&d.members.every(m=>!needsCall((d.sessions[key][m.id]||{}).p2)))
 celebrate("🎉 همه اعضا حاضرند — کلاس کامل است!");}
@@ -650,9 +661,13 @@ const s=d.sessions[key]||{},g={present:[],delay:[],absent:[],problem:[],none:[]}
 for(const m of d.members){const st=ph===2?((s[m.id]||{}).p2||(s[m.id]||{}).p1):(s[m.id]||{}).p1;
 (g[st||"none"]||g.none).push(m);}
 const fm=m=>{const ex=s[m.id]||{};let t=m.name;
-if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(ex.time2||ex.time)+")";
-else if(ex.note)t+=" ("+ex.note+")";return t;};
-const nc=nextClass(),sessionDate=key?Jalali.fromKey(key):null,icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",none:"—"};
+const status=ph===2?(ex.p2||ex.p1):ex.p1;
+const timeField=ph===2&&ex.p2?"time2":"time";
+const noteField=ph===2&&ex.p2?"note2":"note";
+if(status==="delay"&&isClockTime(ex[timeField]))t+=" (حدود "+Jalali.toFa(ex[timeField])+")";
+else if(status&&status!=="present"&&ex[noteField])t+=" ("+ex[noteField]+")";
+return t;};
+const sessionDate=key?Jalali.fromKey(key):null,icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",none:"—"};
 let out="📋 گزارش حضور — "+(sessionDate?Jalali.fmt(sessionDate):"جلسه تنظیم نشده")+" — "+(ph===1?"نوبت ۱ (تماس‌های قبلی)":"نوبت ۲ (ثبت ورود)")+"\n";
 const keys=full?["present","delay","absent","problem","none"]:["delay","absent","problem"];
 for(const k of keys)
@@ -786,7 +801,7 @@ rows.push([m.name,(m.phones||[]).join(" / "),st.paid?"پرداخت شد":"پرد
 else if(kind==="attend"){const s=d.sessions[key]||{};
 rows=[["نام","تلفن‌ها","تماس قبلی","ساعت","یادداشت","ثبت ورود","ساعت","یادداشت"]];
 for(const m of d.members){const c=s[m.id]||{};
-rows.push([m.name,(m.phones||[]).join(" / "),c.p1?ST.lbl[c.p1]:"ثبت‌نشده",c.time||"",c.note||"",c.p2?ST.lbl[c.p2]:"ثبت‌نشده",c.time2||"",c.note2||""]);}}
+rows.push([m.name,(m.phones||[]).join(" / "),c.p1?ST.lbl[c.p1]:"ثبت‌نشده",c.p1==="delay"&&isClockTime(c.time)?c.time:"",c.note||"",c.p2?ST.lbl[c.p2]:"ثبت‌نشده",c.p2==="delay"&&isClockTime(c.time2)?c.time2:"",c.note2||""]);}}
 else rows=[["نام","تلفن‌ها","تولد","نقش‌ها","گروه","یادداشت عمومی","نیازها"],...d.members.map(m=>[m.name,(m.phones||[]).join(" / "),m.birth?Jalali.fmt(m.birth):"",(m.roles||[]).join("|"),m.group||"عمومی",m.note||"",(m.needs||[]).join("|")])];
 dlCSV(rows,kind+"-"+key+".csv");}
 function exportMembersCSV(){exportCSV("members","members");}
