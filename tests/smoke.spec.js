@@ -98,6 +98,7 @@ test("attendance status is timestamped separately from delay time and persists",
   expect(typeof presentRecord.value.updatedAt).toBe("number");
   expect(presentRecord.value).not.toHaveProperty("time");
 
+  await page.getByRole("button", { name: /ثبت‌شده/ }).click();
   const delayButton = page.locator('.mblk[data-mid="' + mid + '"] .st-btn[data-s="delay"]');
   await delayButton.click();
   const delayTime = page.locator('.mblk[data-mid="' + mid + '"] input[type="time"][data-f="time"]');
