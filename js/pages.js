@@ -564,14 +564,21 @@ const mm=d.members.splice(i,1)[0];Store.save();render();
 toastUndo("🗑 "+mm.name+" حذف شد",()=>{d.members.splice(i,0,mm);Store.save();render();});}
 
 /* ---- جلسات خاص ---- */
+function validClassTimeRange(start,end){
+ if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(start||"")||!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(end||""))return false;
+ const minutes=t=>Number(t.slice(0,2))*60+Number(t.slice(3,5));
+ return minutes(end)>minutes(start);
+}
 function addExtra(){const o=modal("<h3 style='font-weight:800'>➕ جلسه با تاریخ مشخص</h3><label>تاریخ جلسه</label><input id='exD' name='ex-date' readonly placeholder='انتخاب تاریخ' onclick='exPick()' style='cursor:pointer'><label>ساعت شروع</label><input type='time' id='exS' name='ex-start' value='19:00' aria-label='ساعت شروع'><label>ساعت پایان</label><input type='time' id='exE' name='ex-end' value='21:00' aria-label='ساعت پایان'><div class='row' style='margin-top:12px'><button class='btn p' style='flex:1' id='exOk'>💾 ذخیره</button><button class='btn ghost' id='exCl'>انصراف</button></div>");
 let key=null;
 window.exPick=()=>datePick(null,j=>{key=Jalali.toKey(j);document.getElementById("exD").value=Jalali.fmt(j);});
 document.getElementById("exCl").onclick=()=>o.remove();
 document.getElementById("exOk").onclick=()=>{if(!key){toast("⚠️ تاریخ را انتخاب کنید");return;}
+const start=document.getElementById("exS").value,end=document.getElementById("exE").value;
+if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید بعد از ساعت شروع باشد");return;}
 const d=Store.get();d.extra=d.extra||[];
 if(d.extra.some(x=>x.key===key)){toast("⚠️ برای این تاریخ جلسه ثبت شده");return;}
-d.extra.push({key,start:document.getElementById("exS").value,end:document.getElementById("exE").value});
+d.extra.push({key,start,end});
 Store.save();o.remove();render();toast("✅ جلسه اضافه شد");};}
 function delExtra(i){confirm2("این جلسه حذف شود؟",()=>{const d=Store.get();d.extra.splice(i,1);Store.save();render();});}
 window.addExtra=addExtra;window.delExtra=delExtra;
@@ -670,8 +677,8 @@ function copyHW(id){const hw=Store.get().homework.find(h=>h.id===id);
 if(hw)shareTxt("📚 تکلیف جلسه "+Jalali.fmt(Jalali.fromKey(hw.key))+":\n\n"+hw.text);}
 
 /* ---- تنظیمات: عملیات ---- */
-function addClass(){const d=Store.get();const startDate=$("#cDate")?$("#cDate").value:"",endDate=$("#cEndDate")?$("#cEndDate").value:"";if(startDate&&endDate&&endDate<startDate){toast("تاریخ پایان باید بعد از شروع باشد");return;}const dow=startDate?((new Date(startDate+"T12:00:00").getDay()+1)%7):+$("#cDow").value;
-d.classes.push({dow,start:$("#cS").value,end:$("#cE").value,startDate,endDate});
+function addClass(){const d=Store.get();const startDate=$("#cDate")?$("#cDate").value:"",endDate=$("#cEndDate")?$("#cEndDate").value:"",start=$("#cS")?$("#cS").value:"",end=$("#cE")?$("#cE").value:"";if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید بعد از ساعت شروع باشد");return;}if(startDate&&endDate&&endDate<startDate){toast("⚠️ تاریخ پایان باید بعد از شروع باشد");return;}const dow=startDate?((new Date(startDate+"T12:00:00").getDay()+1)%7):+$("#cDow").value;
+d.classes.push({dow,start,end,startDate,endDate});
 Store.save();render();toast("✅ کلاس اضافه شد");}
 function delClass(i){confirm2("این کلاس حذف شود؟",()=>{const d=Store.get();d.classes.splice(i,1);Store.save();render();});}
 function setColor(c){const d=Store.get();d.settings.color=c;Store.save();applyColor();render();}
