@@ -92,7 +92,7 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
       const status=ph===2?ex.p2:ex.p1;
       const time=ph===2?ex.time2:ex.time;
       const note=ph===2?(ex.note2||""):(ex.note||"");
-      if(status==="delay"&&time)t+=" (ساعت "+Jalali.toFa(time)+")";
+      if(status==="delay"&&isClockTime(time))t+=" (ساعت "+Jalali.toFa(time)+")";
       // Only share a note for a non-present status; notes may contain personal information.
       if(status&&status!=="present"&&note)t+=" — "+note;
       lines.push(t);
@@ -1167,13 +1167,15 @@ function batchSetAtt(st){
   const key=sessionSel()||curKey();
   if(!key){toast("جلسه مشخص نیست");return;}
   const ids=[...window._batchSel];
+  const d=Store.get();
+  d.sessions[key]=d.sessions[key]||{};
   ids.forEach(mid=>{
-    // use setAtt for each for undo of last only - direct for speed
-    const d=Store.get();
-    d.sessions[key]=d.sessions[key]||{};
     const prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
     const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
-    cur.p1=st;cur.time=Date.now();cur.by=(currentUser()||{}).name||"";
+    const was=cur.p1;
+    cur.p1=st;cur.updatedAt=Date.now();cur.by=(currentUser()||{}).name||"";
+    if(st!=="delay"||was!=="delay"||!isClockTime(cur.time))delete cur.time;
+    if(was!==st){delete cur.note;delete cur.a1;}
     pushUndo({type:"att",key,mid,prev,label:"دسته‌ای"});
   });
   Store.save();
@@ -1262,11 +1264,6 @@ function callCoach(m){
   if(r>=0.3)return'<div class="coach">💡 یادآوری ملایم کافی است؛ الگوی نامنظم داشته.</div>';
   if(isPinned(m.id))return'<div class="coach">📌 عضو پین‌شده — اولویت هماهنگی.</div>';
   return"";
-}
-function stampAtt(cur){
-  cur.time=Date.now();
-  cur.by=(currentUser()||{}).name||"";
-  return cur;
 }
 function compactSyncExport(){
   const d=Store.get();
@@ -1830,7 +1827,7 @@ function printAttendReport(key){
   for(const m of d.members){
     const c=s[m.id]||{};
     const p1=ST.lbl[c.p1||"none"], p2=ST.lbl[c.p2||"none"];
-    rows+="<tr><td>"+esc(m.name)+"</td><td>"+p1+(c.time?" ("+Jalali.toFa(c.time)+")":"")+"</td><td>"+p2+(c.time2?" ("+Jalali.toFa(c.time2)+")":"")+"</td><td>"+esc(c.note2||c.note||"")+"</td></tr>";
+    rows+="<tr><td>"+esc(m.name)+"</td><td>"+p1+(c.p1==="delay"&&isClockTime(c.time)?" ("+Jalali.toFa(c.time)+")":"")+"</td><td>"+p2+(c.p2==="delay"&&isClockTime(c.time2)?" ("+Jalali.toFa(c.time2)+")":"")+"</td><td>"+esc(c.note2||c.note||"")+"</td></tr>";
   }
   const html=`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${esc(title)}</title>
   <style>
@@ -1964,7 +1961,5 @@ if(Store.get().settings.requireLogin&&!currentUser())route="login";
 render();
 try{scheduleClassNotif();}catch(e){}
 
-if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)
-navigator.serviceWorker.register("sw.js").catch(()=>{});
 window.addEventListener("online",()=>{toast("🟢 آنلاین شدید");render();});
 window.addEventListener("offline",()=>{toast("🔴 آفلاین — داده محلی امن است");render();});
