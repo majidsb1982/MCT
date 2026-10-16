@@ -147,6 +147,7 @@ importObj(input){
  let o;
  try{o=JSON.parse(JSON.stringify(input));}catch(e){throw new Error("محتوای فایل قابل پردازش نیست");}
  const isObj=v=>!!v&&typeof v==="object"&&!Array.isArray(v);
+ o=Object.assign({},JSON.parse(JSON.stringify(DEF)),o);
  const arrayKeys=["members","classes","extra","homework","groups","users","pinned","pinnedMembers","activityLog","undoStack"];
  for(const k of arrayKeys)if(o[k]!=null&&!Array.isArray(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
  for(const k of ["sessions","fees","doorChecks","sessionNotes","assignments"])if(o[k]!=null&&!isObj(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
@@ -162,6 +163,7 @@ importObj(input){
    if(m.consentContact==null)m.consentContact=true;
    if(m.consentPhoto==null)m.consentPhoto=true;
    if(!Array.isArray(m.roles))m.roles=[];
+   if(m.streak==null)m.streak=0;
  });
  o.v=24;
  o.classes=Array.isArray(o.classes)?o.classes:JSON.parse(JSON.stringify(DEF.classes));
