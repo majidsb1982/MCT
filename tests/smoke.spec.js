@@ -376,7 +376,7 @@ test("legacy backup restore reapplies migration defaults without losing member d
     mimeType: "application/json",
     buffer: Buffer.from(JSON.stringify(legacy), "utf8")
   });
-  await expect(page.locator("#modal")).toBeVisible();
+  await expect(page.locator(".overlay")).toBeVisible();
   await page.locator("#cy").click();
 
   const restored = await page.evaluate(() => {
