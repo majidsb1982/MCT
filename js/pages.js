@@ -769,14 +769,15 @@ const iGroup=hasHead?findCol(["گروه"]):-1;
 const iNote=hasHead?findCol(["یادداشت عمومی","یادداشت","توضیحات"]):4;
 const iNeeds=hasHead?findCol(["نیازها","نیاز"]):-1;
 if(iName<0){toast("⚠️ ستون «نام» در فایل پیدا نشد");return;}
-const d=Store.get(),existingNames=new Set((d.members||[]).map(m=>normalizeHeader((m.name||"").replace(/\s+/g," ").trim())));
+const normalizeName=v=>String(v||"").trim().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/\u200c/g,"").replace(/\s+/g," ").toLowerCase();
+const d=Store.get(),existingNames=new Set((d.members||[]).map(m=>normalizeName(m.name)));
 const seenNames=new Set(existingNames),candidates=[];let skip=0,sharedPhoneCount=0;
 const phoneOwners=new Map();
 (d.members||[]).forEach(m=>(m.phones||[]).forEach(p=>{const key=canonicalPhone(p);if(key)phoneOwners.set(key,(phoneOwners.get(key)||0)+1);}));
 for(let i=hasHead?1:0;i<rows.length;i++){
  const row=rows[i],name=(row[iName]||"").trim();
  if(!name)continue;
- const nameKey=normalizeHeader(name.replace(/\s+/g," "));
+ const nameKey=normalizeName(name);
  if(seenNames.has(nameKey)){skip++;continue;}
  const phones=iPhone>=0?(row[iPhone]||"").split(/[\/؛;|]/).map(x=>x.trim()).filter(Boolean):[];
  for(const p of phones){if(!validPhone(p)){toast("⚠️ شماره تماس ردیف "+Jalali.toFa(i+1)+" معتبر نیست؛ هیچ عضوی وارد نشد");return;}}
