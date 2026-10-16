@@ -157,17 +157,29 @@ function storageInfo(){
     return{bytes,kb,mb,pct,sessions:Object.keys(Store.get().sessions||{}).length,members:(Store.get().members||[]).length};
   }catch(e){return{bytes:0,kb:0,mb:"0",pct:0,sessions:0,members:0};}
 }
-function pruneSessions(keep){
+function pruneSessions(keep,confirmed){
   const d=Store.get();
   const keys=Object.keys(d.sessions||{}).sort().reverse();
-  const max=keep|| (d.settings.maxSessions||40);
-  let n=0;
-  for(let i=max;i<keys.length;i++){delete d.sessions[keys[i]];n++;}
-  // also prune fees for deleted session keys older than keep
-  const feeKeys=Object.keys(d.fees||{}).sort().reverse();
-  for(let i=max;i<feeKeys.length;i++){delete d.fees[feeKeys[i]];}
+  const requested=Number(keep);
+  const max=Number.isFinite(requested)&&requested>0?Math.floor(requested):Math.max(1,Number(d.settings.maxSessions)||40);
+  const removedKeys=keys.slice(max);
+  if(!confirmed){
+    if(!removedKeys.length){toast("جلسه قدیمی برای پاکسازی وجود ندارد");return 0;}
+    confirm2("حذف "+Jalali.toFa(removedKeys.length)+" جلسه قدیمی؟\nاطلاعات حضور، شهریه و یادداشت‌های همان جلسات حذف می‌شود. برای حفظ سابقه، ابتدا از تنظیمات پشتیبان بگیرید.",()=>{
+      const n=pruneSessions(keep,true);
+      toast(n?("🧹 "+Jalali.toFa(n)+" جلسه قدیمی پاک شد"):"جلسه‌ای برای پاکسازی نبود");
+      if(typeof render==="function")render();
+    });
+    return null;
+  }
+  removedKeys.forEach(key=>{
+    delete d.sessions[key];
+    if(d.fees)delete d.fees[key];
+    if(d.sessionNotes)delete d.sessionNotes[key];
+    if(d.doorChecks)delete d.doorChecks[key];
+  });
   Store.save();
-  return n;
+  return removedKeys.length;
 }
 
 /* ============ ابزارها ============ */
