@@ -105,6 +105,14 @@ test("attendance status is timestamped separately from delay time and persists",
   await expect(delayTime).toBeVisible();
   await expect(delayTime).toHaveValue("");
 
+  await page.locator("#undoBtn").click();
+  const reverted = await page.evaluate(({mid,key}) => Store.get().sessions[key][mid], {mid,key:presentRecord.key});
+  expect(reverted.p1).toBe("present");
+  expect(reverted).not.toHaveProperty("time");
+
+  await page.locator('.mblk[data-mid="' + mid + '"] .st-btn[data-s="delay"]').click();
+  await expect(delayTime).toBeVisible();
+  await expect(delayTime).toHaveValue("");
   await delayTime.fill("18:25");
   await delayTime.press("Tab");
   await expect.poll(() => page.evaluate(({mid,key}) => Store.get().sessions[key][mid]?.time, {mid,key:presentRecord.key})).toBe("18:25");
