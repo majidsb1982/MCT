@@ -450,7 +450,7 @@ test("member CSV import preserves exported headers, Persian dates and all mapped
   const csv = [
     "نام,تلفن‌ها,تولد,نقش‌ها,گروه,یادداشت عمومی,نیازها",
     "\"عضو انتقال\",\"۰۹۱۲۳۴۵۶۷۸۹ / ٠٩٣٥١٢٣٤٥٦٧\",۱۴۰۵/۰۲/۰۳,\"حامی|داوطلب\",پیگیری,یادداشت آزمایشی,\"تماس|توجه\""
-  ].join("\\r\\n");
+  ].join("\r\n");
   await page.locator("#mimp").setInputFiles({
     name: "members-roundtrip.csv",
     mimeType: "text/csv",
