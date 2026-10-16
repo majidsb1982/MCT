@@ -565,7 +565,7 @@ toastUndo("🗑 "+mm.name+" حذف شد",()=>{d.members.splice(i,0,mm);Store.sav
 
 /* ---- جلسات خاص ---- */
 function validClassTimeRange(start,end){
- if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(start||"")||!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(end||""))return false;
+ if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(start||"")||!/^([01]\d|2[0-3]):[0-5]\d$/.test(end||""))return false;
  const minutes=t=>Number(t.slice(0,2))*60+Number(t.slice(3,5));
  return minutes(end)>minutes(start);
 }
