@@ -104,9 +104,9 @@ function openReportPanel(kind){
   }else if(kind==="workflow"){
     body=workflowStripHTML()+myTasksBannerHTML()+periodSummaryHTML();
   }else if(kind==="support"){
-    body=periodSummaryHTML()+roleDashboardHTML();
+    body=roleDashboardHTML();
   }else if(kind==="system"){
-    body=dataHealthHTML()+backupReminderHTML()+activityHTML();
+    body=dataHealthHTML()+activityHTML();
   }else{
     return;
   }
