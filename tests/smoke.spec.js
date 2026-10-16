@@ -361,3 +361,25 @@ test("second-round supporter report uses only second-round status, time, and not
   await expect(report).not.toHaveValue(/یادداشت نوبت اول/);
   await expect(report).not.toHaveValue(/۱۸:۱۰/);
 });
+
+
+test("member phone validation normalizes Persian and Arabic digits and warns before sharing a number", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('#nav button[aria-label="اعضا"]').click();
+
+  await page.getByRole("button", { name: /افزودن عضو جدید/ }).click();
+  await page.locator("#fName").fill("عضو دارای شماره");
+  await page.locator('input[name="m-phone-0"]').fill("۰۹۱۲۳۴۵۶۷۸۹");
+  await page.locator("#fSave").click();
+  await expect.poll(() => page.evaluate(() => Store.get().members.length)).toBe(1);
+
+  await page.getByRole("button", { name: /افزودن عضو جدید/ }).click();
+  await page.locator("#fName").fill("عضو شماره مشترک");
+  await page.locator('input[name="m-phone-0"]').fill("٠٩١٢٣٤٥٦٧٨٩");
+  await page.locator("#fSave").click();
+
+  await expect(page.locator(".overlay")).toBeVisible();
+  await expect(page.locator(".overlay")).toContainText("این شماره با عضو دیگری مشترک است");
+  await page.locator("#cy").click();
+  await expect.poll(() => page.evaluate(() => Store.get().members.length)).toBe(2);
+});
