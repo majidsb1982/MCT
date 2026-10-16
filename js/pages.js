@@ -197,11 +197,11 @@ h+='<div class="progress"><i style="width:'+pct+'%"></i></div><p class="stat-lin
 const fl=UI.filter;
 if(UI.doneTab){
 const dl=fl?done.filter(m=>m.name.includes(fl)):done;
-h+='<div class="card">'+(dl.length?dl.map(m=>doneRow(m,key,s[m.id]||{},"p1")).join(""):'<div class="empty">هنوز چیزی ثبت نشده</div>')+"</div>";
+h+='<div class="card attend-list-pane">'+(dl.length?dl.map(m=>doneRow(m,key,s[m.id]||{},"p1")).join(""):'<div class="empty">هنوز چیزی ثبت نشده</div>')+"</div>";
 }else{
 const nl=fl?need.filter(m=>m.name.includes(fl)):need;
-h+='<div class="card">'+(nl.length?nl.map(m=>block(m,"p1",s[m.id]||{},key)).join(""):'<div class="empty">🎉 همه ثبت شده‌اند!</div>')+"</div>";}
-el.innerHTML=h;wireMineToggle("attend");wireSessionNote();
+h+='<div class="card attend-list-pane">'+(nl.length?nl.map(m=>block(m,"p1",s[m.id]||{},key)).join(""):'<div class="empty">🎉 همه ثبت شده‌اند!</div>')+"</div>";}
+el.classList.add("attend-pane");el.innerHTML=h;wireMineToggle("attend");wireSessionNote();
 try{
   document.querySelectorAll(".mem[data-mid]").forEach(el=>{
     el.addEventListener("click",e=>{
