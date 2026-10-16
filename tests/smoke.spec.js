@@ -361,3 +361,48 @@ test("second-round supporter report uses only second-round status, time, and not
   await expect(report).not.toHaveValue(/یادداشت نوبت اول/);
   await expect(report).not.toHaveValue(/۱۸:۱۰/);
 });
+
+
+test("legacy backup restore reapplies migration defaults without losing member data", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
+  const legacy = {
+    v: 3,
+    members: [{ id: "legacy-restore", name: "عضو نسخه قدیمی", phone: "09120000009" }],
+    classes: [{ dow: 3, start: "19:00", end: "21:00" }],
+    settings: { color: "blue" }
+  };
+  await page.locator("#rf").setInputFiles({
+    name: "legacy-backup.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(legacy), "utf8")
+  });
+  await expect(page.locator(".overlay")).toBeVisible();
+  await page.locator("#cy").click();
+
+  const restored = await page.evaluate(() => {
+    const d = Store.get();
+    const member = d.members.find(m => m.id === "legacy-restore");
+    return {
+      member: member && {
+        name: member.name, phones: member.phones, supporterId: member.supporterId,
+        careFlag: member.careFlag, needs: member.needs, consentContact: member.consentContact,
+        consentPhoto: member.consentPhoto, roles: member.roles
+      },
+      settings: {
+        lastBackupAt: d.settings.lastBackupAt, autoTheme: d.settings.autoTheme,
+        a11y: d.settings.a11y, focusMode: d.settings.focusMode, onlyMine: d.settings.onlyMine,
+        oled: d.settings.oled, smartSort: d.settings.smartSort
+      }
+    };
+  });
+  expect(restored.member).toMatchObject({
+    name: "عضو نسخه قدیمی", phones: ["09120000009"], supporterId: null,
+    careFlag: false, needs: [], consentContact: true, consentPhoto: true, roles: []
+  });
+  expect(restored.settings).toEqual({
+    lastBackupAt: null, autoTheme: false, a11y: false, focusMode: false,
+    onlyMine: false, oled: false, smartSort: true
+  });
+});

@@ -48,7 +48,7 @@ assignments:{attend:{},fee:{}},
 pinned:[],
 sessionNotes:{},
 undoStack:[],
-settings:{theme:null,fs:"m",color:"blue",alarmTimes:[15,8,5,3],sound:false,className:"کلاس من",maxSessions:40,privacyMode:false,hidePrivateInReports:true,requireLogin:false,quickConfirm:true,feeDeadlineDays:1},timer:null};
+settings:{theme:null,fs:"m",color:"blue",alarmTimes:[15,8,5,3],sound:false,className:"کلاس من",maxSessions:40,privacyMode:false,hidePrivateInReports:true,requireLogin:false,quickConfirm:true,feeDeadlineDays:1,lastBackupAt:null,autoTheme:false,a11y:false,focusMode:false,onlyMine:false,oled:false,smartSort:true},timer:null};
 let data;
 function load(){let raw=null;try{raw=localStorage.getItem(KEY);data=JSON.parse(raw)||null;}catch(e){data=null;if(raw){try{if(!localStorage.getItem(KEY+":recovery"))localStorage.setItem(KEY+":recovery",raw);}catch(recoveryError){console.error("MCT: failed to preserve corrupt data",recoveryError);}console.error("MCT: stored data is invalid JSON; a recovery copy was attempted.",e);}}
 if(!data){data=JSON.parse(JSON.stringify(DEF));return;}
@@ -159,6 +159,8 @@ importObj(input){
    if(!Array.isArray(m.phones))m.phones=[];
    if(!m.group)m.group="عمومی";
    if(m.privateNote==null)m.privateNote="";
+   if(m.supporterId===undefined)m.supporterId=null;
+   if(m.careFlag==null)m.careFlag=false;
    if(!Array.isArray(m.needs))m.needs=[];
    if(m.consentContact==null)m.consentContact=true;
    if(m.consentPhoto==null)m.consentPhoto=true;
