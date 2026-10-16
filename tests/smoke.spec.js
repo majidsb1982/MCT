@@ -378,8 +378,7 @@ test("member phone validation normalizes Persian and Arabic digits and warns bef
   await page.locator('input[name="m-phone-0"]').fill("٠٩١٢٣٤٥٦٧٨٩");
   await page.locator("#fSave").click();
 
-  await expect(page.locator(".overlay")).toBeVisible();
-  await expect(page.locator(".overlay")).toContainText("این شماره با عضو دیگری مشترک است");
+  await expect(page.locator(".overlay").filter({ hasText: "این شماره با عضو دیگری مشترک است" })).toBeVisible();
   await page.locator("#cy").click();
   await expect.poll(() => page.evaluate(() => Store.get().members.length)).toBe(2);
 });
