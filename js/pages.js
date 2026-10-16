@@ -355,7 +355,7 @@ const p=document.querySelector("#hwV [data-aud]");if(p)p.onclick=()=>playAud(win
 mic.onclick=()=>recordVoice(res=>{window._hwA=res;upd();},window._hwA);upd();}};
 function hwItem(hw){return'<div class="card"><div class="row" style="justify-content:space-between"><b style="color:var(--p)">'+Jalali.fmt(Jalali.fromKey(hw.key))+'</b><span class="noprint row" style="gap:6px">'+audBtn(hw.audio,"پخش تکلیف")+
 '<button class="btn sm ghost" onclick="copyHW(\''+hw.id+'\')" aria-label="ارسال">📤</button>'+
-'<button class="btn sm ghost" onclick="hwEdit(\''+hw.id+'\')" aria-label="ویرایش">✏️</button>
+'<button class="btn sm ghost" onclick="hwEdit(\''+hw.id+'\')" aria-label="ویرایش">✏️</button>'+
 '<button class="btn sm ghost" onclick="delHW(\''+hw.id+'\')" aria-label="حذف">🗑</button></span></div>'+
 '<p style="white-space:pre-wrap;margin:8px 0 0">'+esc(hw.text)+"</p></div>";}
 function hwEdit(id){const d=Store.get();const hw=d.homework.find(x=>x.id===id);if(!hw)return;
