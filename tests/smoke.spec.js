@@ -24,6 +24,12 @@ test("app shell loads without uncaught errors or missing local assets", async ({
 test("desktop and mobile layouts fit the viewport without horizontal overflow", async ({ page }, testInfo) => {
   await page.goto("/");
   await expect(page.locator("#hdr")).toBeVisible();
+  await expect(page.locator("#app .home-android-head")).toBeVisible();
+  await expect(page.locator("#app .home-next-card")).toBeVisible();
+  await expect(page.locator("#app .home-shortcut")).toHaveCount(4);
+  await expect(page.locator("#nav button[aria-label='جستجو']")).toHaveCount(0);
+  await expect(page.locator("#nav button[aria-label='تنظیمات']")).toBeVisible();
+  await expect(page.locator("#app .home-reminder")).toBeVisible();
   await page.evaluate(() => {
     const d = Store.get();
     d.members = Array.from({ length: 30 }, (_, i) => ({
