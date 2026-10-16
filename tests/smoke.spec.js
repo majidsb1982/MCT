@@ -24,17 +24,31 @@ test("app shell loads without uncaught errors or missing local assets", async ({
 test("desktop and mobile layouts fit the viewport without horizontal overflow", async ({ page }, testInfo) => {
   await page.goto("/");
   await expect(page.locator("#hdr")).toBeVisible();
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = Array.from({ length: 30 }, (_, i) => ({
+      id: "home-ux-" + i, name: "عضو " + (i + 1), phones: [], roles: [], group: "عمومی", needs: []
+    }));
+    Store.save();
+    render();
+  });
 
   for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 812 }]) {
     await page.setViewportSize(viewport);
     const dimensions = await page.evaluate(() => ({
       viewport: document.documentElement.clientWidth,
       page: document.documentElement.scrollWidth,
-      height: document.documentElement.scrollHeight
+      height: document.documentElement.scrollHeight,
+      mainBottom: document.querySelector("#app").getBoundingClientRect().bottom,
+      navTop: document.querySelector("#nav").getBoundingClientRect().top
     }));
     expect(dimensions.page, `Horizontal overflow: page ${dimensions.page}px, viewport ${dimensions.viewport}px`)
       .toBeLessThanOrEqual(dimensions.viewport + 1);
     expect(dimensions.height).toBeGreaterThan(200);
+    if (viewport.width < 500) {
+      expect(dimensions.mainBottom, "Home should fit above the fixed bottom navigation on mobile")
+        .toBeLessThanOrEqual(dimensions.navTop + 1);
+    }
   }
   await page.screenshot({ path: testInfo.outputPath("mct-mobile-full-page.png"), fullPage: true });
 });
