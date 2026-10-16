@@ -365,6 +365,8 @@ test("second-round supporter report uses only second-round status, time, and not
 
 test("legacy backup restore reapplies migration defaults without losing member data", async ({ page }) => {
   await page.goto("/");
+  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
   const legacy = {
     v: 3,
     members: [{ id: "legacy-restore", name: "عضو نسخه قدیمی", phone: "09120000009" }],
