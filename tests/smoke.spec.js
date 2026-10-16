@@ -460,7 +460,7 @@ test("member CSV import preserves exported headers, Persian dates and all mapped
   await expect.poll(() => page.evaluate(() => Store.get().members.some(m => m.name === "عضو انتقال"))).toBeTruthy();
   const member = await page.evaluate(() => {
     const m = Store.get().members.find(x => x.name === "عضو انتقال");
-    return { phones: m.phones, birth: m.birth, roles: m.roles, group: m.group, note: m.note, needs: m.needs };
+    return { phones: m.phones, birth: m.birth, roles: m.roles, group: m.group, note: m.note, needs: m.needs, groups: Store.get().groups };
   });
   expect(member).toMatchObject({
     phones: ["۰۹۱۲۳۴۵۶۷۸۹", "٠٩٣٥١٢٣٤٥٦٧"],
@@ -468,6 +468,7 @@ test("member CSV import preserves exported headers, Persian dates and all mapped
     roles: ["حامی", "داوطلب"],
     group: "پیگیری",
     note: "یادداشت آزمایشی",
-    needs: ["تماس", "توجه"]
+    needs: ["تماس", "توجه"],
+    groups: expect.arrayContaining(["عمومی", "پیگیری"])
   });
 });
