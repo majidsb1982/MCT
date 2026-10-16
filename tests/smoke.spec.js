@@ -196,7 +196,7 @@ test("member list offers name, family name, birth date and phone sorting", async
   expect(names[0]).toBe("رضا احمدی");
 });
 
-test("fees page presents a compact summary and supporter report action", async ({ page }) => {
+test("fees summary and secondary report panels remain reachable", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
     const d = Store.get();
@@ -207,6 +207,15 @@ test("fees page presents a compact summary and supporter report action", async (
   await page.locator('#nav button[aria-label="شهریه"]').click();
   await expect(page.locator("#app .fee-summary")).toContainText("خلاصه شهریه جلسه");
   await expect(page.locator("#btnFeeHami")).toBeVisible();
+
+  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.getByRole("button", { name: /گزارش‌ها و ارتباطات/ }).click();
+  const stats = page.getByRole("button", { name: /آمار و روند/ });
+  await expect(stats).toBeVisible();
+  await stats.click();
+  await expect(page.locator(".overlay .modal")).toContainText("آمار و روند جلسات");
+  await page.locator("#reportPanelClose").click();
+  await expect(page.locator("#reportPanelClose")).toHaveCount(0);
 });
 
 
