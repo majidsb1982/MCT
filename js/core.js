@@ -130,19 +130,63 @@ if(data.v<24){data.pinnedMembers=data.pinnedMembers||data.pinned||[];data.v=24;}
 data.settings=Object.assign({},DEF.settings,data.settings||{});
 data.groups=data.groups||["عمومی"];}
 const save=()=>{
-try{
-  const raw=JSON.stringify(data);
-  localStorage.setItem(KEY,raw);
-}catch(e){
-  console.warn(e);
-  try{toast("⚠️ فضای ذخیره پر است — پشتیبان بگیرید و جلسات قدیمی را پاک کنید");}catch(_){}
-}
+ try{
+   const raw=JSON.stringify(data);
+   localStorage.setItem(KEY,raw);
+   return true;
+ }catch(e){
+   console.warn(e);
+   try{toast("⚠️ ذخیره‌سازی انجام نشد؛ فضای ذخیره یا دسترسی مرورگر را بررسی کنید");}catch(_){}
+   return false;
+ }
 };
 load();
 return{get:()=>data,save,reset(){data=JSON.parse(JSON.stringify(DEF));save();},
-importObj(o){if(!o||typeof o!=="object"||!Array.isArray(o.members))throw 0;
-o.members.forEach(m=>{if(m.phone&&!m.phones)m.phones=[m.phone];if(!m.phones)m.phones=[];});
-o.extra=o.extra||[];o.groups=o.groups||["عمومی"];(o.members||[]).forEach(m=>{if(!m.group)m.group="عمومی";});o.v=20;o.assignments=o.assignments||{attend:{},fee:{}};o.period=o.period||{title:"دوره جاری",attendIds:[],feeIds:[],hwIds:[],note:""};o.doorChecks=o.doorChecks||{};o.users=o.users&&o.users.length?o.users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}];(o.members||[]).forEach(m=>{if(m.privateNote==null)m.privateNote="";if(!m.needs)m.needs=[];if(m.consentContact==null)m.consentContact=true;if(m.consentPhoto==null)m.consentPhoto=true;});data=o;save();},
+importObj(input){
+ if(!input||typeof input!=="object"||Array.isArray(input)||!Array.isArray(input.members))throw new Error("ساختار فایل پشتیبان معتبر نیست");
+ let o;
+ try{o=JSON.parse(JSON.stringify(input));}catch(e){throw new Error("محتوای فایل قابل پردازش نیست");}
+ const isObj=v=>!!v&&typeof v==="object"&&!Array.isArray(v);
+ const arrayKeys=["members","classes","extra","homework","groups","users","pinned","pinnedMembers","activityLog","undoStack"];
+ for(const k of arrayKeys)if(o[k]!=null&&!Array.isArray(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
+ for(const k of ["sessions","fees","doorChecks","sessionNotes","assignments"])if(o[k]!=null&&!isObj(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
+ if(o.settings!=null&&!isObj(o.settings))throw new Error("ساختار تنظیمات معتبر نیست");
+ if(o.members.some(m=>!isObj(m)||typeof m.name!=="string"||!m.name.trim()))throw new Error("یکی از اعضا ساختار یا نام معتبر ندارد");
+ if((o.classes||[]).some(c=>!isObj(c)||!Number.isInteger(Number(c.dow))||Number(c.dow)<0||Number(c.dow)>6||typeof c.start!=="string"))throw new Error("تعریف یکی از کلاس‌های هفتگی معتبر نیست");
+ o.members.forEach(m=>{
+   if(m.phone&&!Array.isArray(m.phones))m.phones=[m.phone];
+   if(!Array.isArray(m.phones))m.phones=[];
+   if(!m.group)m.group="عمومی";
+   if(m.privateNote==null)m.privateNote="";
+   if(!Array.isArray(m.needs))m.needs=[];
+   if(m.consentContact==null)m.consentContact=true;
+   if(m.consentPhoto==null)m.consentPhoto=true;
+   if(!Array.isArray(m.roles))m.roles=[];
+ });
+ o.v=24;
+ o.classes=Array.isArray(o.classes)?o.classes:JSON.parse(JSON.stringify(DEF.classes));
+ o.extra=Array.isArray(o.extra)?o.extra:[];
+ o.homework=Array.isArray(o.homework)?o.homework:[];
+ o.groups=Array.isArray(o.groups)&&o.groups.length?o.groups:["عمومی"];
+ o.sessions=isObj(o.sessions)?o.sessions:{};
+ o.fees=isObj(o.fees)?o.fees:{};
+ o.doorChecks=isObj(o.doorChecks)?o.doorChecks:{};
+ o.sessionNotes=isObj(o.sessionNotes)?o.sessionNotes:{};
+ o.users=Array.isArray(o.users)&&o.users.length?o.users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}];
+ o.assignments=isObj(o.assignments)?o.assignments:{attend:{},fee:{}};
+ o.assignments.attend=isObj(o.assignments.attend)?o.assignments.attend:{};
+ o.assignments.fee=isObj(o.assignments.fee)?o.assignments.fee:{};
+ o.period=isObj(o.period)?Object.assign({title:"دوره جاری",attendIds:[],feeIds:[],hwIds:[],note:""},o.period):{title:"دوره جاری",attendIds:[],feeIds:[],hwIds:[],note:""};
+ o.pinned=Array.isArray(o.pinned)?o.pinned:[];
+ o.pinnedMembers=Array.isArray(o.pinnedMembers)?o.pinnedMembers:o.pinned.slice();
+ o.activityLog=Array.isArray(o.activityLog)?o.activityLog:[];
+ o.undoStack=Array.isArray(o.undoStack)?o.undoStack:[];
+ o.settings=Object.assign({},DEF.settings,isObj(o.settings)?o.settings:{});
+ const previous=data;
+ data=o;
+ if(!save()){data=previous;throw new Error("فضای ذخیره کافی نیست؛ داده فعلی حفظ شد و بازیابی انجام نشد");}
+ return true;
+},
 uid:()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6)};})();
 
 
