@@ -870,3 +870,64 @@ body.dark .role-hint,body.dark .hami-tip,body.dark .human-msg{color:#d5e5f7}
 body.dark .help-popover,body.dark .help-popover-head{background:var(--sf);color:var(--tx)}
 body.dark .help-back,body.dark .help-close{background:#17243a;color:#f1f5f9;border-color:#3a4b68}
 @media(max-width:520px){.help-overlay{align-items:flex-end!important;padding:10px 10px calc(10px + env(safe-area-inset-bottom))!important}.help-overlay .modal{max-height:78dvh!important}.help-popover{max-height:78dvh;border-radius:20px 20px 16px 16px}}
+
+
+/* v30: compact navigation and summary panels */
+.more-hero-compact{display:flex;justify-content:flex-start;align-items:center;margin:0 0 8px;min-height:38px}
+.more-hero-compact .members-help-btn{flex:0 0 38px;width:38px;height:38px}
+.fee-summary{padding:14px}
+.fee-summary .progress{margin-top:10px}
+.fee-summary .row{gap:10px;flex-wrap:wrap}
+.hub-tile .ht-ico{flex:0 0 40px;width:40px;height:40px;min-width:40px;min-height:40px}
+.hub-tile .ht-title{min-height:1.35em}
+
+
+/* v39 — persistent member creation action, positioned above the mobile navigation */
+.members-add-bar{position:sticky;bottom:calc(var(--mobile-nav-h,68px) + env(safe-area-inset-bottom) + 8px);z-index:35;display:flex;justify-content:center;margin:10px 0 8px;padding:8px;border:1px solid var(--ln);border-radius:16px;background:color-mix(in srgb,var(--sf) 92%,transparent);backdrop-filter:blur(10px);box-shadow:0 8px 24px #0002}
+.members-add-bar .btn{width:100%;max-width:440px;min-height:44px;font-weight:800}
+@media(min-width:768px){.members-add-bar{bottom:12px;max-width:600px;margin:14px auto}}
+
+
+/* v40 — cross-app UX consistency and accessibility pass */
+html{scroll-padding-top:76px;scroll-padding-bottom:calc(86px + env(safe-area-inset-bottom));text-size-adjust:100%;-webkit-text-size-adjust:100%}
+body{min-width:320px;overflow-wrap:anywhere}
+button,input,select,textarea{touch-action:manipulation}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--p2)!important;outline-offset:3px!important}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--p)!important;outline-offset:1px}
+button:disabled,.btn:disabled{opacity:.52;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.page{width:100%;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right));padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+.card{min-width:0;overflow-wrap:anywhere}
+.card h3,.sec-label{line-height:1.55}
+.row>*{min-width:0}
+.row input,.row select,.row textarea{min-width:0}
+nav{padding-left:max(4px,env(safe-area-inset-left));padding-right:max(4px,env(safe-area-inset-right));padding-bottom:max(8px,env(safe-area-inset-bottom));gap:2px}
+nav button{flex:1;min-width:0;min-height:48px;padding:6px 3px;font-size:clamp(10px,.63em,12px);line-height:1.35;white-space:normal}
+nav button span{max-width:100%;overflow-wrap:anywhere}
+nav button:focus-visible{outline-offset:-3px!important}
+.hbtn{min-width:40px;min-height:40px}
+.btn,.chip,.st-btn,.cal-grid button{touch-action:manipulation}
+.modal{overscroll-behavior:contain;scrollbar-gutter:stable;max-height:min(86dvh,760px)}
+.overlay{overscroll-behavior:contain}
+input,select,textarea{max-width:100%;scroll-margin-top:84px}
+.stat-line,.t-sub,.ht-sub{line-height:1.6}
+.empty{line-height:1.8}
+/* Avoid excessive blank space when the session-entry header wraps on small screens. */
+.entry-body{padding-top:clamp(168px,48vw,196px)}
+@media(max-width:380px){
+ .hwrap{gap:5px;padding-inline:8px}
+ .logo{width:32px;height:32px;flex:0 0 32px}
+ .hbtn{width:36px;height:36px;min-width:36px}
+ .htitle{font-size:.86em}
+ .page{padding-top:9px}
+ .card{padding:12px}
+ .hub-grid{gap:8px}
+ .hub-tile{min-width:0;padding:10px}
+ .hub-tile .ht-title,.hub-tile .ht-sub{overflow-wrap:anywhere}
+}
+@media(min-width:641px){
+ body{padding-bottom:24px}
+ nav{justify-content:center;gap:8px}
+ nav button{flex:0 1 100px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}.page{animation:none!important}.card,.btn,.chip,.st-btn{transition:none!important}}
+body.dark .stat-line,body.dark .role-hint,body.dark .hsub{color:#b5c3d9}

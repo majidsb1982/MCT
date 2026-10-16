@@ -206,24 +206,14 @@ function storageInfo(){
 function pruneSessions(keep,confirmed){
   const d=Store.get();
   const keys=Object.keys(d.sessions||{}).sort().reverse();
-  const requested=Number(keep);
-  const max=Number.isFinite(requested)&&requested>0?Math.floor(requested):Math.max(1,Number(d.settings.maxSessions)||40);
+  const configured=Number(d.settings&&d.settings.maxSessions);
+  const requested=keep==null?configured: Number(keep);
+  const max=Number.isFinite(requested)?Math.max(0,Math.floor(requested)):40;
   const removedKeys=keys.slice(max);
-  if(!confirmed){
-    if(!removedKeys.length){toast("جلسه قدیمی برای پاکسازی وجود ندارد");return 0;}
-    confirm2("حذف "+Jalali.toFa(removedKeys.length)+" جلسه قدیمی؟\nاطلاعات حضور، شهریه و یادداشت‌های همان جلسات حذف می‌شود. برای حفظ سابقه، ابتدا از تنظیمات پشتیبان بگیرید.",()=>{
-      const n=pruneSessions(keep,true);
-      toast(n?("🧹 "+Jalali.toFa(n)+" جلسه قدیمی پاک شد"):"جلسه‌ای برای پاکسازی نبود");
-      if(typeof render==="function")render();
-    });
-    return null;
-  }
-  removedKeys.forEach(key=>{
-    delete d.sessions[key];
-    if(d.fees)delete d.fees[key];
-    if(d.sessionNotes)delete d.sessionNotes[key];
-    if(d.doorChecks)delete d.doorChecks[key];
-  });
+  removedKeys.forEach(key=>{delete d.sessions[key];});
+  // Fees share session keys: only remove fees belonging to sessions actually pruned.
+  // Do not prune fees by their independent count; fee-only records may still be valid.
+  removedKeys.forEach(key=>{if(d.fees&&Object.prototype.hasOwnProperty.call(d.fees,key))delete d.fees[key];});
   Store.save();
   return removedKeys.length;
 }
@@ -362,7 +352,7 @@ function roleIconsHTML(roles){
 }
 
 function sessionSel(){const d=Store.get();return d._lastSession||curKey();}
-function curFeeKey(){return curKey()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
+function curFeeKey(){return sessionSel()||(Store.get()._lastFee||curKey()||Jalali.toKey(Jalali.today()));}
 const needsCall=st=>st!=="present";
 function absCount(id){const s=Store.get().sessions;let a=0;
 for(const k in s){const st=(s[k][id]||{}).p2||(s[k][id]||{}).p1;if(st==="absent")a++;}return a;}

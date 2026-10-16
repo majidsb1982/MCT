@@ -1,0 +1,45 @@
+name: MCT Browser and Visual Checks
+
+on:
+  push:
+    branches: [main, "feature/**", "fix/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mct-playwright-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-tests:
+    name: Desktop and mobile browser checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up Python static server
+        run: python3 --version
+      - name: Install test dependencies
+        run: npm install
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Run desktop and mobile tests
+        run: npm test
+      - name: Upload screenshots, traces, and HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mct-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

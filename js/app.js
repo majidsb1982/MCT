@@ -73,7 +73,7 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
   const s=d.sessions[key]||{};
   const g={present:[],delay:[],absent:[],problem:[],none:[]};
   for(const m of d.members){
-    const st=ph===2?((s[m.id]||{}).p2||(s[m.id]||{}).p1):(s[m.id]||{}).p1;
+    const st=ph===2?(s[m.id]||{}).p2:(s[m.id]||{}).p1;
     (g[st||"none"]||g.none).push(m);
   }
   const roundName=ph===1?"نوبت ۱ — تماس قبلی (روز/ساعت‌های قبل)":"نوبت ۲ — پشت در کلاس";
@@ -89,9 +89,12 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
     arr.forEach(m=>{
       const ex=s[m.id]||{};
       let t="• "+m.name;
-      if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(ex.time2||ex.time)+")";
-      if(ph===1&&ex.note)t+=" — "+ex.note;
-      if(ph===2&&ex.note2)t+=" — "+ex.note2;
+      const status=ph===2?ex.p2:ex.p1;
+      const time=ph===2?ex.time2:ex.time;
+      const note=ph===2?(ex.note2||""):(ex.note||"");
+      if(status==="delay"&&time)t+=" (ساعت "+Jalali.toFa(time)+")";
+      // Only share a note for a non-present status; notes may contain personal information.
+      if(status&&status!=="present"&&note)t+=" — "+note;
       lines.push(t);
     });
     lines.push("");
@@ -101,7 +104,7 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
   block("بدون حضور",g.absent,"📭");
   block("مشکل / نیاز هماهنگی",g.problem,"💬");
   block("هنوز ثبت‌نشده",g.none,"—");
-  lines.push("— برای حامی‌ها (اعضای قدیمی پشتیبان) — بدون یادداشت محرمانه —");
+  lines.push("— گزارش مربوط به همین جلسه است؛ یادداشت‌ها ممکن است اطلاعات شخصی داشته باشند، پیش از ارسال بازبینی کنید. —");
   const txt=lines.join("\n");
   const o=modal('<h3 style="font-weight:800">📤 گزارش '+esc(roundName)+'</h3>'+
     '<p class="role-hint">این متن برای حامی‌هاست: پشتیبان مسئولان جدید و رابط با درمانگر.</p>'+
@@ -138,11 +141,28 @@ function doorChecklistHTML(){
   items.forEach(([min,act])=>{
     const done=!!st[String(min)];
     h+='<div class="door-item'+(done?" done":"")+'"><span class="min">'+Jalali.toFa(min)+"'</span><span class=\"act\">"+act+'</span>';
-    h+='<button class="btn sm '+(done?"ghost":"p")+'" onclick="toggleDoorCheck('+min+')">'+(done?"✓":"ثبت")+'</button></div>';
+    h+='<button type="button" class="btn sm '+(done?"ghost":"p")+'" data-door-check="'+min+'">'+(done?"✓":"ثبت")+'</button></div>';
   });
   h+='</div></div>';
   return h;
 }
+function bindDoorChecklist(container){
+  if(!container)return;
+  container.querySelectorAll("[data-door-check]").forEach(btn=>{
+    btn.onclick=()=>{
+      const min=Number(btn.getAttribute("data-door-check"));
+      const st=doorState();st[String(min)]=!st[String(min)];Store.save();
+      const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
+      toast(msg);container.innerHTML=doorChecklistHTML();bindDoorChecklist(container);
+    };
+  });
+}
+function showDoorChecklist(){
+  const o=modal('<div id="doorChecklistDialog"></div><button type="button" class="btn ghost" id="doorChecklistClose" style="width:100%;margin-top:8px">بستن</button>');
+  const host=o.querySelector("#doorChecklistDialog");host.innerHTML=doorChecklistHTML();bindDoorChecklist(host);
+  const close=o.querySelector("#doorChecklistClose");if(close)close.onclick=()=>o.remove();
+}
+window.showDoorChecklist=showDoorChecklist;
 
 /* مهلت شهریه: یک روز قبل از کلاس */
 function feeDeadlineInfo(){
