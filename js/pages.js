@@ -754,36 +754,58 @@ rows.push([m.name,(m.phones||[]).join(" / "),c.p1?ST.lbl[c.p1]:"ثبت‌نشد�
 else rows=[["نام","تلفن‌ها","تولد","نقش‌ها","گروه","یادداشت عمومی","نیازها"],...d.members.map(m=>[m.name,(m.phones||[]).join(" / "),m.birth?Jalali.fmt(m.birth):"",(m.roles||[]).join("|"),m.group||"عمومی",m.note||"",(m.needs||[]).join("|")])];
 dlCSV(rows,kind+"-"+key+".csv");}
 function exportMembersCSV(){exportCSV("members","members");}
-function importMembersCSV(inp){const f=inp.files[0];if(!f)return;
+function importMembersCSV(inp){const f=inp&&inp.files&&inp.files[0];if(!f)return;
 const r=new FileReader();r.onload=()=>{try{
-const rows=parseCSV(r.result);if(rows.length<2){toast("⚠️ فایل خالی است");return;}
-const head=rows[0].map(x=>x.trim());
-const hasHead=head.includes("نام");
-const ci=n=>head.indexOf(n);
-const iName=hasHead?ci("نام"):0;
-const iPhone=hasHead?(ci("تلفن")>=0?ci("تلفن"):ci("شماره")):1;
-const iBirth=hasHead?ci("تولد"):2;
-const iRole=hasHead?ci("نقش‌ها"):3;
-const iNote=hasHead?ci("یادداشت"):4;
-const d=Store.get();let n=0,skip=0;
+const rows=parseCSV(String(r.result||""));if(rows.length<2){toast("⚠️ فایل خالی است");return;}
+const normalizeHeader=v=>String(v||"").trim().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/[\s\u200c_\-]/g,"");
+const headers=rows[0].map(normalizeHeader);
+const findCol=names=>{for(const n of names){const i=headers.indexOf(normalizeHeader(n));if(i>=0)return i;}return -1;};
+const hasHead=headers.includes(normalizeHeader("نام"));
+const iName=hasHead?findCol(["نام"]):0;
+const iPhone=hasHead?findCol(["تلفن‌ها","تلفن ها","تلفن","شماره تماس","شماره‌ها","شماره","موبایل"]):1;
+const iBirth=hasHead?findCol(["تولد","تاریخ تولد"]):2;
+const iRole=hasHead?findCol(["نقش‌ها","نقش ها","نقش"]):3;
+const iGroup=hasHead?findCol(["گروه"]):-1;
+const iNote=hasHead?findCol(["یادداشت عمومی","یادداشت","توضیحات"]):4;
+const iNeeds=hasHead?findCol(["نیازها","نیاز"]):-1;
+if(iName<0){toast("⚠️ ستون «نام» در فایل پیدا نشد");return;}
+const normalizeName=v=>String(v||"").trim().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/\u200c/g,"").replace(/\s+/g," ").toLowerCase();
+const d=Store.get(),existingNames=new Set((d.members||[]).map(m=>normalizeName(m.name)));
+const seenNames=new Set(existingNames),candidates=[];let skip=0,sharedPhoneCount=0;
+const phoneOwners=new Map();
+(d.members||[]).forEach(m=>(m.phones||[]).forEach(p=>{const key=canonicalPhone(p);if(key)phoneOwners.set(key,(phoneOwners.get(key)||0)+1);}));
 for(let i=hasHead?1:0;i<rows.length;i++){
-const c=rows[i];const name=(c[iName]||"").trim();
-if(!name)continue;
-if(d.members.some(x=>x.name===name)){skip++;continue;}
-let birth=null;
-const bs=(c[iBirth]||"").trim();
-const bm=bs.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
-if(bm)birth={jy:+bm[1],jm:+bm[2],jd:+bm[3]};
-const phones=(c[iPhone]||"").split(/[\/؛;|]/).map(x=>x.trim()).filter(Boolean);
-d.members.push({id:Store.uid(),name,phones,birth,
-roles:(c[iRole]||"").split("|").map(x=>x.trim()).filter(Boolean),
-note:(c[iNote]||"").trim()});
-n++;}
-Store.save();render();
-toast("✅ "+Jalali.toFa(n)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" تکراری رد شد":""));
-}catch(e){toast("⚠️ خواندن فایل ناموفق بود");}};
-r.readAsText(f);inp.value="";}
-window.exportMembersCSV=exportMembersCSV;window.importMembersCSV=importMembersCSV;
+ const row=rows[i],name=(row[iName]||"").trim();
+ if(!name)continue;
+ const nameKey=normalizeName(name);
+ if(seenNames.has(nameKey)){skip++;continue;}
+ const phones=iPhone>=0?(row[iPhone]||"").split(/[\/؛;|]/).map(x=>x.trim()).filter(Boolean):[];
+ for(const p of phones){if(!validPhone(p)){toast("⚠️ شماره تماس ردیف "+Jalali.toFa(i+1)+" معتبر نیست؛ هیچ عضوی وارد نشد");return;}}
+ const phoneKeys=phones.map(canonicalPhone).filter(Boolean);
+ if(new Set(phoneKeys).size!==phoneKeys.length){toast("⚠️ در ردیف "+Jalali.toFa(i+1)+" یک شماره تکراری است؛ هیچ عضوی وارد نشد");return;}
+ let birth=null;
+ const bs=iBirth>=0?latinPhoneDigits((row[iBirth]||"").trim()):"";
+ if(bs){
+  const bm=bs.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+  if(!bm||+bm[2]<1||+bm[2]>12||+bm[3]<1||+bm[3]>31){toast("⚠️ تاریخ تولد ردیف "+Jalali.toFa(i+1)+" معتبر نیست؛ هیچ عضوی وارد نشد");return;}
+  birth={jy:+bm[1],jm:+bm[2],jd:+bm[3]};
+ }
+ for(const key of phoneKeys){if(phoneOwners.has(key))sharedPhoneCount++;phoneOwners.set(key,(phoneOwners.get(key)||0)+1);}
+ const splitList=value=>String(value||"").split(/[|؛;]/).map(x=>x.trim()).filter(Boolean);
+ candidates.push({id:Store.uid(),name,phones,birth,
+  roles:iRole>=0?splitList(row[iRole]):[],
+  group:iGroup>=0&&String(row[iGroup]||"").trim()?String(row[iGroup]).trim():"عمومی",
+  note:iNote>=0?String(row[iNote]||"").trim():"",
+  needs:iNeeds>=0?splitList(row[iNeeds]):[]});
+ seenNames.add(nameKey);
+}
+if(!candidates.length){toast("ℹ️ عضو جدیدی برای افزودن پیدا نشد"+(skip?"؛ نام‌های تکراری رد شدند":""));return;}
+const commit=()=>{const oldGroups=Array.isArray(d.groups)?d.groups.slice():["عمومی"];if(!Array.isArray(d.groups))d.groups=["عمومی"];candidates.forEach(m=>{if(m.group&&!d.groups.includes(m.group))d.groups.push(m.group);});d.members.push(...candidates);const saved=Store.save();if(saved===false){d.members.splice(d.members.length-candidates.length,candidates.length);d.groups=oldGroups;return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
+if(sharedPhoneCount){confirm2("در "+Jalali.toFa(sharedPhoneCount)+" مورد، شماره تماس بین اعضا مشترک است. اگر عمدی است، واردکردن اعضا را ادامه دهید؟",commit);return;}
+commit();
+}catch(e){console.error("MCT CSV import:",e);toast("⚠️ خواندن فایل ناموفق بود؛ قالب و ستون‌های فایل را بررسی کنید");}finally{inp.value="";}};
+r.readAsText(f);
+}window.exportMembersCSV=exportMembersCSV;window.importMembersCSV=importMembersCSV;
 
 /* ---- آلارم ---- */
 function showBigAlert(min){const d=Store.get();
