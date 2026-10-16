@@ -145,8 +145,8 @@ for(let offset=0;offset<=1;offset++){
 }
 let tasks="";
 if(unC)tasks+='<button type="button" class="task-row" onclick="go(\'attend\')"><span class="stat-ico">📞</span><span class="home-task-copy"><span class="t-title">تماس‌های قبلی</span><span class="t-sub">'+Jalali.toFa(unC)+" نفر ثبت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
-if(unE)tasks+='<button type="button" class="task-row" onclick="openEntry()"><span class="stat-ico">✅</span><span class="home-task-copy"><span class="t-title">ثبت ورود</span><span class="t-sub">'+Jalali.toFa(unE)+" نفر ثبت‌نشده</span></span><span class="t-go" aria-hidden="true">‹</span></button>";
-if(unP)tasks+='<button type="button" class="task-row" onclick="go(\'fees\')"><span class="stat-ico">💰</span><span class="home-task-copy"><span class="t-title">شهریه</span><span class="t-sub">'+Jalali.toFa(unP)+" نفر پرداخت‌نشده</span></span><span class="t-go" aria-hidden="true">‹</span></button>";
+if(unE)tasks+='<button type="button" class="task-row" onclick="openEntry()"><span class="stat-ico">✅</span><span class="home-task-copy"><span class="t-title">ثبت ورود</span><span class="t-sub">'+Jalali.toFa(unE)+" نفر ثبت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
+if(unP)tasks+='<button type="button" class="task-row" onclick="go(\'fees\')"><span class="stat-ico">💰</span><span class="home-task-copy"><span class="t-title">شهریه</span><span class="t-sub">'+Jalali.toFa(unP)+" نفر پرداخت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
 if(birthdays.length){
   const names=birthdays.slice(0,2).map(x=>esc(x.name)+(x.today?" (امروز)":" (فردا)")).join("، ");
   const more=birthdays.length>2?" و "+Jalali.toFa(birthdays.length-2)+" نفر دیگر":"";
