@@ -121,59 +121,46 @@ function openReportPanel(kind){
 }
 window.openReportPanel=openReportPanel;
 
-Pages.home=function(el){const d=Store.get(),nc=nextClass(),key=curKey();
-let cd="";
-if(nc){
-  const diff=nc.t-Date.now();
-  if(diff>0){
-    const dd=Math.floor(diff/864e5),hh=Math.floor((diff%864e5)/36e5),mm=Math.floor((diff%36e5)/6e4);
-    cd=(dd?Jalali.toFa(dd)+" روز و ":"")+Jalali.toFa(hh)+" ساعت و "+Jalali.toFa(mm)+" دقیقه";
-  }else cd="کلاس در جریان است";
-}
-const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
-const unC=d.members.filter(m=>!(s[m.id]||{}).p1).length;
-const unE=d.members.filter(m=>!(s[m.id]||{}).p2).length;
-const unP=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
-const birthdays=[];
-const today=new Date();
-for(let offset=0;offset<=1;offset++){
-  const date=new Date(today);date.setDate(today.getDate()+offset);
-  const tj=Jalali.toJ(date.getFullYear(),date.getMonth()+1,date.getDate());
-  for(const m of d.members){
-    if(m.birth&&m.birth.jm===tj.jm&&m.birth.jd===tj.jd)birthdays.push({name:m.name,today:offset===0});
+Pages.home=function(el){
+  const d=Store.get(),nc=nextClass(),key=curKey();
+  const today=new Date(),j=Jalali.toJ(today.getFullYear(),today.getMonth()+1,today.getDate());
+  const dayName=["یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"][today.getDay()];
+  const dateLabel=dayName+"، "+Jalali.toFa(j.jd)+" "+(Jalali.MN[j.jm-1]||"")+" "+Jalali.toFa(j.jy);
+  let cd="";
+  if(nc){
+    const diff=nc.t-Date.now();
+    if(diff>0){const dd=Math.floor(diff/864e5),hh=Math.floor(diff%864e5/36e5),mm=Math.floor(diff%36e5/6e4);
+      cd=(dd?Jalali.toFa(dd)+" روز و ":"")+Jalali.toFa(hh)+":"+String(mm).padStart(2,"0")+" ساعت";
+    }else cd="کلاس در جریان است";
   }
-}
-let tasks="";
-if(unC)tasks+='<button type="button" class="task-row" onclick="go(\'attend\')"><span class="stat-ico">📞</span><span class="home-task-copy"><span class="t-title">تماس‌های قبلی</span><span class="t-sub">'+Jalali.toFa(unC)+" نفر ثبت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
-if(unE)tasks+='<button type="button" class="task-row" onclick="openEntry()"><span class="stat-ico">✅</span><span class="home-task-copy"><span class="t-title">ثبت ورود</span><span class="t-sub">'+Jalali.toFa(unE)+" نفر ثبت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
-if(unP)tasks+='<button type="button" class="task-row" onclick="go(\'fees\')"><span class="stat-ico">💰</span><span class="home-task-copy"><span class="t-title">شهریه</span><span class="t-sub">'+Jalali.toFa(unP)+" نفر پرداخت‌نشده</span></span><span class='t-go' aria-hidden='true'>‹</span></button>";
-if(birthdays.length){
-  const names=birthdays.slice(0,2).map(x=>esc(x.name)+(x.today?" (امروز)":" (فردا)")).join("، ");
-  const more=birthdays.length>2?" و "+Jalali.toFa(birthdays.length-2)+" نفر دیگر":"";
-  tasks+='<button type="button" class="task-row" onclick="go(\'members\')"><span class="stat-ico">🎂</span><span class="home-task-copy"><span class="t-title">تولد نزدیک</span><span class="t-sub">'+names+more+'</span></span><span class="t-go" aria-hidden="true">‹</span></button>';
-}
-if(!d.members.length){
-  tasks='<div class="home-empty"><p>برای شروع، اعضای کلاس را ثبت کنید.</p><button type="button" class="btn p sm" onclick="go(\'members\')">＋ ثبت عضو</button></div>';
-}else if(!tasks){
-  tasks='<div class="home-empty">همه پیگیری‌های این جلسه ثبت شده‌اند.</div>';
-}
-let classCard='<div class="card hero home-class-card"><h3>🎯 جلسه پیش‌رو</h3>';
-if(nc){
-  classCard+='<div class="home-class-name">'+esc(d.settings.className||"کلاس")+'</div>'+
-    '<div class="home-class-date">'+Jalali.DN[nc.c.dow]+" "+Jalali.fmt(nc.date)+(nc.c.extra?" · جلسه خاص":"")+'</div>'+
-    '<div class="home-class-time">ساعت '+Jalali.toFa(nc.c.start)+(nc.c.end?" تا "+Jalali.toFa(nc.c.end):"")+'</div>'+
-    '<div class="home-countdown">'+cd+'</div>';
-}else{
-  classCard+='<div class="home-empty-class">کلاسی تعریف نشده است.</div><button type="button" class="btn sm" style="background:#fff;color:var(--p);margin-top:8px" onclick="go(\'settings\')">تنظیم برنامه کلاس</button>';
-}
-classCard+='</div>';
-el.innerHTML=statusStripHTML()+classCard+
-  '<div class="card home-task-card"><div class="home-task-heading"><h3>✅ اقدامات باقی‌مانده</h3><span class="home-task-count">'+Jalali.toFa((unC?1:0)+(unE?1:0)+(unP?1:0)+(birthdays.length?1:0))+' مورد</span></div>'+tasks+'</div>'+
-  '<div class="home-utility-row"><button type="button" class="btn sm ghost" onclick="openEntry()">🚪 نوبت ۲</button><button type="button" class="btn sm ghost" onclick="showDoorChecklist()">⏰ یادآور درمانگر</button><button type="button" class="btn sm ghost" onclick="go(\'reports\')">📊 گزارش‌ها</button></div>';
-window._cdTimer&&clearInterval(window._cdTimer);
-if(nc&&nc.t>Date.now())window._cdTimer=setInterval(()=>{if(route==="home")Pages.home(el);},60000);
+  const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
+  const unC=d.members.filter(m=>!(s[m.id]||{}).p1).length;
+  const unE=d.members.filter(m=>!(s[m.id]||{}).p2).length;
+  const unP=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
+  const hw=typeof pendingHomeworkCount==="function"?pendingHomeworkCount():0;
+  const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
+  let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="منوی برنامه" title="منوی برنامه">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">داشبورد کلاس درمانی</div></div><button type="button" class="home-bell" onclick="showDoorChecklist()" aria-label="یادآوری‌ها" title="یادآوری‌ها">♧<i></i></button></section>';
+  h+='<section class="home-next-card"><div class="home-next-label"><span class="home-live-dot"></span> تا جلسه بعدی</div>';
+  if(nc){
+    h+='<div class="home-next-name">'+esc(d.settings.className||"جلسه گروه درمانی")+'</div><div class="home-next-date">'+esc(Jalali.DN[nc.c.dow])+' '+esc(Jalali.fmt(nc.date))+' · '+Jalali.toFa(nc.c.start)+(nc.c.end?" تا "+Jalali.toFa(nc.c.end):"")+'</div><div class="home-countdown">'+esc(cd)+'</div>';
+  }else h+='<div class="home-next-name">برنامه جلسه تعریف نشده</div><button type="button" class="btn sm" onclick="go(\'settings\')">تنظیم برنامه</button>';
+  h+='</section><div class="home-shortcut-grid">';
+  const tiles=[
+    ["attend","حضور","calendar",unC+unE,"ثبت تماس و ورود"],
+    ["fees","شهریه","wallet",unP,"پیگیری پرداخت‌ها"],
+    ["homework","تکالیف","tasks",hw,"تکالیف جلسه"],
+    ["settings","برنامه‌ها","schedule",0,"تقویم و زمان کلاس"]
+  ];
+  tiles.forEach(t=>{
+    const badge=t[3]>0?'<span class="home-tile-badge" aria-label="'+Jalali.toFa(t[3])+' مورد باقی‌مانده">'+count(t[3])+'</span>':"";
+    const icons={calendar:"▣",wallet:"▱",tasks:"☷",schedule:"▦"};
+    h+='<button type="button" class="home-shortcut home-shortcut-'+t[2]+'" onclick="go(\''+t[0]+'\')">'+badge+'<span class="home-shortcut-icon" aria-hidden="true">'+icons[t[2]]+'</span><b>'+t[1]+'</b><small>'+t[4]+'</small></button>';
+  });
+  h+='</div><button type="button" class="home-reminder" aria-label="یادآور درمانگر" onclick="showDoorChecklist()"><span class="home-reminder-icon">◷</span><span><b>یادآوری‌ها</b><small>یادآوری ورود، تماس و پیگیری جلسه</small></span><span class="home-reminder-arrow">‹</span></button>';
+  el.innerHTML=h;
+  window._cdTimer&&clearInterval(window._cdTimer);
+  if(nc&&nc.t>Date.now())window._cdTimer=setInterval(()=>{if(route==="home")Pages.home(el);},60000);
 };
-
 /* ---- دکمه‌های تماس (چند شماره) ---- */
 function callBtns(m){if(m.consentContact===false)return'<span style="margin-right:auto;font-size:.75em;color:var(--tx2)">بدون رضایت تماس</span>';
 const ps=(m.phones||[]).filter(Boolean);
