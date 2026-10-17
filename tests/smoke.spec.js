@@ -106,7 +106,7 @@ test("attendance status can be recorded and persists", async ({ page }) => {
 
 test("homework can be saved, archived and survives reload", async ({ page }) => {
   await page.goto("/");
-  await page.locator('#nav button[aria-label="تکالیف"]').click();
+  await page.locator('#app .home-shortcut-tasks').click();
   const task = "تکلیف آزمایشی برای تست خودکار";
   await page.locator("#hwText").fill(task);
   await page.getByRole("button", { name: /ذخیره/ }).click();
@@ -114,14 +114,14 @@ test("homework can be saved, archived and survives reload", async ({ page }) => 
     .toBeGreaterThan(0);
 
   await page.reload();
-  await page.locator('#nav button[aria-label="تکالیف"]').click();
+  await page.locator('#app .home-shortcut-tasks').click();
   await page.getByRole("button", { name: /آرشیو/ }).click();
   await expect(page.locator("#app")).toContainText(task);
 });
 
 test("user form saves a new role and four-digit PIN", async ({ page }) => {
   await page.goto("/");
-  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.locator('.home-menu').click();
   await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
   await page.locator("#btnAddUser").click();
   await page.locator("#uName").fill("کاربر آزمون");
@@ -214,7 +214,7 @@ test("fees summary and secondary report panels remain reachable", async ({ page 
   await expect(page.locator("#app .fee-summary")).toContainText("خلاصه شهریه جلسه");
   await expect(page.locator("#btnFeeHami")).toBeVisible();
 
-  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.locator('.home-menu').click();
   await page.getByRole("button", { name: /گزارش‌ها و ارتباطات/ }).click();
   const stats = page.getByRole("button", { name: /آمار و روند/ });
   await expect(stats).toBeVisible();
@@ -388,7 +388,7 @@ test("second-round supporter report uses only second-round status, time, and not
 
 test("legacy backup restore reapplies migration defaults without losing member data", async ({ page }) => {
   await page.goto("/");
-  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.locator('.home-menu').click();
   await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
   const legacy = {
     v: 3,
@@ -454,7 +454,7 @@ test("member phone validation normalizes Persian and Arabic digits and warns bef
 
 test("weekly class schedule rejects invalid time ranges and accepts valid times", async ({ page }) => {
   await page.goto("/");
-  await page.locator('#nav button[aria-label="بیشتر"]').click();
+  await page.locator('.home-menu').click();
   await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
 
   const before = await page.evaluate(() => Store.get().classes.length);
