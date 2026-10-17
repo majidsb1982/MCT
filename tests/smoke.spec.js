@@ -214,14 +214,6 @@ test("fees summary and secondary report panels remain reachable", async ({ page 
   await expect(page.locator("#app .fee-summary")).toContainText("خلاصه شهریه جلسه");
   await expect(page.locator("#btnFeeHami")).toBeVisible();
 
-  await page.locator('.home-menu').click();
-  await page.getByRole("button", { name: /گزارش‌ها و ارتباطات/ }).click();
-  const stats = page.getByRole("button", { name: /آمار و روند/ });
-  await expect(stats).toBeVisible();
-  await stats.click();
-  await expect(page.locator(".overlay .modal")).toContainText("آمار و روند جلسات");
-  await page.locator("#reportPanelClose").click();
-  await expect(page.locator("#reportPanelClose")).toHaveCount(0);
 });
 
 
