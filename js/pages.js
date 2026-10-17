@@ -139,7 +139,7 @@ Pages.home=function(el){
   const unP=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
   const hw=typeof pendingHomeworkCount==="function"?pendingHomeworkCount():0;
   const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
-  let h='<section class="home-android-head"><div><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">داشبورد کلاس درمانی</div></div><button type="button" class="home-bell" onclick="showDoorChecklist()" aria-label="یادآوری‌ها" title="یادآوری‌ها">♧<i></i></button></section>';
+  let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="منوی برنامه" title="منوی برنامه">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">داشبورد کلاس درمانی</div></div><button type="button" class="home-bell" onclick="showDoorChecklist()" aria-label="یادآوری‌ها" title="یادآوری‌ها">♧<i></i></button></section>';
   h+='<section class="home-next-card"><div class="home-next-label"><span class="home-live-dot"></span> تا جلسه بعدی</div>';
   if(nc){
     h+='<div class="home-next-name">'+esc(d.settings.className||"جلسه گروه درمانی")+'</div><div class="home-next-date">'+esc(Jalali.DN[nc.c.dow])+' '+esc(Jalali.fmt(nc.date))+' · '+Jalali.toFa(nc.c.start)+(nc.c.end?" تا "+Jalali.toFa(nc.c.end):"")+'</div><div class="home-countdown">'+esc(cd)+'</div>';
