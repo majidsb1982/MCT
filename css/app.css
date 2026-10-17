@@ -970,3 +970,7 @@ nav button.on{border-radius:15px}
 nav button.on span{font-weight:900}
 @media(max-width:380px){.home-shortcut{min-height:118px;padding:12px 7px}.home-shortcut-icon{font-size:2em}.home-greeting{font-size:1.04em}.home-next-card{padding:15px}.home-reminder{padding:11px}}
 @media(min-width:600px){.home-shortcut{min-height:150px}.home-shortcut-grid{gap:14px}}
+
+.home-menu{width:42px;height:42px;flex:0 0 42px;border:1px solid var(--ln);border-radius:14px;background:var(--sf);color:var(--tx);font-size:1.35em;cursor:pointer}
+.home-head-title{flex:1;min-width:0;text-align:center}
+.home-android-head{gap:9px}
