@@ -139,7 +139,7 @@ Pages.home=function(el){
   const unP=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
   const hw=typeof pendingHomeworkCount==="function"?pendingHomeworkCount():0;
   const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
-  let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="منوی برنامه" title="منوی برنامه">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">داشبورد کلاس درمانی</div></div><button type="button" class="home-bell" onclick="showDoorChecklist()" aria-label="یادآوری‌ها" title="یادآوری‌ها">♧<i></i></button></section>';
+  let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="منوی برنامه" title="منوی برنامه">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">داشبورد کلاس درمانی</div></div><button type="button" class="home-bell" onclick="showDoorChecklist()" aria-label="یادآور درمانگر" title="یادآوری‌ها">♧<i></i></button></section>';
   h+='<section class="home-next-card"><div class="home-next-label"><span class="home-live-dot"></span> تا جلسه بعدی</div>';
   if(nc){
     h+='<div class="home-next-name">'+esc(d.settings.className||"جلسه گروه درمانی")+'</div><div class="home-next-date">'+esc(Jalali.DN[nc.c.dow])+' '+esc(Jalali.fmt(nc.date))+' · '+Jalali.toFa(nc.c.start)+(nc.c.end?" تا "+Jalali.toFa(nc.c.end):"")+'</div><div class="home-countdown">'+esc(cd)+'</div>';
@@ -156,7 +156,7 @@ Pages.home=function(el){
     const icons={calendar:"▣",wallet:"▱",tasks:"☷",schedule:"▦"};
     h+='<button type="button" class="home-shortcut home-shortcut-'+t[2]+'" onclick="go(\''+t[0]+'\')">'+badge+'<span class="home-shortcut-icon" aria-hidden="true">'+icons[t[2]]+'</span><b>'+t[1]+'</b><small>'+t[4]+'</small></button>';
   });
-  h+='</div><button type="button" class="home-reminder" onclick="showDoorChecklist()"><span class="home-reminder-icon">◷</span><span><b>یادآوری‌ها</b><small>یادآوری ورود، تماس و پیگیری جلسه</small></span><span class="home-reminder-arrow">‹</span></button>';
+  h+='</div><button type="button" class="home-reminder" aria-label="یادآور درمانگر" onclick="showDoorChecklist()"><span class="home-reminder-icon">◷</span><span><b>یادآوری‌ها</b><small>یادآوری ورود، تماس و پیگیری جلسه</small></span><span class="home-reminder-arrow">‹</span></button>';
   el.innerHTML=h;
   window._cdTimer&&clearInterval(window._cdTimer);
   if(nc&&nc.t>Date.now())window._cdTimer=setInterval(()=>{if(route==="home")Pages.home(el);},60000);
