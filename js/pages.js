@@ -130,7 +130,7 @@ Pages.home=function(el){
   if(nc){
     const diff=nc.t-Date.now();
     if(diff>0){const dd=Math.floor(diff/864e5),hh=Math.floor(diff%864e5/36e5),mm=Math.floor(diff%36e5/6e4);
-      cd=(dd?Jalali.toFa(dd)+" روز و ":"")+Jalali.toFa(hh)+":"+String(mm).padStart(2,"0")+" ساعت";
+      cd=(dd?Jalali.toFa(dd)+" روز، ":"")+Jalali.toFa(hh)+" ساعت و "+Jalali.toFa(mm)+" دقیقه";
     }else cd="کلاس در جریان است";
   }
   const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
@@ -148,14 +148,14 @@ let h='<section class="home-android-head"><button type="button" class="home-menu
     ["attend","حضور","calendar",unAttendance,"ثبت وضعیت اعضا"],
     ["fees","شهریه","wallet",unP,"پیگیری پرداخت‌ها"],
     ["homework","تکالیف","tasks",hw,"تکالیف جلسه"],
-    ["settings","تقویم و کلاس‌ها","schedule",0,"تقویم شمسی و زمان جلسات"]
+    ["settings","تقویم و مناسبت‌ها","schedule",0,"تقویم جلالی، مناسبت‌ها و کلاس‌ها"]
   ];
   tiles.forEach(t=>{
     const badge=(t[0]==="attend"||t[0]==="fees")&&t[3]>0?'<span class="home-shortcut-badge" aria-label="'+Jalali.toFa(t[3])+' مورد نیازمند پیگیری">'+count(t[3])+'</span>':"";
     const icons={calendar:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15l2 2 5-5"/></svg>',wallet:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/></svg>',tasks:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 5-4M8 17h8"/></svg>',schedule:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 13v4l3 1"/></svg>'};
     h+='<button type="button" class="home-shortcut home-shortcut-'+t[2]+'" onclick="go(\''+t[0]+'\')">'+badge+'<span class="home-shortcut-icon" aria-hidden="true">'+icons[t[2]]+'</span><b>'+t[1]+'</b><small>'+t[4]+'</small></button>';
   });
-  h+='</div><button type="button" class="home-reminder" aria-label="یادآور درمانگر" onclick="showDoorChecklist()"><span class="home-reminder-icon">◷</span><span><b>یادآوری‌ها</b><small>یادآوری ورود، تماس و پیگیری جلسه</small></span><span class="home-reminder-arrow">‹</span></button>';
+  h+='</div><button type="button" class="home-reminder" aria-label="تقویم و مناسبت‌ها" onclick="go(\'settings\')"><span class="home-reminder-icon">✦</span><span><b>تقویم و مناسبت‌ها</b><small>تقویم جلالی، مناسبت‌ها و برنامهٔ جلسات</small></span><span class="home-reminder-arrow">‹</span></button>';
   el.innerHTML=h;
   window._cdTimer&&clearInterval(window._cdTimer);
   if(nc&&nc.t>Date.now())window._cdTimer=setInterval(()=>{if(route==="home")Pages.home(el);},60000);
