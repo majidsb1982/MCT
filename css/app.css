@@ -978,3 +978,32 @@ nav button.on span{font-weight:900}
 
 /* Compact settings shortcut hub */
 .settings-hub{margin:2px 0 12px}.settings-hub-head{display:flex;flex-direction:column;gap:3px;margin:2px 2px 12px}.settings-hub-head b{font-size:1.15em;font-weight:900}.settings-hub-head span{font-size:.82em;color:var(--tx2)}.settings-shortcut-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.settings-shortcut{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;min-height:118px;padding:13px;border:1px solid var(--ln);border-radius:17px;background:var(--sf);color:var(--tx);font:inherit;text-align:right;box-shadow:var(--sh);cursor:pointer}.settings-shortcut:focus-visible{outline:3px solid var(--p2);outline-offset:2px}.settings-shortcut-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:var(--blue-t);color:var(--p);font-size:1.25em;font-weight:900}.settings-shortcut b{font-size:.92em}.settings-shortcut small{font-size:.72em;line-height:1.5;color:var(--tx2);padding-left:12px}.settings-shortcut-arrow{position:absolute;left:12px;bottom:12px;color:var(--p);font-size:1.35em}.settings-panel-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 12px}.settings-panel-head b{font-size:1em}.settings-panel-head[hidden],.settings-shortcut[hidden],.settings-hub[hidden]{display:none!important}.settings-panel-head .btn{white-space:nowrap}@media(max-width:350px){.settings-shortcut-grid{gap:7px}.settings-shortcut{padding:10px;min-height:112px}.settings-shortcut small{font-size:.68em}}
+
+
+/* Settings visual refresh v54: clearer hierarchy, distinct category colors, mobile-safe layout */
+#settingsHome.settings-hub{margin:0 0 14px;padding:14px;border:1px solid var(--ln);border-radius:22px;background:linear-gradient(145deg,var(--sf),var(--bg));box-shadow:var(--sh)}
+#settingsHome .settings-hub-head{margin:0 0 14px;padding:2px 2px 12px;border-bottom:1px solid var(--ln)}
+#settingsHome .settings-hub-head b{font-size:1.22em;letter-spacing:-.2px}
+#settingsHome .settings-hub-head span{font-size:.82em;line-height:1.7}
+#settingsHome .settings-shortcut-grid{gap:11px}
+#settingsHome .settings-shortcut{min-height:132px;padding:14px 13px 16px;border:1px solid var(--ln);border-top:3px solid var(--shortcut-accent,var(--p));border-radius:18px;background:var(--sf);box-shadow:0 5px 16px rgba(20,35,70,.055);gap:8px;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}
+#settingsHome .settings-shortcut:active{transform:scale(.985)}
+#settingsHome .settings-shortcut:hover{border-color:var(--shortcut-accent,var(--p));box-shadow:0 8px 20px rgba(20,35,70,.09)}
+#settingsHome .settings-shortcut:nth-child(6n+1){--shortcut-accent:#3977e8;--shortcut-tint:rgba(57,119,232,.12)}
+#settingsHome .settings-shortcut:nth-child(6n+2){--shortcut-accent:#0f9b8e;--shortcut-tint:rgba(15,155,142,.13)}
+#settingsHome .settings-shortcut:nth-child(6n+3){--shortcut-accent:#bd6bd9;--shortcut-tint:rgba(189,107,217,.14)}
+#settingsHome .settings-shortcut:nth-child(6n+4){--shortcut-accent:#e18a31;--shortcut-tint:rgba(225,138,49,.15)}
+#settingsHome .settings-shortcut:nth-child(6n+5){--shortcut-accent:#d65772;--shortcut-tint:rgba(214,87,114,.13)}
+#settingsHome .settings-shortcut:nth-child(6n+6){--shortcut-accent:#718096;--shortcut-tint:rgba(113,128,150,.15)}
+#settingsHome .settings-shortcut-icon{width:40px;height:40px;border-radius:13px;background:var(--shortcut-tint,var(--blue-t));color:var(--shortcut-accent,var(--p));font-size:1.35em}
+#settingsHome .settings-shortcut b{font-size:.94em;color:var(--tx);line-height:1.45}
+#settingsHome .settings-shortcut small{padding-left:14px;font-size:.73em;line-height:1.65;text-wrap:pretty}
+#settingsHome .settings-shortcut-arrow{left:12px;bottom:9px;color:var(--shortcut-accent,var(--p));font-size:1.5em}
+#settingsPanelHead.settings-panel-head{position:sticky;top:6px;z-index:4;padding:10px;border:1px solid var(--ln);border-radius:15px;background:var(--sf);box-shadow:var(--sh)}
+#settingsPanelHead #settingsBack{border-color:var(--ln);min-height:40px}
+#settingsPanelTitle{font-size:1.02em;font-weight:900}
+body.dark #settingsHome.settings-hub{background:var(--sf)}
+body.dark #settingsHome .settings-shortcut{box-shadow:none;background:var(--sf)}
+body.dark #settingsHome .settings-shortcut small{color:var(--tx2)}
+@media(max-width:380px){#settingsHome.settings-hub{padding:10px;border-radius:18px}#settingsHome .settings-shortcut-grid{gap:8px}#settingsHome .settings-shortcut{min-height:124px;padding:11px 10px 15px;border-radius:15px}#settingsHome .settings-shortcut-icon{width:35px;height:35px}#settingsHome .settings-shortcut small{font-size:.69em}}
+@media(min-width:700px){#settingsHome .settings-shortcut-grid{grid-template-columns:repeat(3,minmax(0,1fr))}#settingsHome .settings-shortcut{min-height:140px}}
