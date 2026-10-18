@@ -530,3 +530,19 @@ test("class date picker displays and stores a Jalali date", async ({ page }) => 
   expect(date).toContain("/۱۵");
   expect(await page.locator("#cDate").getAttribute("data-iso")).toMatch(new RegExp("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"));
 });
+
+
+test("home countdown uses explicit Persian day, hour and minute units", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".home-countdown")).toBeVisible();
+  const text = await page.locator(".home-countdown").innerText();
+  expect(text).not.toMatch(/:\\d{2} ساعت/);
+  expect(text).toMatch(/(دقیقه|در جریان است)/);
+});
+
+test("home navigation is the first right-to-left item and calendar shortcut is clearly named", async ({ page }) => {
+  await page.goto("/");
+  const first = await page.locator("#nav button").first().getAttribute("aria-label");
+  expect(first).toBe("خانه");
+  await expect(page.getByRole("button", { name: /تقویم و مناسبت‌ها/ }).first()).toBeVisible();
+});
