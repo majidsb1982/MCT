@@ -446,7 +446,8 @@ function settingsGroup(card){
  const title=(card.querySelector("h3")?.textContent||"").trim();
  if(title.includes("کلاس‌های هفتگی")||title.includes("جلسات خاص"))return "calendar";
  if(title.includes("رنگ برنامه")||title.includes("نمایش"))return "appearance";
- if(title.includes("تایمر ثبت ورود")||title.includes("هوشمندسازی"))return "reminders";
+ if(title.includes("تایمر ثبت ورود"))return "reminders";
+ if(title.includes("هوشمندسازی"))return "tools";
  if(title.includes("نام کلاس")||title.includes("گروه‌ها")||title.includes("کاربران و دسترسی"))return "people";
  if(title.includes("فضای ذخیره‌سازی")||title.includes("پشتیبان و بازیابی")||title.includes("پشتیبان و همگام‌سازی")||title.includes("درباره"))return "data";
  return "tools";
@@ -459,7 +460,7 @@ const showSettingsGroup=id=>{
  document.getElementById("settingsPanelTitle").textContent=group.title;
  settingsCards.forEach(card=>card.hidden=card.dataset.settingsGroup!==id);
 };
-el.querySelectorAll("[data-settings-group]").forEach(b=>b.addEventListener("click",()=>showSettingsGroup(b.dataset.settingsGroup)));
+el.querySelectorAll(".settings-shortcut[data-settings-group]").forEach(b=>b.addEventListener("click",()=>showSettingsGroup(b.dataset.settingsGroup)));
 const settingsBack=document.getElementById("settingsBack");
 if(settingsBack)settingsBack.onclick=()=>{settingsCards.forEach(card=>card.hidden=true);settingsHead.hidden=true;settingsHome.hidden=false;};
 window.pickClassDate=function(id){
