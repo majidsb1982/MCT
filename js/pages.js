@@ -134,19 +134,19 @@ Pages.home=function(el){
     }else cd="کلاس در جریان است";
   }
   const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
-  const unC=d.members.filter(m=>!(s[m.id]||{}).p1).length;
-  const unE=d.members.filter(m=>!(s[m.id]||{}).p2).length;
+  const unAttendance=d.members.filter(m=>{const r=s[m.id]||{};return !r.p1||!r.p2;}).length;
   const unP=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
   const hw=typeof pendingHomeworkCount==="function"?pendingHomeworkCount():0;
+  const reminderCount=unAttendance+unP+(Number(hw)||0);
   const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
-  let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="منوی برنامه" title="منوی برنامه">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">داشبورد کلاس درمانی</div></div><button type="button" class="home-bell" onclick="showDoorChecklist()" aria-label="یادآوری‌ها" title="یادآوری‌ها">♧<i></i></button></section>';
+  let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="منوی برنامه" title="منوی برنامه">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">داشبورد کلاس درمانی</div></div><button type="button" class="home-bell" onclick="showDoorChecklist()" aria-label="یادآوری‌ها" title="یادآوری‌ها"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>'+(reminderCount>0?'<i></i>':'')+'</button></section>';
   h+='<section class="home-next-card"><div class="home-next-label"><span class="home-live-dot"></span> تا جلسه بعدی</div>';
   if(nc){
     h+='<div class="home-next-name">'+esc(d.settings.className||"جلسه گروه درمانی")+'</div><div class="home-next-date">'+esc(Jalali.DN[nc.c.dow])+' '+esc(Jalali.fmt(nc.date))+' · '+Jalali.toFa(nc.c.start)+(nc.c.end?" تا "+Jalali.toFa(nc.c.end):"")+'</div><div class="home-countdown">'+esc(cd)+'</div>';
   }else h+='<div class="home-next-name">برنامه جلسه تعریف نشده</div><button type="button" class="btn sm" onclick="go(\'settings\')">تنظیم برنامه</button>';
   h+='</section><div class="home-shortcut-grid">';
   const tiles=[
-    ["attend","حضور","calendar",unC+unE,"ثبت تماس و ورود"],
+    ["attend","حضور","calendar",unAttendance,"ثبت تماس و ورود"],
     ["fees","شهریه","wallet",unP,"پیگیری پرداخت‌ها"],
     ["homework","تکالیف","tasks",hw,"تکالیف جلسه"],
     ["settings","برنامه‌ها","schedule",0,"تقویم و زمان کلاس"]
