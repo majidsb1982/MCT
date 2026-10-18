@@ -454,15 +454,27 @@ function settingsGroup(card){
 }
 settingsCards.forEach(card=>{card.dataset.settingsGroup=settingsGroup(card);card.hidden=true;});
 const settingsHome=document.getElementById("settingsHome"),settingsHead=document.getElementById("settingsPanelHead");
+let activeSettingsGroup=null;
 const showSettingsGroup=id=>{
  const group=settingsGroups.find(g=>g.id===id);if(!group)return;
+ activeSettingsGroup=id;
  settingsHome.hidden=true;settingsHead.hidden=false;
  document.getElementById("settingsPanelTitle").textContent=group.title;
  settingsCards.forEach(card=>card.hidden=card.dataset.settingsGroup!==id);
+ document.getElementById("settingsBack")?.focus();
 };
 el.querySelectorAll(".settings-shortcut[data-settings-group]").forEach(b=>b.addEventListener("click",()=>showSettingsGroup(b.dataset.settingsGroup)));
 const settingsBack=document.getElementById("settingsBack");
-if(settingsBack)settingsBack.onclick=()=>{settingsCards.forEach(card=>card.hidden=true);settingsHead.hidden=true;settingsHome.hidden=false;};
+if(settingsBack)settingsBack.onclick=()=>{
+ const returnTo=activeSettingsGroup;
+ settingsCards.forEach(card=>card.hidden=true);settingsHead.hidden=true;settingsHome.hidden=false;
+ activeSettingsGroup=null;
+ const shortcut=[...settingsHome.querySelectorAll(".settings-shortcut[data-settings-group]")].find(b=>b.dataset.settingsGroup===returnTo);
+ if(shortcut)shortcut.focus();
+};
+el.addEventListener("keydown",ev=>{
+ if(ev.key==="Escape"&&settingsHome.hidden&&!settingsHead.hidden){ev.preventDefault();settingsBack?.click();}
+});
 window.pickClassDate=function(id){
  const input=document.getElementById(id);if(!input)return;
  let cur=null;
