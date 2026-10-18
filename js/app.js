@@ -1875,7 +1875,7 @@ function delGroup(g){
 }
 
 /* ============ روتر ============ */
-const NAV=[["home","خانه",ICONS.home],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["homework","تکالیف","📋"],["members","اعضا",ICONS.users],["more","بیشتر","☰"]];
+const NAV=[["members","اعضا",ICONS.users],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["settings","تنظیمات","⚙"],["home","خانه",ICONS.home]];
 function decorateHelpHints(root){
   root=root||document;
   const selector=".role-hint, .hami-tip, .human-msg";
