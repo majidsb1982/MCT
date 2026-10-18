@@ -32,7 +32,6 @@ test("desktop and mobile layouts fit the viewport without horizontal overflow", 
   await expect(page.locator("#app .home-reminder")).toBeVisible();
   await expect(page.locator("#app .home-bell")).toHaveCount(0);
   await expect(page.locator("#app .home-reminder")).toHaveCount(1);
-  await expect(page.locator("#app .home-shortcut-badge")).toHaveCount(2);
   await expect(page.locator("#app .home-shortcut-schedule")).toContainText("تقویم و کلاس‌ها");
   await page.evaluate(() => {
     const d = Store.get();
@@ -42,6 +41,7 @@ test("desktop and mobile layouts fit the viewport without horizontal overflow", 
     Store.save();
     render();
   });
+  await expect(page.locator("#app .home-shortcut-badge")).toHaveCount(2);
 
   for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 812 }]) {
     await page.setViewportSize(viewport);
