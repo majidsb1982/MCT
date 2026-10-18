@@ -743,7 +743,7 @@ function copyHW(id){const hw=Store.get().homework.find(h=>h.id===id);
 if(hw)shareTxt("📚 تکلیف جلسه "+Jalali.fmt(Jalali.fromKey(hw.key))+":\n\n"+hw.text);}
 
 /* ---- تنظیمات: عملیات ---- */
-function addClass(){const d=Store.get();const startDate=$("#cDate")?$("#cDate").value:"",endDate=$("#cEndDate")?$("#cEndDate").value:"",start=$("#cS")?$("#cS").value:"",end=$("#cE")?$("#cE").value:"";if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید بعد از ساعت شروع باشد");return;}if(startDate&&endDate&&endDate<startDate){toast("⚠️ تاریخ پایان باید بعد از شروع باشد");return;}const dow=startDate?((new Date(startDate+"T12:00:00").getDay()+1)%7):+$("#cDow").value;
+function addClass(){const d=Store.get();const startDate=$("#cDate")?($("#cDate").dataset.iso||""):"",endDate=$("#cEndDate")?($("#cEndDate").dataset.iso||""):"",start=$("#cS")?$("#cS").value:"",end=$("#cE")?$("#cE").value:"";if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید بعد از ساعت شروع باشد");return;}if(startDate&&endDate&&endDate<startDate){toast("⚠️ تاریخ پایان باید بعد از شروع باشد");return;}const dow=startDate?Jalali.dow(Jalali.toJ(...startDate.split("-").map(Number))):+$("#cDow").value;
 d.classes.push({dow,start,end,startDate,endDate});
 Store.save();render();toast("✅ کلاس اضافه شد");}
 function delClass(i){confirm2("این کلاس حذف شود؟",()=>{const d=Store.get();d.classes.splice(i,1);Store.save();render();});}
