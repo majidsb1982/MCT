@@ -461,6 +461,7 @@ const showSettingsGroup=id=>{
  settingsHome.hidden=true;settingsHead.hidden=false;
  document.getElementById("settingsPanelTitle").textContent=group.title;
  settingsCards.forEach(card=>card.hidden=card.dataset.settingsGroup!==id);
+ document.getElementById("settingsBack")?.focus();
 };
 el.querySelectorAll(".settings-shortcut[data-settings-group]").forEach(b=>b.addEventListener("click",()=>showSettingsGroup(b.dataset.settingsGroup)));
 const settingsBack=document.getElementById("settingsBack");
