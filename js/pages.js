@@ -411,7 +411,7 @@ const COLORS=[["blue","آبی","#2563eb"],["teal","فیروزه‌ای","#0d9488
 const sz=JSON.stringify(d).length/1024;
 el.innerHTML=
 '<div class="card"><h3>🗓 کلاس‌های هفتگی</h3>'+(cls||'<p class="stat-line">کلاسی ثبت نشده</p>')+
-'<div class="class-calendar-fields"><label for="cDate">تاریخ شروع کلاس</label><input type="date" id="cDate" aria-label="تاریخ شروع کلاس"><label for="cEndDate">تاریخ پایان (اختیاری)</label><input type="date" id="cEndDate" aria-label="تاریخ پایان کلاس"></div><div class="row" style="margin-top:10px"><select id="cDow" style="flex:1.2" aria-label="روز هفته">'+DAYS.map((n,i)=>'<option value="'+i+'">'+n+"</option>").join("")+'</select><input type="time" id="cS" name="class-start" aria-label="ساعت شروع" value="19:00" style="flex:1"><input type="time" id="cE" name="class-end" aria-label="ساعت پایان" value="21:00" style="flex:1"><button class="btn p sm" onclick="addClass()" aria-label="افزودن کلاس">＋</button></div></div>'+
+'<div class="class-calendar-fields"><label for="cDate">تاریخ شروع کلاس</label><input type="text" id="cDate" aria-label="تاریخ شروع کلاس شمسی" placeholder="انتخاب تاریخ شمسی" readonly onclick="pickClassDate(\'cDate\')"><label for="cEndDate">تاریخ پایان (اختیاری)</label><input type="text" id="cEndDate" aria-label="تاریخ پایان کلاس شمسی" placeholder="انتخاب تاریخ شمسی (اختیاری)" readonly onclick="pickClassDate(\'cEndDate\')"></div><div class="row" style="margin-top:10px"><select id="cDow" style="flex:1.2" aria-label="روز هفته">'+DAYS.map((n,i)=>'<option value="'+i+'">'+n+"</option>").join("")+'</select><input type="time" id="cS" name="class-start" aria-label="ساعت شروع" value="19:00" style="flex:1"><input type="time" id="cE" name="class-end" aria-label="ساعت پایان" value="21:00" style="flex:1"><button class="btn p sm" onclick="addClass()" aria-label="افزودن کلاس">＋</button></div></div>'+
 '<div class="card"><h3>📅 جلسات خاص (جبرانی / تعطیلات)</h3>'+(extras||'<p class="stat-line">جلسه خاصی ثبت نشده</p>')+
 '<div class="row" style="margin-top:8px"><button class="btn p sm" style="flex:1" onclick="addExtra()">➕ جلسه با تاریخ مشخص</button></div></div>'+
 '<div class="card"><h3>🎨 رنگ برنامه</h3><div class="row">'+COLORS.map(c=>'<button class="swatch'+(st.color===c[0]?" on":"")+'" style="background:linear-gradient(135deg,'+c[2]+',#fff3)" onclick="setColor(\''+c[0]+'\')" aria-label="رنگ '+c[1]+'"></button>').join("")+"</div>"+
@@ -430,7 +430,50 @@ el.innerHTML=
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
 '<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۴ — ماژول ES و ناوبری هوشمند<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
-const cd=document.getElementById("cDate"),dow=document.getElementById("cDow");if(cd&&dow)cd.addEventListener("change",()=>{if(cd.value)dow.value=String((new Date(cd.value+"T12:00:00").getDay()+1)%7);});
+
+/* Settings are presented as a compact shortcut hub; the original controls remain available in their category. */
+const settingsGroups=[
+ {id:"calendar",title:"برنامه و تقویم",icon:"▦",desc:"کلاس‌های هفتگی و جلسات تاریخ‌دار"},
+ {id:"appearance",title:"ظاهر و رنگ",icon:"◐",desc:"تم، رنگ و اندازه نوشته"},
+ {id:"reminders",title:"یادآوری‌ها",icon:"◷",desc:"تایمر، صدا و اعلان‌ها"},
+ {id:"people",title:"کلاس و کاربران",icon:"♙",desc:"نام کلاس، گروه‌ها و دسترسی"},
+ {id:"data",title:"داده و پشتیبان",icon:"▤",desc:"ذخیره، بازیابی و فضای داده"},
+ {id:"tools",title:"ابزارهای تکمیلی",icon:"⚙",desc:"حریم خصوصی و ابزارهای کمکی"}
+];
+el.insertAdjacentHTML("afterbegin",'<section class="settings-hub" id="settingsHome"><div class="settings-hub-head"><b>تنظیمات</b><span>یک بخش را انتخاب کنید</span></div><div class="settings-shortcut-grid">'+settingsGroups.map(g=>'<button type="button" class="settings-shortcut" data-settings-group="'+g.id+'"><span class="settings-shortcut-icon" aria-hidden="true">'+g.icon+'</span><b>'+g.title+'</b><small>'+g.desc+'</small><span class="settings-shortcut-arrow" aria-hidden="true">‹</span></button>').join("")+'</div></section><div id="settingsPanelHead" class="settings-panel-head" hidden><button type="button" class="btn sm ghost" id="settingsBack">→ بازگشت به تنظیمات</button><b id="settingsPanelTitle"></b></div>');
+const settingsCards=[...el.querySelectorAll(".card")];
+function settingsGroup(card){
+ const title=(card.querySelector("h3")?.textContent||"").trim();
+ if(title.includes("کلاس‌های هفتگی")||title.includes("جلسات خاص"))return "calendar";
+ if(title.includes("رنگ برنامه")||title.includes("نمایش"))return "appearance";
+ if(title.includes("تایمر ثبت ورود")||title.includes("هوشمندسازی"))return "reminders";
+ if(title.includes("نام کلاس")||title.includes("گروه‌ها")||title.includes("کاربران و دسترسی"))return "people";
+ if(title.includes("فضای ذخیره‌سازی")||title.includes("پشتیبان و بازیابی")||title.includes("پشتیبان و همگام‌سازی")||title.includes("درباره"))return "data";
+ return "tools";
+}
+settingsCards.forEach(card=>{card.dataset.settingsGroup=settingsGroup(card);card.hidden=true;});
+const settingsHome=document.getElementById("settingsHome"),settingsHead=document.getElementById("settingsPanelHead");
+const showSettingsGroup=id=>{
+ const group=settingsGroups.find(g=>g.id===id);if(!group)return;
+ settingsHome.hidden=true;settingsHead.hidden=false;
+ document.getElementById("settingsPanelTitle").textContent=group.title;
+ settingsCards.forEach(card=>card.hidden=card.dataset.settingsGroup!==id);
+};
+el.querySelectorAll("[data-settings-group]").forEach(b=>b.addEventListener("click",()=>showSettingsGroup(b.dataset.settingsGroup)));
+const settingsBack=document.getElementById("settingsBack");
+if(settingsBack)settingsBack.onclick=()=>{settingsCards.forEach(card=>card.hidden=true);settingsHead.hidden=true;settingsHome.hidden=false;};
+window.pickClassDate=function(id){
+ const input=document.getElementById(id);if(!input)return;
+ let cur=null;
+ if(input.dataset.iso){const parts=input.dataset.iso.split("-").map(Number);if(parts.length===3)cur=Jalali.toJ(parts[0],parts[1],parts[2]);}
+ datePick(cur,j=>{
+   const g=Jalali.toG(j.jy,j.jm,j.jd);
+   input.dataset.iso=g.gy+"-"+String(g.gm).padStart(2,"0")+"-"+String(g.gd).padStart(2,"0");
+   input.value=Jalali.fmt(j);
+   if(id==="cDate"){const dw=document.getElementById("cDow");if(dw)dw.value=String(Jalali.dow(j));}
+ });
+};
+
 const ul=document.getElementById("userList");if(ul){ul.innerHTML=(d.users||[]).map(u=>'<div class="mem user-setting-row"><div class="stat-ico">👤</div><div style="flex:1;min-width:0"><b>'+esc(u.name)+'</b><div class="stat-line">'+esc(({admin:"مدیر",support:"حامی",follow:"پیگیر",view:"مشاهده‌گر"})[u.role]||u.role)+'</div></div><button type="button" class="btn sm ghost" onclick="userForm(\''+u.id+'\')">ویرایش</button><button type="button" class="btn sm d" onclick="delUser(\''+u.id+'\')">حذف</button></div>').join("")||'<p class="stat-line">کاربری ثبت نشده است.</p>';}
 const addU=document.getElementById("btnAddUser");if(addU)addU.onclick=()=>userForm();const outU=document.getElementById("btnLogout");if(outU)outU.onclick=()=>logoutUser();const swL=document.getElementById("swLogin");if(swL)swL.onclick=()=>{const x=Store.get();x.settings.requireLogin=!x.settings.requireLogin;Store.save();render();toast(x.settings.requireLogin?"ورود با رمز فعال شد":"ورود با رمز غیرفعال شد");};const swC=document.getElementById("swConfirm");if(swC)swC.onclick=()=>{const x=Store.get();x.settings.quickConfirm=x.settings.quickConfirm===false;Store.save();render();toast(x.settings.quickConfirm?"تأیید عملیات فعال شد":"تأیید عملیات غیرفعال شد");};
 const gl=document.getElementById("grpList");
