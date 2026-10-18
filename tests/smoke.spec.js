@@ -499,17 +499,19 @@ test("member CSV import preserves exported headers, Persian dates and all mapped
 });
 
 
-test("settings opens categorized panels and returns to shortcut hub", async ({ page }) => {
+test("settings opens categorized panels, supports Escape, and restores shortcut focus", async ({ page }) => {
   await page.goto("/");
   await page.locator(".home-menu").click();
   await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
   await expect(page.locator(".settings-shortcut")).toHaveCount(6);
-  await page.locator(".settings-shortcut[data-settings-group='calendar']").click();
+  const calendarShortcut = page.locator(".settings-shortcut[data-settings-group='calendar']");
+  await calendarShortcut.click();
   await expect(page.locator("#settingsPanelTitle")).toHaveText("برنامه و تقویم");
   await expect(page.locator("#cDate")).toHaveAttribute("readonly", "");
   await expect(page.locator("#settingsHome")).toBeHidden();
-  await page.locator("#settingsBack").click();
+  await page.keyboard.press("Escape");
   await expect(page.locator("#settingsHome")).toBeVisible();
+  await expect(calendarShortcut).toBeFocused();
 });
 
 test("class date picker displays and stores a Jalali date", async ({ page }) => {
