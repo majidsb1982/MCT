@@ -123,6 +123,7 @@ test("user form saves a new role and four-digit PIN", async ({ page }) => {
   await page.goto("/");
   await page.locator('.home-menu').click();
   await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
+  await page.locator(".settings-shortcut[data-settings-group='people']").click();
   await page.locator("#btnAddUser").click();
   await page.locator("#uName").fill("کاربر آزمون");
   await page.locator("#uPin").fill("2468");
@@ -492,4 +493,32 @@ test("member CSV import preserves exported headers, Persian dates and all mapped
     needs: ["تماس", "توجه"],
     groups: expect.arrayContaining(["عمومی", "پیگیری"])
   });
+});
+
+
+test("settings opens categorized panels and returns to shortcut hub", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".home-menu").click();
+  await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
+  await expect(page.locator(".settings-shortcut")).toHaveCount(6);
+  await page.locator(".settings-shortcut[data-settings-group='calendar']").click();
+  await expect(page.locator("#settingsPanelTitle")).toHaveText("برنامه و تقویم");
+  await expect(page.locator("#cDate")).toHaveAttribute("readonly", "");
+  await expect(page.locator("#settingsHome")).toBeHidden();
+  await page.locator("#settingsBack").click();
+  await expect(page.locator("#settingsHome")).toBeVisible();
+});
+
+test("class date picker displays and stores a Jalali date", async ({ page }) => {
+  await page.goto("/");
+  await page.locator(".home-menu").click();
+  await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
+  await page.locator(".settings-shortcut[data-settings-group='calendar']").click();
+  await page.locator("#cDate").click();
+  await expect(page.locator("#dp .cal-grid")).toBeVisible();
+  await page.locator("#dp .cal-grid button[data-d='15']").click();
+  await page.locator("#dp #ok").click();
+  const date = await page.locator("#cDate").inputValue();
+  expect(date).toContain("/۱۵");
+  expect(await page.locator("#cDate").getAttribute("data-iso")).toMatch(new RegExp("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"));
 });
