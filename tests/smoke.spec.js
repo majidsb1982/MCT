@@ -450,6 +450,8 @@ test("weekly class schedule rejects invalid time ranges and accepts valid times"
   await page.locator('.home-menu').click();
   await page.getByRole("button", { name: /تنظیمات برنامه/ }).click();
 
+  await page.locator(".settings-shortcut[data-settings-group='calendar']").click();
+
   const before = await page.evaluate(() => Store.get().classes.length);
   await page.locator("#cS").fill("20:00");
   await page.locator("#cE").fill("19:00");
