@@ -30,6 +30,7 @@ test("desktop and mobile layouts fit the viewport without horizontal overflow", 
   await expect(page.locator("#nav button[aria-label='جستجو']")).toHaveCount(0);
   await expect(page.locator("#nav button[aria-label='تنظیمات']")).toBeVisible();
   await expect(page.locator("#app .home-reminder")).toBeVisible();
+  await expect(page.locator("#app .home-bell svg")).toBeVisible();
   await page.evaluate(() => {
     const d = Store.get();
     d.members = Array.from({ length: 30 }, (_, i) => ({
