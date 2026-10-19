@@ -1010,4 +1010,4 @@ body.dark #settingsHome .settings-shortcut small{color:var(--tx2)}
 /* MCT home refinement v56: soft, low-contrast app-wide atmosphere */
 body{background:radial-gradient(ellipse at 8% 5%,color-mix(in srgb,var(--p2) 10%,transparent),transparent 38%),radial-gradient(ellipse at 95% 42%,color-mix(in srgb,#8b5cf6 5%,transparent),transparent 42%),var(--bg)}
 body.dark{background:radial-gradient(ellipse at 8% 5%,color-mix(in srgb,var(--p) 9%,transparent),transparent 38%),var(--bg)}
-#fabAi{position:fixed;top:calc(env(safe-area-inset-top,0px) + 7px);right:auto;left:calc(max(10px, (100vw - 640px)/2 + 10px));bottom:auto;z-index:75;width:38px;height:38px;min-width:38px;min-height:38px;border-radius:12px;box-shadow:var(--sh2);font-size:1.15em}
+#fabAi{position:static;inset:auto;z-index:1;order:0;flex:0 0 38px;width:38px;height:38px;min-width:38px;min-height:38px;margin:0;border-radius:12px;box-shadow:var(--sh2);font-size:1.15em}
