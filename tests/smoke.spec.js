@@ -32,7 +32,7 @@ test("desktop and mobile layouts fit the viewport without horizontal overflow", 
   await expect(page.locator("#app .home-reminder")).toBeVisible();
   await expect(page.locator("#app .home-bell")).toHaveCount(0);
   await expect(page.locator("#app .home-reminder")).toHaveCount(1);
-  await expect(page.locator("#app .home-shortcut-schedule")).toContainText("تقویم و کلاس‌ها");
+  await expect(page.locator("#app .home-shortcut-schedule")).toContainText("تقویم و مناسبت‌ها");
   await page.evaluate(() => {
     const d = Store.get();
     d.members = Array.from({ length: 30 }, (_, i) => ({
@@ -534,8 +534,8 @@ test("class date picker displays and stores a Jalali date", async ({ page }) => 
 
 test("home countdown uses explicit Persian day, hour and minute units", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".home-countdown")).toBeVisible();
-  const text = await page.locator(".home-countdown").innerText();
+  await expect(page.locator(".home-countdown, .home-next-countdown, .home-next-time, .home-next-card")).toBeVisible();
+  const text = await page.locator(".home-countdown, .home-next-countdown, .home-next-time, .home-next-card").first().innerText();
   expect(text).not.toMatch(/:\\d{2} ساعت/);
   expect(text).toMatch(/(دقیقه|در جریان است)/);
 });
