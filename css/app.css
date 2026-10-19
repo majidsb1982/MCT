@@ -1015,3 +1015,8 @@ body.dark{background:radial-gradient(ellipse at 8% 5%,color-mix(in srgb,var(--p)
 /* v57: visible, compatible soft background on every app page */
 body{background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 8% 4%,rgba(59,130,246,.10),transparent 42%),radial-gradient(ellipse at 94% 36%,rgba(139,92,246,.07),transparent 44%),linear-gradient(180deg,rgba(224,236,255,.28),transparent 60%)!important;background-attachment:fixed!important}
 body.dark{background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 8% 4%,rgba(59,130,246,.09),transparent 42%),linear-gradient(180deg,rgba(15,23,42,.2),transparent 65%)!important}
+
+/* v58: keep the soft gradient visible even when page content is short */
+html{min-height:100%;background:var(--bg)}
+body{min-height:100vh;background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 8% 4%,rgba(59,130,246,.13),transparent 43%),radial-gradient(ellipse at 94% 34%,rgba(139,92,246,.09),transparent 46%),linear-gradient(180deg,rgba(224,236,255,.38),transparent 70%)!important;background-repeat:no-repeat;background-size:100% 100%;background-attachment:fixed!important}
+body.dark{background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 8% 4%,rgba(59,130,246,.12),transparent 43%),radial-gradient(ellipse at 94% 34%,rgba(139,92,246,.07),transparent 46%)!important}
