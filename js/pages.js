@@ -121,6 +121,8 @@ function openReportPanel(kind){
 }
 window.openReportPanel=openReportPanel;
 
+window.openCalendarSettings=function(){go("settings");const open=()=>{const b=document.querySelector("#settingsHome .settings-shortcut[data-settings-group=\'calendar\']");if(b){b.click();return true;}return false;};if(!open())setTimeout(open,120);};
+
 Pages.home=function(el){
   const d=Store.get(),nc=nextClass(),key=curKey();
   const today=new Date(),j=Jalali.toJ(today.getFullYear(),today.getMonth()+1,today.getDate());
@@ -153,7 +155,7 @@ let h='<section class="home-android-head"><button type="button" class="home-menu
   tiles.forEach(t=>{
     const badge=(t[0]==="attend"||t[0]==="fees")&&t[3]>0?'<span class="home-shortcut-badge" aria-label="'+Jalali.toFa(t[3])+' مورد نیازمند پیگیری">'+count(t[3])+'</span>':"";
     const icons={calendar:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15l2 2 5-5"/></svg>',wallet:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/></svg>',tasks:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 5-4M8 17h8"/></svg>',schedule:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 13v4l3 1"/></svg>'};
-    h+='<button type="button" class="home-shortcut home-shortcut-'+t[2]+'" onclick="go(\''+t[0]+'\')">'+badge+'<span class="home-shortcut-icon" aria-hidden="true">'+icons[t[2]]+'</span><b>'+t[1]+'</b><small>'+t[4]+'</small></button>';
+    h+='<button type="button" class="home-shortcut home-shortcut-'+t[2]+'" onclick="'+(t[0]==="calendar"?"openCalendarSettings()":"go(\'"+t[0]+"\')")+'">'+badge+'<span class="home-shortcut-icon" aria-hidden="true">'+icons[t[2]]+'</span><b>'+t[1]+'</b><small>'+t[4]+'</small></button>';
   });
   h+='</div><button type="button" class="home-reminder" aria-label="یادآور درمانگر" onclick="showDoorChecklist()"><span class="home-reminder-icon">◷</span><span><b>یادآوری‌ها</b><small>یادآوری ورود، تماس و پیگیری جلسه</small></span><span class="home-reminder-arrow">‹</span></button>';
   el.innerHTML=h;
