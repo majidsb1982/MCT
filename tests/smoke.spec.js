@@ -534,8 +534,8 @@ test("class date picker displays and stores a Jalali date", async ({ page }) => 
 
 test("home countdown uses explicit Persian day, hour and minute units", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".home-countdown, .home-next-countdown, .home-next-time, .home-next-card")).toBeVisible();
-  const text = await page.locator(".home-countdown, .home-next-countdown, .home-next-time, .home-next-card").first().innerText();
+  await expect(page.locator(".home-countdown")).toBeVisible();
+  const text = await page.locator(".home-countdown").innerText();
   expect(text).not.toMatch(/:\\d{2} ساعت/);
   expect(text).toMatch(/(دقیقه|در جریان است)/);
 });
