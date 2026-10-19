@@ -32,7 +32,7 @@ test("desktop and mobile layouts fit the viewport without horizontal overflow", 
   await expect(page.locator("#app .home-reminder")).toBeVisible();
   await expect(page.locator("#app .home-bell")).toHaveCount(0);
   await expect(page.locator("#app .home-reminder")).toHaveCount(1);
-  await expect(page.locator("#app .home-shortcut-schedule")).toContainText("تقویم و کلاس‌ها");
+  await expect(page.locator("#app .home-shortcut-schedule")).toContainText("تقویم و مناسبت‌ها");
   await page.evaluate(() => {
     const d = Store.get();
     d.members = Array.from({ length: 30 }, (_, i) => ({
@@ -529,4 +529,20 @@ test("class date picker displays and stores a Jalali date", async ({ page }) => 
   const date = await page.locator("#cDate").inputValue();
   expect(date).toContain("/۱۵");
   expect(await page.locator("#cDate").getAttribute("data-iso")).toMatch(new RegExp("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"));
+});
+
+
+test("home countdown uses explicit Persian day, hour and minute units", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator(".home-countdown")).toBeVisible();
+  const text = await page.locator(".home-countdown").innerText();
+  expect(text).not.toMatch(/:\\d{2} ساعت/);
+  expect(text).toMatch(/(دقیقه|در جریان است)/);
+});
+
+test("home navigation is the first right-to-left item and calendar shortcut is clearly named", async ({ page }) => {
+  await page.goto("/");
+  const first = await page.locator("#nav button").first().getAttribute("aria-label");
+  expect(first).toBe("خانه");
+  await expect(page.getByRole("button", { name: /تقویم و مناسبت‌ها/ }).first()).toBeVisible();
 });

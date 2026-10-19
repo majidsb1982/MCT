@@ -130,7 +130,7 @@ Pages.home=function(el){
   if(nc){
     const diff=nc.t-Date.now();
     if(diff>0){const dd=Math.floor(diff/864e5),hh=Math.floor(diff%864e5/36e5),mm=Math.floor(diff%36e5/6e4);
-      cd=(dd?Jalali.toFa(dd)+" روز و ":"")+Jalali.toFa(hh)+":"+String(mm).padStart(2,"0")+" ساعت";
+      cd=(dd?Jalali.toFa(dd)+" روز، ":"")+Jalali.toFa(hh)+" ساعت و "+Jalali.toFa(mm)+" دقیقه";
     }else cd="کلاس در جریان است";
   }
   const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
@@ -148,7 +148,7 @@ let h='<section class="home-android-head"><button type="button" class="home-menu
     ["attend","حضور","calendar",unAttendance,"ثبت وضعیت اعضا"],
     ["fees","شهریه","wallet",unP,"پیگیری پرداخت‌ها"],
     ["homework","تکالیف","tasks",hw,"تکالیف جلسه"],
-    ["settings","تقویم و کلاس‌ها","schedule",0,"تقویم شمسی و زمان جلسات"]
+    ["settings","تقویم و مناسبت‌ها","schedule",0,"تقویم جلالی، مناسبت‌ها و کلاس‌ها"]
   ];
   tiles.forEach(t=>{
     const badge=(t[0]==="attend"||t[0]==="fees")&&t[3]>0?'<span class="home-shortcut-badge" aria-label="'+Jalali.toFa(t[3])+' مورد نیازمند پیگیری">'+count(t[3])+'</span>':"";
