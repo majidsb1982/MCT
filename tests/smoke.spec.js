@@ -532,6 +532,14 @@ test("class date picker displays and stores a Jalali date", async ({ page }) => 
 });
 
 
+test("home calendar shortcut opens the calendar settings panel, not the settings hub", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /تقویم و مناسبت‌ها/ }).first().click();
+  await expect(page.locator("#settingsHome")).toBeHidden({ timeout: 5000 });
+  await expect(page.locator("#settingsPanelTitle")).toHaveText("برنامه و تقویم");
+  await expect(page.locator("#settingsPanelHead")).toBeVisible();
+});
+
 test("home countdown uses explicit Persian day, hour and minute units", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".home-countdown")).toBeVisible();
