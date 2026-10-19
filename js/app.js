@@ -1933,7 +1933,7 @@ const ht=document.querySelector(".htitle");if(ht)ht.textContent=(Store.get().set
 const hs=document.querySelector(".hsub");if(hs)hs.textContent=(typeof pageTitleFor==="function"?pageTitleFor(route):"گروه درمانی");
 let fab=document.getElementById("fabAi");
 if(route==="entry"){if(fab)fab.remove();}
-else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="تقویم و مناسبت‌ها";fab.setAttribute("aria-label","تقویم و مناسبت‌ها");fab.innerHTML="✨";fab.onclick=()=>go("settings");document.querySelector("#hdr .hwrap")?.appendChild(fab);}
+else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="تقویم و مناسبت‌ها";fab.setAttribute("aria-label","تقویم و مناسبت‌ها");fab.innerHTML="✨";fab.onclick=()=>{go("settings");requestAnimationFrame(()=>{const b=document.querySelector("#settingsHome .settings-shortcut[data-settings-group=\'calendar\']");if(b)b.click();});};document.querySelector("#hdr .hwrap")?.appendChild(fab);}
 try{scheduleClassNotif();}catch(e){}
 document.getElementById("hdr").style.display=route==="entry"?"none":"";
 document.getElementById("nav").style.display=route==="entry"?"none":"";
