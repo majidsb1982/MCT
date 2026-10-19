@@ -150,7 +150,7 @@ let h='<section class="home-android-head"><button type="button" class="home-menu
     ["attend","حضور","calendar",unAttendance,"ثبت وضعیت اعضا"],
     ["fees","شهریه","wallet",unP,"پیگیری پرداخت‌ها"],
     ["homework","تکالیف","tasks",hw,"تکالیف جلسه"],
-    ["settings","تقویم و مناسبت‌ها","schedule",0,"تقویم جلالی، مناسبت‌ها و کلاس‌ها"]
+    ["calendar","تقویم و مناسبت‌ها","schedule",0,"تقویم جلالی، مناسبت‌ها و کلاس‌ها"]
   ];
   tiles.forEach(t=>{
     const badge=(t[0]==="attend"||t[0]==="fees")&&t[3]>0?'<span class="home-shortcut-badge" aria-label="'+Jalali.toFa(t[3])+' مورد نیازمند پیگیری">'+count(t[3])+'</span>':"";
