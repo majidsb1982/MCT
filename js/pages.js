@@ -121,7 +121,7 @@ function openReportPanel(kind){
 }
 window.openReportPanel=openReportPanel;
 
-window.openCalendarSettings=function(){go("settings");const open=()=>{const b=document.querySelector("#settingsHome .settings-shortcut[data-settings-group=\'calendar\']");if(b){b.click();return true;}return false;};if(!open())setTimeout(open,120);};
+window.openCalendarSettings=function(){go("settings");let tries=0;const open=()=>{const b=document.querySelector("#settingsHome .settings-shortcut[data-settings-group=\'calendar\']");if(b){b.click();return;}if(++tries<12)setTimeout(open,80);};requestAnimationFrame(open);};
 
 Pages.home=function(el){
   const d=Store.get(),nc=nextClass(),key=curKey();
