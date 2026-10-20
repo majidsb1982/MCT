@@ -736,7 +736,8 @@ function assigneeChip(kind, mid){
 }
 function myPendingCount(){
   const d=Store.get();
-  const key=curKey()||sessionSel();
+  // Follow the explicitly selected session first; only fall back to the next scheduled class.
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
   let a=0,fee=0;
