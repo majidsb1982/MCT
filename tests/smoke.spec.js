@@ -545,7 +545,16 @@ test("home countdown uses explicit Persian day, hour and minute units", async ({
   await expect(page.locator(".home-countdown")).toBeVisible();
   const text = await page.locator(".home-countdown").innerText();
   expect(text).not.toMatch(/:\\d{2} ساعت/);
-  expect(text).toMatch(/(دقیقه|در جریان است)/);
+  expect(text).toMatch(/(روز|ساعت|دقیقه|در جریان است)/);
+  if (!text.includes("در جریان است")) expect(text).toMatch(/دیگر$/);
+  expect(text).not.toMatch(/۰ ساعت/);
+});
+
+test("header calendar shortcut uses the same calendar destination as the home tile", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#fabAi").click();
+  await expect(page.locator("#settingsHome")).toBeHidden({ timeout: 5000 });
+  await expect(page.locator("#settingsPanelTitle")).toHaveText("برنامه و تقویم");
 });
 
 test("home navigation is the first right-to-left item and calendar shortcut is clearly named", async ({ page }) => {
