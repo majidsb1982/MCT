@@ -691,8 +691,13 @@ function workloadHTML(kind){
     const assigned=d.members.filter(m=>map[m.id]===lid);
     let done=0;
     assigned.forEach(m=>{
-      if(kind==="fee"){if(bag[m.id]&&bag[m.id].paid)done++;}
-      else{const st=(bag[m.id]||{}).p1||(bag[m.id]||{}).p2;if(st)done++;}
+      if(kind==="fee"){
+        if(bag[m.id]&&bag[m.id].paid)done++;
+      }else{
+        // A member is complete only after both attendance rounds are recorded.
+        const attendance=bag[m.id]||{};
+        if(attendance.p1&&attendance.p2)done++;
+      }
     });
     const pct=assigned.length?Math.round(done/assigned.length*100):0;
     h+='<div class="wl-row"><span><b>'+esc(name)+'</b> · '+Jalali.toFa(assigned.length)+' نفر</span><div class="progress-mini"><i style="width:'+pct+'%"></i></div><span>'+Jalali.toFa(done)+'/'+Jalali.toFa(assigned.length)+'</span></div>';
