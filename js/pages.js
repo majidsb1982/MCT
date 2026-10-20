@@ -131,8 +131,10 @@ Pages.home=function(el){
   let cd="";
   if(nc){
     const diff=nc.t-Date.now();
-    if(diff>0){const dd=Math.floor(diff/864e5),hh=Math.floor(diff%864e5/36e5),mm=Math.floor(diff%36e5/6e4);
-      cd=(dd?Jalali.toFa(dd)+" روز، ":"")+Jalali.toFa(hh)+" ساعت و "+Jalali.toFa(mm)+" دقیقه";
+    if(diff>0){const totalMinutes=Math.max(1,Math.ceil(diff/6e4)),dd=Math.floor(totalMinutes/1440),hh=Math.floor(totalMinutes%1440/60),mm=totalMinutes%60;
+      if(dd>0)cd=Jalali.toFa(dd)+" روز"+(hh?" و "+Jalali.toFa(hh)+" ساعت":"")+" دیگر";
+      else if(hh>0)cd=Jalali.toFa(hh)+" ساعت"+(mm?" و "+Jalali.toFa(mm)+" دقیقه":"")+" دیگر";
+      else cd=Jalali.toFa(mm)+" دقیقه دیگر";
     }else cd="کلاس در جریان است";
   }
   const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
