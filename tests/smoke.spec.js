@@ -547,7 +547,7 @@ test("home countdown uses explicit Persian day, hour and minute units", async ({
   expect(text).not.toMatch(/:\\d{2} ساعت/);
   expect(text).toMatch(/(روز|ساعت|دقیقه|در جریان است)/);
   if (!text.includes("در جریان است")) expect(text).toMatch(/دیگر$/);
-  expect(text).not.toMatch(/۰ ساعت/);
+  expect(text).not.toMatch(/(?:^| و )۰ ساعت/);
 });
 
 test("header calendar shortcut uses the same calendar destination as the home tile", async ({ page }) => {
