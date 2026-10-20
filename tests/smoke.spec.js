@@ -557,6 +557,53 @@ test("header calendar shortcut uses the same calendar destination as the home ti
   await expect(page.locator("#settingsPanelTitle")).toHaveText("برنامه و تقویم");
 });
 
+test("pending badges count both attendance rounds and stay consistent across navigation", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [
+      { id: "badge-a", name: "عضو نوبت ناقص", phones: [], roles: [], group: "عمومی" },
+      { id: "badge-b", name: "عضو پرداخت‌نشده", phones: [], roles: [], group: "عمومی" }
+    ];
+    d._lastSession = "1405-01-08";
+    d.sessions = {
+      "1405-01-08": {
+        "badge-a": { p1: "present" },
+        "badge-b": { p1: "absent", p2: "present" }
+      }
+    };
+    d.fees = {
+      "1405-01-08": {
+        "badge-a": { paid: true },
+        "badge-b": { paid: false }
+      }
+    };
+    d.assignments = { attend: {}, fee: {} };
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+
+  const initial = await page.evaluate(() => ({ pending: myPendingCount(), nav: navBadges() }));
+  expect(initial.pending).toEqual({ attend: 1, fee: 1 });
+  expect(initial.nav).toEqual({ attend: 1, fees: 1 });
+  await expect(page.locator('#nav button[aria-label="حضور"] .nav-badge')).toHaveText("۱");
+  await expect(page.locator('#nav button[aria-label="شهریه"] .nav-badge')).toHaveText("۱");
+
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.sessions["1405-01-08"]["badge-a"].p2 = "present";
+    d.fees["1405-01-08"]["badge-b"].paid = true;
+    Store.save();
+  });
+  await page.reload();
+  const completed = await page.evaluate(() => ({ pending: myPendingCount(), nav: navBadges() }));
+  expect(completed.pending).toEqual({ attend: 0, fee: 0 });
+  expect(completed.nav).toEqual({ attend: 0, fees: 0 });
+  await expect(page.locator('#nav button[aria-label="حضور"] .nav-badge')).toHaveCount(0);
+  await expect(page.locator('#nav button[aria-label="شهریه"] .nav-badge')).toHaveCount(0);
+});
+
 test("home navigation is the first right-to-left item and calendar shortcut is clearly named", async ({ page }) => {
   await page.goto("/");
   const first = await page.locator("#nav button").first().getAttribute("aria-label");
