@@ -124,7 +124,7 @@ window.openReportPanel=openReportPanel;
 window.openCalendarSettings=function(){go("settings");let tries=0;const open=()=>{const b=document.querySelector("#settingsHome .settings-shortcut[data-settings-group=\'calendar\']");if(b){b.click();return;}if(++tries<12)setTimeout(open,80);};requestAnimationFrame(open);};
 
 Pages.home=function(el){
-  const d=Store.get(),nc=nextClass(),key=curKey();
+  const d=Store.get(),nc=nextClass();
   const today=new Date(),j=Jalali.toJ(today.getFullYear(),today.getMonth()+1,today.getDate());
   const dayName=["یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"][today.getDay()];
   const dateLabel=dayName+"، "+Jalali.toFa(j.jd)+" "+(Jalali.MN[j.jm-1]||"")+" "+Jalali.toFa(j.jy);
@@ -137,7 +137,6 @@ Pages.home=function(el){
       else cd=Jalali.toFa(mm)+" دقیقه دیگر";
     }else cd="کلاس در جریان است";
   }
-  const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
   const pending=navBadges();
   const unAttendance=pending.attend;
   const unP=pending.fees;
