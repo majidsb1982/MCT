@@ -649,10 +649,13 @@ function assigneeName(kind, memberId){
 function periodLeadIds(kind){
   const d=Store.get();
   const p=d.period||{};
-  let leadIds=kind==="fee"?(p.feeIds||[]).slice():(p.attendIds||[]).slice();
+  const configured=kind==="fee"?(p.feeIds||[]):(p.attendIds||[]);
+  const validIds=new Set(d.members.map(m=>m.id));
+  // Ignore deleted/stale IDs and duplicates so tasks are never assigned to a missing member.
+  let leadIds=[...new Set(configured)].filter(id=>validIds.has(id));
   if(!leadIds.length){
     const role=kind==="fee"?"fee":"attend";
-    leadIds=d.members.filter(m=>(m.roles||[]).includes(role)).map(m=>m.id);
+    leadIds=[...new Set(d.members.filter(m=>(m.roles||[]).includes(role)).map(m=>m.id))];
   }
   return leadIds;
 }
