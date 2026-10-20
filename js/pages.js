@@ -124,20 +124,22 @@ window.openReportPanel=openReportPanel;
 window.openCalendarSettings=function(){go("settings");let tries=0;const open=()=>{const b=document.querySelector("#settingsHome .settings-shortcut[data-settings-group=\'calendar\']");if(b){b.click();return;}if(++tries<12)setTimeout(open,80);};requestAnimationFrame(open);};
 
 Pages.home=function(el){
-  const d=Store.get(),nc=nextClass(),key=curKey();
+  const d=Store.get(),nc=nextClass();
   const today=new Date(),j=Jalali.toJ(today.getFullYear(),today.getMonth()+1,today.getDate());
   const dayName=["یکشنبه","دوشنبه","سه‌شنبه","چهارشنبه","پنجشنبه","جمعه","شنبه"][today.getDay()];
   const dateLabel=dayName+"، "+Jalali.toFa(j.jd)+" "+(Jalali.MN[j.jm-1]||"")+" "+Jalali.toFa(j.jy);
   let cd="";
   if(nc){
     const diff=nc.t-Date.now();
-    if(diff>0){const dd=Math.floor(diff/864e5),hh=Math.floor(diff%864e5/36e5),mm=Math.floor(diff%36e5/6e4);
-      cd=(dd?Jalali.toFa(dd)+" روز، ":"")+Jalali.toFa(hh)+" ساعت و "+Jalali.toFa(mm)+" دقیقه";
+    if(diff>0){const totalMinutes=Math.max(1,Math.ceil(diff/6e4)),dd=Math.floor(totalMinutes/1440),hh=Math.floor(totalMinutes%1440/60),mm=totalMinutes%60;
+      if(dd>0)cd=Jalali.toFa(dd)+" روز"+(hh?" و "+Jalali.toFa(hh)+" ساعت":"")+" دیگر";
+      else if(hh>0)cd=Jalali.toFa(hh)+" ساعت"+(mm?" و "+Jalali.toFa(mm)+" دقیقه":"")+" دیگر";
+      else cd=Jalali.toFa(mm)+" دقیقه دیگر";
     }else cd="کلاس در جریان است";
   }
-  const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
-  const unAttendance=d.members.filter(m=>{const r=s[m.id]||{};return !r.p1||!r.p2;}).length;
-  const unP=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
+  const pending=navBadges();
+  const unAttendance=pending.attend;
+  const unP=pending.fees;
   const hw=typeof pendingHomeworkCount==="function"?pendingHomeworkCount():0;
   const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
 let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="بخش‌های بیشتر" title="بخش‌های بیشتر">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">پیگیری جلسات</div></div></section>';

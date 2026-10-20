@@ -649,10 +649,13 @@ function assigneeName(kind, memberId){
 function periodLeadIds(kind){
   const d=Store.get();
   const p=d.period||{};
-  let leadIds=kind==="fee"?(p.feeIds||[]).slice():(p.attendIds||[]).slice();
+  const configured=kind==="fee"?(p.feeIds||[]):(p.attendIds||[]);
+  const validIds=new Set(d.members.map(m=>m.id));
+  // Ignore deleted/stale IDs and duplicates so tasks are never assigned to a missing member.
+  let leadIds=[...new Set(configured)].filter(id=>validIds.has(id));
   if(!leadIds.length){
     const role=kind==="fee"?"fee":"attend";
-    leadIds=d.members.filter(m=>(m.roles||[]).includes(role)).map(m=>m.id);
+    leadIds=[...new Set(d.members.filter(m=>(m.roles||[]).includes(role)).map(m=>m.id))];
   }
   return leadIds;
 }
@@ -691,8 +694,13 @@ function workloadHTML(kind){
     const assigned=d.members.filter(m=>map[m.id]===lid);
     let done=0;
     assigned.forEach(m=>{
-      if(kind==="fee"){if(bag[m.id]&&bag[m.id].paid)done++;}
-      else{const st=(bag[m.id]||{}).p1||(bag[m.id]||{}).p2;if(st)done++;}
+      if(kind==="fee"){
+        if(bag[m.id]&&bag[m.id].paid)done++;
+      }else{
+        // A member is complete only after both attendance rounds are recorded.
+        const attendance=bag[m.id]||{};
+        if(attendance.p1&&attendance.p2)done++;
+      }
     });
     const pct=assigned.length?Math.round(done/assigned.length*100):0;
     h+='<div class="wl-row"><span><b>'+esc(name)+'</b> · '+Jalali.toFa(assigned.length)+' نفر</span><div class="progress-mini"><i style="width:'+pct+'%"></i></div><span>'+Jalali.toFa(done)+'/'+Jalali.toFa(assigned.length)+'</span></div>';
@@ -736,12 +744,14 @@ function assigneeChip(kind, mid){
 }
 function myPendingCount(){
   const d=Store.get();
-  const key=curKey()||sessionSel();
+  // Follow the explicitly selected session first; only fall back to the next scheduled class.
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
   let a=0,fee=0;
   d.members.forEach(m=>{
-    if(isMine("attend",m.id)&&!(s[m.id]||{}).p1)a++;
+    const attendance=s[m.id]||{};
+    if(isMine("attend",m.id)&&(!attendance.p1||!attendance.p2))a++;
     if(isMine("fee",m.id)&&!(f[m.id]&&f[m.id].paid))fee++;
   });
   return{attend:a,fee:fee};
@@ -1933,7 +1943,7 @@ const ht=document.querySelector(".htitle");if(ht)ht.textContent=(Store.get().set
 const hs=document.querySelector(".hsub");if(hs)hs.textContent=(typeof pageTitleFor==="function"?pageTitleFor(route):"گروه درمانی");
 let fab=document.getElementById("fabAi");
 if(route==="entry"){if(fab)fab.remove();}
-else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="تقویم و مناسبت‌ها";fab.setAttribute("aria-label","تقویم و مناسبت‌ها");fab.innerHTML="✨";fab.onclick=()=>{go("settings");let tries=0;const openCalendar=()=>{const b=document.querySelector("#settingsHome .settings-shortcut[data-settings-group=\'calendar\']");if(b){b.click();return;}if(++tries<8)setTimeout(openCalendar,80);};requestAnimationFrame(openCalendar);};document.querySelector("#hdr .hwrap")?.appendChild(fab);}
+else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="تقویم و مناسبت‌ها";fab.setAttribute("aria-label","تقویم و مناسبت‌ها");fab.innerHTML="✨";fab.onclick=()=>window.openCalendarSettings?.();document.querySelector("#hdr .hwrap")?.appendChild(fab);}
 try{scheduleClassNotif();}catch(e){}
 document.getElementById("hdr").style.display=route==="entry"?"none":"";
 document.getElementById("nav").style.display=route==="entry"?"none":"";
