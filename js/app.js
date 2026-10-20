@@ -741,7 +741,8 @@ function myPendingCount(){
   const f=key?(d.fees[key]||{}):{};
   let a=0,fee=0;
   d.members.forEach(m=>{
-    if(isMine("attend",m.id)&&!(s[m.id]||{}).p1)a++;
+    const attendance=s[m.id]||{};
+    if(isMine("attend",m.id)&&(!attendance.p1||!attendance.p2))a++;
     if(isMine("fee",m.id)&&!(f[m.id]&&f[m.id].paid))fee++;
   });
   return{attend:a,fee:fee};
