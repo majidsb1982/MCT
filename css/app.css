@@ -1007,21 +1007,9 @@ body.dark #settingsHome .settings-shortcut small{color:var(--tx2)}
 @media(max-width:380px){#settingsHome.settings-hub{padding:10px;border-radius:18px}#settingsHome .settings-shortcut-grid{gap:8px}#settingsHome .settings-shortcut{min-height:124px;padding:11px 10px 15px;border-radius:15px}#settingsHome .settings-shortcut-icon{width:35px;height:35px}#settingsHome .settings-shortcut small{font-size:.69em}}
 @media(min-width:700px){#settingsHome .settings-shortcut-grid{grid-template-columns:repeat(3,minmax(0,1fr))}#settingsHome .settings-shortcut{min-height:140px}}
 
-/* MCT home refinement v56: soft, low-contrast app-wide atmosphere */
-body{background:radial-gradient(ellipse at 8% 5%,color-mix(in srgb,var(--p2) 10%,transparent),transparent 38%),radial-gradient(ellipse at 95% 42%,color-mix(in srgb,#8b5cf6 5%,transparent),transparent 42%),var(--bg)}
-body.dark{background:radial-gradient(ellipse at 8% 5%,color-mix(in srgb,var(--p) 9%,transparent),transparent 38%),var(--bg)}
+/* Header calendar shortcut and unified, low-contrast app background */
 #fabAi{position:static;inset:auto;z-index:1;order:0;flex:0 0 38px;width:38px;height:38px;min-width:38px;min-height:38px;margin:0;border-radius:12px;box-shadow:var(--sh2);font-size:1.15em}
-
-/* v57: visible, compatible soft background on every app page */
-body{background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 8% 4%,rgba(59,130,246,.10),transparent 42%),radial-gradient(ellipse at 94% 36%,rgba(139,92,246,.07),transparent 44%),linear-gradient(180deg,rgba(224,236,255,.28),transparent 60%)!important;background-attachment:fixed!important}
-body.dark{background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 8% 4%,rgba(59,130,246,.09),transparent 42%),linear-gradient(180deg,rgba(15,23,42,.2),transparent 65%)!important}
-
-/* v58: keep the soft gradient visible even when page content is short */
 html{min-height:100%;background:var(--bg)}
-body{min-height:100vh;background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 8% 4%,rgba(59,130,246,.13),transparent 43%),radial-gradient(ellipse at 94% 34%,rgba(139,92,246,.09),transparent 46%),linear-gradient(180deg,rgba(224,236,255,.38),transparent 70%)!important;background-repeat:no-repeat;background-size:100% 100%;background-attachment:fixed!important}
-body.dark{background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 8% 4%,rgba(59,130,246,.12),transparent 43%),radial-gradient(ellipse at 94% 34%,rgba(139,92,246,.07),transparent 46%)!important}
-/* v59: ensure the app-wide atmosphere is visible through the page canvas */
-html,body{background-color:var(--bg)!important}
-body{background-image:radial-gradient(ellipse at 7% 3%,rgba(59,130,246,.15),transparent 46%),radial-gradient(ellipse at 96% 38%,rgba(139,92,246,.10),transparent 48%),linear-gradient(180deg,rgba(224,236,255,.42),transparent 76%)!important}
+body{min-height:100vh;background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 7% 3%,rgba(59,130,246,.13),transparent 46%),radial-gradient(ellipse at 96% 38%,rgba(139,92,246,.09),transparent 48%),linear-gradient(180deg,rgba(224,236,255,.36),transparent 76%)!important;background-repeat:no-repeat;background-size:100% 100%;background-attachment:fixed!important}
 #app.page{background:transparent!important}
-body.dark{background-image:radial-gradient(ellipse at 7% 3%,rgba(59,130,246,.14),transparent 46%),radial-gradient(ellipse at 96% 38%,rgba(139,92,246,.08),transparent 48%)!important}
+body.dark{background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 7% 3%,rgba(59,130,246,.13),transparent 46%),radial-gradient(ellipse at 96% 38%,rgba(139,92,246,.08),transparent 48%)!important}
