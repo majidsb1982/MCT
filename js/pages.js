@@ -138,8 +138,9 @@ Pages.home=function(el){
     }else cd="کلاس در جریان است";
   }
   const s=key?(d.sessions[key]||{}):{},f=key?(d.fees[key]||{}):{};
-  const unAttendance=d.members.filter(m=>{const r=s[m.id]||{};return !r.p1||!r.p2;}).length;
-  const unP=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
+  const pending=navBadges();
+  const unAttendance=pending.attend;
+  const unP=pending.fees;
   const hw=typeof pendingHomeworkCount==="function"?pendingHomeworkCount():0;
   const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
 let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="بخش‌های بیشتر" title="بخش‌های بیشتر">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">پیگیری جلسات</div></div></section>';
