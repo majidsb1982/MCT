@@ -778,8 +778,8 @@ function setTheme(t){Store.get().settings.theme=t;Store.save();applyTheme();rend
 function setFS(f){Store.get().settings.fs=f;Store.save();applyFS();render();}
 function applyFS(){document.documentElement.style.setProperty("--fs",{s:"13px",m:"15px",l:"17px"}[Store.get().settings.fs||"m"]);}
 function backup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;try{markBackupDone();}catch(e){}logActivity("تهیه پشتیبان");const t=Jalali.today();
-const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(Store.get())],{type:"application/json"}));
-a.download="My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+String(t.jd).padStart(2,"0")+".json";a.click();toast("✅ پشتیبان گرفته شد");}
+const a=document.createElement("a"),url=URL.createObjectURL(new Blob([JSON.stringify(Store.get())],{type:"application/json"}));a.href=url;
+a.download="My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+String(t.jd).padStart(2,"0")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast("✅ پشتیبان گرفته شد");}
 function shareBackup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;const j=JSON.stringify(Store.get());
 const file=new File([j],"My-Class-Track-data.json",{type:"application/json"});
 if(navigator.canShare&&navigator.canShare({files:[file]}))
@@ -823,8 +823,8 @@ if(cur!==""||row.length){row.push(cur);if(row.some(x=>x!==""))rows.push(row);}
 return rows;}
 function dlCSV(rows,name){const q=v=>{let s=String(v??"");if(typeof v==="string"&&/^[\u0000-\u0020]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
 const csv="\ufeff"+rows.map(r=>r.map(q).join(",")).join("\r\n");
-const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
-a.download=name;a.click();toast("✅ فایل اکسل (CSV) دانلود شد");}
+const a=document.createElement("a"),url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.href=url;
+a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast("✅ فایل اکسل (CSV) دانلود شد");}
 function exportCSV(kind,key){const d=Store.get();let rows;
 if(kind==="fees"){const f=d.fees[key]||{};
 rows=[["نام","تلفن‌ها","وضعیت","تاریخ پرداخت","پیگیری","یادداشت"]];
