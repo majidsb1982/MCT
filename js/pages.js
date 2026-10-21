@@ -300,6 +300,7 @@ window.allPresent=allPresent;
 Pages.fees=function(el){if(!can("fees")){el.innerHTML='<div class="card"><div class="empty">⛔ به بخش شهریه دسترسی ندارید</div></div>';return;}const d=Store.get();const feeInfo=feeDeadlineInfo();
 if(!d.members.length){el.innerHTML=emptyState("اول از تب «اعضا» اعضا را اضافه کن");return;}
 const nc=nextClass(),key=curFeeKey(),f=d.fees[key]||{};
+const feeDeadlineText=feeInfo.key===key?feeInfo.text:"مهلت خودکار فقط برای جلسهٔ بعد محاسبه می‌شود.";
 const np=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
 const pct=d.members.length?Math.round((d.members.length-np)/d.members.length*100):0;
 let unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));unpaid=smartSortMembers(filterMembersForMe(unpaid,"fee"),"fee");
@@ -307,7 +308,7 @@ const follow=unpaid.filter(m=>!(f[m.id]||{}).fc);
 const contacted=d.members.filter(m=>(f[m.id]&&f[m.id].paid)||((f[m.id]||{}).fc));
 const feeKeys=[...new Set([key,...Object.keys(d.fees||{}),...Object.keys(d.sessions||{})].filter(Boolean))].sort().reverse();
 let feeSel='<label for="feeSessionSelect">جلسهٔ مربوط به این شهریه</label><select id="feeSessionSelect" name="fee-session" aria-label="انتخاب جلسه برای شهریه" onchange="setSel(this.value)" style="width:100%;margin-bottom:8px">'+feeKeys.map(k=>'<option value="'+k+'"'+(k===key?" selected":"")+'>جلسه: '+Jalali.fmt(Jalali.fromKey(k))+'</option>').join("")+'</select>';
-let h=feeSel+'<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">جلسه: '+(key?Jalali.fmt(Jalali.fromKey(key)):"جلسه تنظیم نشده")+' · مهلت: '+esc(feeInfo.text)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
+let h=feeSel+'<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">جلسه: '+(key?Jalali.fmt(Jalali.fromKey(key)):"جلسه تنظیم نشده")+' · مهلت: '+esc(feeDeadlineText)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
 '<div class="row" style="margin:6px 0 8px;flex-wrap:wrap"><button class="btn sm ghost" type="button" id="btnFeeXls">⬇️ خروجی اکسل</button><button class="btn sm ghost" type="button" onclick="feeReport()">📨 مشاهده گزارش</button><button class="btn sm ghost" type="button" onclick="window.print()">🖨️ چاپ / PDF</button></div>'+
 '<div class="row" style="margin:4px 0 10px"><button class="chip'+(UI.feeTab===0?" on":"")+'" style="flex:1" onclick="setFeeTab(0)">💰 پرداخت‌ها</button><button class="chip'+(UI.feeTab===1?" on":"")+'" style="flex:1" onclick="setFeeTab(1)">📞 پیگیری ('+Jalali.toFa(follow.length)+')</button><button class="chip'+(UI.feeTab===2?" on":"")+'" style="flex:1" onclick="setFeeTab(2)">✓ انجام‌شده ('+Jalali.toFa(contacted.length)+')</button></div>'+
 filterBar("جستجوی نام");
