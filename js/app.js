@@ -179,15 +179,16 @@ function feeDeadlineInfo(){
 }
 function reportFeesToHami(){
   if(!requirePerm("shareSupport"))return;
-  const info=feeDeadlineInfo();
   const d=Store.get();
+  const info=feeDeadlineInfo();
+  const key=curFeeKey();
   const lines=[];
   lines.push("💰 گزارش شهریه برای حامی‌ها");
   lines.push(d.settings.className||"کلاس");
-  if(info.key)lines.push("جلسه: "+Jalali.fmt(Jalali.fromKey(info.key)));
-  lines.push(info.text);
+  if(key)lines.push("جلسه: "+Jalali.fmt(Jalali.fromKey(key)));
+  lines.push(info.key===key?info.text:"وضعیت پرداخت مربوط به جلسه انتخاب‌شده است.");
   lines.push("");
-  const f=info.key?(d.fees[info.key]||{}):{};
+  const f=key?(d.fees[key]||{}):{};
   const paid=[],unpaid=[];
   d.members.forEach(m=>{(f[m.id]&&f[m.id].paid?paid:unpaid).push(m);});
   if(paid.length){lines.push("✅ واریز شده ("+Jalali.toFa(paid.length)+"):");paid.forEach(m=>lines.push("• "+m.name));lines.push("");}
