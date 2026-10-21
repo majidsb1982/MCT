@@ -115,7 +115,7 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
 }
 
 /* چک‌لیست در کلاس برای اعلام به درمانگر */
-function doorKey(){const k=curKey()||sessionSel();return k||Jalali.toKey(Jalali.today());}
+function doorKey(){const k=sessionSel()||curKey();return k||Jalali.toKey(Jalali.today());}
 function doorState(){
   const d=Store.get();const k=doorKey();
   d.doorChecks=d.doorChecks||{};
@@ -398,7 +398,7 @@ function streakBadge(id){
 function smartNextActionHTML(){
   const d=Store.get();
   const nc=nextClass();
-  const key=curKey()||sessionSel();
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
   const un1=d.members.filter(m=>!(s[m.id]||{}).p1).length;
@@ -1254,7 +1254,7 @@ function heatmapHTML(){
 }
 function kpiRowHTML(){
   const d=Store.get();
-  const key=curKey()||sessionSel();
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
   let openA=0,openF=0,done=0;
