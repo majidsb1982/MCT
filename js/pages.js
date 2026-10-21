@@ -820,7 +820,7 @@ if(row.some(x=>x!==""))rows.push(row);row=[];}
 else cur+=c;}
 if(cur!==""||row.length){row.push(cur);if(row.some(x=>x!==""))rows.push(row);}
 return rows;}
-function dlCSV(rows,name){const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+function dlCSV(rows,name){const q=v=>{let s=String(v??"");if(typeof v==="string"&&/^[\u0000-\u0020]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
 const csv="\ufeff"+rows.map(r=>r.map(q).join(",")).join("\r\n");
 const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
 a.download=name;a.click();toast("✅ فایل اکسل (CSV) دانلود شد");}
