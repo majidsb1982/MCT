@@ -40,7 +40,7 @@ function togglePinMember(id){
 /* ============ نوار وضعیت + سنجاق اعضا ============ */
 function statusStripHTML(){
   try{
-    const d=Store.get();const key=typeof curKey==="function"?curKey():null;
+    const d=Store.get();const key=typeof sessionSel==="function"?(sessionSel()||(typeof curKey==="function"?curKey():null)):(typeof curKey==="function"?curKey():null);
     if(!key||!d.members.length)return"";
     const s=d.sessions[key]||{},f=d.fees[key]||{};
     const tot=d.members.length;
