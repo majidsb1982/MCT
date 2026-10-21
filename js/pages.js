@@ -783,7 +783,7 @@ a.download="My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+St
 function shareBackup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;const j=JSON.stringify(Store.get());
 const file=new File([j],"My-Class-Track-data.json",{type:"application/json"});
 if(navigator.canShare&&navigator.canShare({files:[file]}))
-navigator.share({files:[file],title:"پشتیبان My-Class-Track"}).catch(()=>{});
+navigator.share({files:[file],title:"پشتیبان My-Class-Track"}).then(()=>toast("✅ درخواست اشتراک‌گذاری باز شد")).catch(()=>toast("⚠️ اشتراک‌گذاری لغو شد یا در دسترس نیست"));
 else{toast("📤 ارسال فایل پشتیبان");backup();}}
 function restore(inp){
  const f=inp&&inp.files&&inp.files[0];
