@@ -780,7 +780,7 @@ function applyFS(){document.documentElement.style.setProperty("--fs",{s:"13px",m
 function backup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;try{markBackupDone();}catch(e){}logActivity("تهیه پشتیبان");const t=Jalali.today();
 const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(Store.get())],{type:"application/json"}));
 a.download="My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+String(t.jd).padStart(2,"0")+".json";a.click();toast("✅ پشتیبان گرفته شد");}
-function shareBackup(){const j=JSON.stringify(Store.get());
+function shareBackup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;const j=JSON.stringify(Store.get());
 const file=new File([j],"My-Class-Track-data.json",{type:"application/json"});
 if(navigator.canShare&&navigator.canShare({files:[file]}))
 navigator.share({files:[file],title:"پشتیبان My-Class-Track"}).catch(()=>{});
