@@ -678,11 +678,11 @@ d._lastSession=key;d.sessions[key]=d.sessions[key]||{};
 const _prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
 const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};cur.time=Date.now();cur.by=(currentUser()||{}).name||"";
 const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2";
-const was=cur[ph];
+const was=cur[ph],undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
 if(cur[ph]===st){cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[ph==="p1"?"a1":"a2"];}
 else cur[ph]=st;
 pushUndo({type:"att",key:key,mid:mid,prev:_prev,label:"ثبت حضور"});
-if(Store.save()===false){if(_prev)d.sessions[key][mid]=_prev;else delete d.sessions[key][mid];if(!d.sessions[key]||!Object.keys(d.sessions[key]).length)delete d.sessions[key];render();toast("⚠️ حضور ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+if(Store.save()===false){if(_prev)d.sessions[key][mid]=_prev;else delete d.sessions[key][mid];if(!d.sessions[key]||!Object.keys(d.sessions[key]).length)delete d.sessions[key];d.undoStack=undoBefore;render();toast("⚠️ حضور ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;
 if(route==="entry")renderEntry();else render();
 window.scrollTo(0,y);
