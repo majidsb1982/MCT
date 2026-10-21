@@ -364,7 +364,7 @@ Pages.homework=function(el){/* sectioned */const d=Store.get();
 let h='<div class="row" style="margin-bottom:10px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">➕ تکلیف جدید</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">📚 آرشیو ('+Jalali.toFa(d.homework.length)+')</button></div>';
 if(!UI.doneTab){
 h+='<div class="card"><h3>📚 تکلیف جدید</h3><label>جلسه (تاریخ)</label>'+
-'<input id="hwDate" name="hw-date" readonly placeholder="انتخاب تاریخ" value="'+(nextClass()?Jalali.fmt(nextClass().date):"")+'" onclick="pickHWDate()" style="cursor:pointer">'+
+'<input id="hwDate" name="hw-date" readonly placeholder="انتخاب تاریخ" value="'+(sessionSel()?Jalali.fmt(Jalali.fromKey(sessionSel())):(nextClass()?Jalali.fmt(nextClass().date):""))+'" data-key="'+(sessionSel()||"")+'" onclick="pickHWDate()" style="cursor:pointer">'+
 '<label>متن تکلیف</label><textarea id="hwText" name="hw-text" placeholder="تکلیف این هفته را بنویسید…"></textarea>'+
 '<div class="row hw-audio-actions" style="margin-top:8px">'+speechBtn("hwText")+'<button type="button" class="btn sm ghost" id="hwMic" aria-label="ضبط یادداشت صوتی">🎙 ضبط صدا</button><span id="hwV"></span></div>'+
 '<div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" onclick="saveHW()">💾 ذخیره</button></div></div>';
@@ -749,7 +749,7 @@ function pickHWDate(){datePick(null,j=>{const e=document.getElementById("hwDate"
 function saveHW(){const t=document.getElementById("hwText").value.trim();
 if(!t){toast("⚠️ متن تکلیف را بنویسید");return;}
 const de=document.getElementById("hwDate");
-const key=de._j||Jalali.toKey(nextClass()?nextClass().date:Jalali.today());
+const key=de._j||de.dataset.key||Jalali.toKey(nextClass()?nextClass().date:Jalali.today());
 const d=Store.get();d.homework.push({id:Store.uid(),key,text:t,audio:window._hwA||null});
 window._hwA=null;Store.save();render();toast("✅ ذخیره شد");}
 function delHW(id){const d=Store.get();const i=d.homework.findIndex(h=>h.id===id);if(i<0)return;
