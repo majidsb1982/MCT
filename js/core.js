@@ -212,11 +212,27 @@ function pruneSessions(keep,confirmed){
   const requested=keep==null?configured: Number(keep);
   const max=Number.isFinite(requested)?Math.max(0,Math.floor(requested)):40;
   const removedKeys=keys.slice(max);
+  const oldSessions={},oldFees={};
+  removedKeys.forEach(key=>{
+    oldSessions[key]=d.sessions[key];
+    if(d.fees&&Object.prototype.hasOwnProperty.call(d.fees,key))oldFees[key]=d.fees[key];
+  });
   removedKeys.forEach(key=>{delete d.sessions[key];});
   // Fees share session keys: only remove fees belonging to sessions actually pruned.
   // Do not prune fees by their independent count; fee-only records may still be valid.
   removedKeys.forEach(key=>{if(d.fees&&Object.prototype.hasOwnProperty.call(d.fees,key))delete d.fees[key];});
-  Store.save();
+  let saved=false;
+  try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(!d.sessions||typeof d.sessions!=="object")d.sessions={};
+    Object.keys(oldSessions).forEach(key=>{d.sessions[key]=oldSessions[key];});
+    if(Object.keys(oldFees).length){
+      if(!d.fees||typeof d.fees!=="object")d.fees={};
+      Object.keys(oldFees).forEach(key=>{d.fees[key]=oldFees[key];});
+    }
+    try{toast("⚠️ پاک‌سازی جلسات ذخیره نشد؛ اطلاعات جلسات و شهریه‌ها حفظ شد");}catch(e){}
+    return 0;
+  }
   return removedKeys.length;
 }
 
