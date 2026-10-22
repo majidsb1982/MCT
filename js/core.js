@@ -141,7 +141,7 @@ const save=()=>{
  }
 };
 load();
-return{get:()=>data,save,reset(){data=JSON.parse(JSON.stringify(DEF));save();},
+return{get:()=>data,save,reset(){const previous=data;data=JSON.parse(JSON.stringify(DEF));let saved=false;try{saved=save()!==false;}catch(e){saved=false;}if(!saved){data=previous;return false;}return true;},
 importObj(input){
  if(!input||typeof input!=="object"||Array.isArray(input)||!Array.isArray(input.members))throw new Error("ساختار فایل پشتیبان معتبر نیست");
  let o;
