@@ -350,12 +350,12 @@ function feeDoneRow(m,key,cur){
 const lbl=cur.paid?"پرداخت شد ✅":(cur.fc==="promised"?"🗣 قول داده":cur.fc==="noanswer"?"📵 بی‌پاسخ":"💬 پیگیری شده");
 return'<div class="mblk" data-mid="'+m.id+'"><div class="mem done">'+avatar(m)+"<b>"+esc(m.name)+'</b><span class="badge '+(cur.paid?"b-ok":"b-m")+'" style="margin-right:auto">'+lbl+'</span><button class="btn sm ghost" data-restorefee="1" data-key="'+key+'" data-mid="'+m.id+'" aria-label="بازگرداندن '+esc(m.name)+'">↩️ بازگردانی</button></div></div>';}
 function setFeeTab(v){UI.feeTab=v;UI.filter="";render();}
-function feeStatus(key,mid,st){const d=Store.get();d.fees[key]=d.fees[key]||{};
+function feeStatus(key,mid,st){const d=Store.get(),hadBucket=Object.prototype.hasOwnProperty.call(d.fees,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.fees[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.fees[key][mid])):null,previousLast=d._lastFee;d.fees[key]=d.fees[key]||{};
 const cur=d.fees[key][mid]=d.fees[key][mid]||{};
 if(cur.fc===st&&st!=="paid")cur.fc=null;
 else{cur.fc=st;
 if(st==="paid"&&!cur.paid){cur.paid=true;cur.date=Jalali.toKey(Jalali.today());}}
-d._lastFee=key;Store.save();
+d._lastFee=key;if(Store.save()===false){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];d._lastFee=previousLast;render();toast("⚠️ پیگیری شهریه ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;render();window.scrollTo(0,y);
 if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
 function restoreFee(key,mid){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur)return;
@@ -742,13 +742,13 @@ document.getElementById("rcp").onclick=()=>copyTxt(txt);
 const sh=document.getElementById("rsh");if(sh)sh.onclick=()=>shareTxt(txt);}
 
 /* ---- شهریه: عملیات ---- */
-function togglePay(key,mid){const d=Store.get();d.fees[key]=d.fees[key]||{};
+function togglePay(key,mid){const d=Store.get(),hadBucket=Object.prototype.hasOwnProperty.call(d.fees,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.fees[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.fees[key][mid])):null,previousLast=d._lastFee;d.fees[key]=d.fees[key]||{};
 if(d.fees[key][mid]&&d.fees[key][mid].paid)delete d.fees[key][mid];
 else d.fees[key][mid]={paid:true,date:Jalali.toKey(Jalali.today()),note:""};
-d._lastFee=key;Store.save();
+d._lastFee=key;if(Store.save()===false){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];d._lastFee=previousLast;render();toast("⚠️ ثبت پرداخت ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;render();window.scrollTo(0,y);
 if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
-function feeNote(key,mid,v){const d=Store.get();d.fees[key][mid].note=v;d._lastFee=key;Store.save();}
+function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur){toast("⚠️ رکورد پیگیری پیدا نشد؛ دوباره صفحه را باز کنید");return;}const hadNote=Object.prototype.hasOwnProperty.call(cur,"note"),previous=cur.note,previousLast=d._lastFee;cur.note=v;d._lastFee=key;if(Store.save()===false){if(hadNote)cur.note=previous;else delete cur.note;d._lastFee=previousLast;toast("⚠️ یادداشت ذخیره نشد؛ متن قبلی حفظ شد");}}
 
 /* ---- تکالیف: عملیات ---- */
 function pickHWDate(){datePick(null,j=>{const e=document.getElementById("hwDate");e.value=Jalali.fmt(j);e._j=Jalali.toKey(j);});}
