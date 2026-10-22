@@ -241,7 +241,7 @@ try{
 }catch(e){}};
 function setDoneTab(v){UI.doneTab=v;UI.filter="";render();}
 window.setDoneTab=setDoneTab;
-function setSel(k){const d=Store.get();d._lastSession=k;Store.save();resetUI();render();}
+function setSel(k){const d=Store.get(),previous=d._lastSession;d._lastSession=k;if(Store.save()===false){if(previous===undefined)delete d._lastSession;else d._lastSession=previous;toast("⚠️ انتخاب جلسه ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}resetUI();render();}
 window.setSel=setSel;
 
 /* ---- ثبت ورود ---- */
@@ -249,9 +249,11 @@ function openEntry(){const d=Store.get(),nc=nextClass();
 if(!nc){toast("⚠️ اول کلاس را در تنظیمات ثبت کنید");return;}
 /* Keep normal mobile viewport; do not force focus zoom. */
 const target=nc.t.getTime();
+const previousLast=d._lastSession,previousTimer=d.timer?JSON.parse(JSON.stringify(d.timer)):null;
 d._lastSession=Jalali.toKey(nc.date);
 if(!d.timer||d.timer.target!==target)d.timer={target,fired:[]};
-Store.save();route="entry";resetUI();UI.callOnly=true;
+if(Store.save()===false){if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;if(previousTimer)d.timer=previousTimer;else delete d.timer;toast("⚠️ نوبت شروع نشد؛ ذخیره‌سازی ناموفق بود");return;}
+route="entry";resetUI();UI.callOnly=true;
 pushState();renderEntry();}
 function renderEntry(){const d=Store.get();
 if(!d.timer||!d.timer.target){route="home";render();return;}
@@ -778,8 +780,8 @@ const item={dow,start,end,startDate,endDate};d.classes.push(item);
 if(Store.save()===false){const at=d.classes.indexOf(item);if(at>=0)d.classes.splice(at,1);render();toast("⚠️ کلاس ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 render();toast("✅ کلاس اضافه شد");}
 function delClass(i){confirm2("این کلاس حذف شود؟",()=>{const d=Store.get();if(i<0||i>=d.classes.length)return;const removed=d.classes.splice(i,1)[0];if(Store.save()===false){d.classes.splice(i,0,removed);render();toast("⚠️ حذف کلاس ذخیره نشد؛ کلاس حفظ شد");return;}render();});}
-function setColor(c){const d=Store.get();d.settings.color=c;Store.save();applyColor();render();}
-function toggleSound(){const d=Store.get();d.settings.sound=!d.settings.sound;Store.save();render();}
+function setColor(c){const d=Store.get(),previous=d.settings.color;if(previous===c)return;d.settings.color=c;if(Store.save()===false){if(previous===undefined)delete d.settings.color;else d.settings.color=previous;applyColor();toast("⚠️ رنگ‌بندی ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}applyColor();render();}
+function toggleSound(){const d=Store.get(),previous=d.settings.sound;d.settings.sound=!d.settings.sound;if(Store.save()===false){if(previous===undefined)delete d.settings.sound;else d.settings.sound=previous;toast("⚠️ تنظیم صدا ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();}
 function theme(){return Store.get().settings.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}
 function applyTheme(){const t=theme();document.body.classList.toggle("dark",t==="dark");
 document.querySelector('meta[name="theme-color"]').setAttribute("content",t==="dark"?"#0b1220":"#f4f7fe");
@@ -788,8 +790,8 @@ function applyColor(){const c=Store.get().settings.color||"blue";
 document.body.classList.remove("c-teal","c-purple","c-warm");
 if(c!=="blue")document.body.classList.add("c-"+c);}
 function toggleTheme(){setTheme(theme()==="light"?"dark":"light");}
-function setTheme(t){Store.get().settings.theme=t;Store.save();applyTheme();render();}
-function setFS(f){Store.get().settings.fs=f;Store.save();applyFS();render();}
+function setTheme(t){const d=Store.get(),previous=d.settings.theme;if(previous===t)return;d.settings.theme=t;if(Store.save()===false){if(previous===undefined)delete d.settings.theme;else d.settings.theme=previous;applyTheme();toast("⚠️ پوسته ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}applyTheme();render();}
+function setFS(f){const d=Store.get(),previous=d.settings.fs;if(previous===f)return;d.settings.fs=f;if(Store.save()===false){if(previous===undefined)delete d.settings.fs;else d.settings.fs=previous;applyFS();toast("⚠️ اندازه نوشته ذخیره نشد؛ مقدار قبلی حفظ شد");return;}applyFS();render();}
 function applyFS(){document.documentElement.style.setProperty("--fs",{s:"13px",m:"15px",l:"17px"}[Store.get().settings.fs||"m"]);}
 function backup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;try{markBackupDone();}catch(e){}logActivity("تهیه پشتیبان");const t=Jalali.today();
 const a=document.createElement("a"),url=URL.createObjectURL(new Blob([JSON.stringify(Store.get())],{type:"application/json"}));a.href=url;
