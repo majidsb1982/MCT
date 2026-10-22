@@ -638,8 +638,11 @@ consentContact:consC?consC.checked:true,
 consentPhoto:consP?consP.checked:true,
 photo:o._photo,voice:o._voice,group:grp};
 const commitMember=()=>{
-if(m)Object.assign(m,obj);else d.members.push(Object.assign({id:Store.uid()},obj));
-Store.save();o.remove();render();toast("✅ ذخیره شد");
+const previous=m?JSON.parse(JSON.stringify(m)):null;
+const savedMember=m?m:Object.assign({id:Store.uid()},obj);
+if(m)Object.assign(m,obj);else d.members.push(savedMember);
+if(Store.save()===false){if(m){for(const k of Object.keys(m))delete m[k];Object.assign(m,previous);}else{const at=d.members.indexOf(savedMember);if(at>=0)d.members.splice(at,1);}render();toast("⚠️ ذخیره عضو ناموفق بود؛ اطلاعات قبلی حفظ شد");return;}
+o.remove();render();toast("✅ ذخیره شد");
 };
 if(duplicateOwners.length){
  confirm2("این شماره با عضو دیگری مشترک است: "+duplicateOwners.join("، ")+". اگر اشتراک شماره عمدی است، ادامه دهید.",commitMember);
@@ -647,8 +650,8 @@ if(duplicateOwners.length){
 }
 commitMember();};}
 function delMember(id){if(!requirePerm("delete","اجازه حذف ندارید"))return;const d=Store.get();const i=d.members.findIndex(m=>m.id===id);if(i<0)return;
-const mm=d.members.splice(i,1)[0];Store.save();render();
-toastUndo("🗑 "+mm.name+" حذف شد",()=>{d.members.splice(i,0,mm);Store.save();render();});}
+const mm=d.members.splice(i,1)[0];if(Store.save()===false){d.members.splice(i,0,mm);render();toast("⚠️ حذف عضو ذخیره نشد؛ اطلاعات عضو حفظ شد");return;}render();
+toastUndo("🗑 "+mm.name+" حذف شد",()=>{const at=Math.min(i,d.members.length);d.members.splice(at,0,mm);if(Store.save()===false){const restored=d.members.indexOf(mm);if(restored>=0)d.members.splice(restored,1);render();toast("⚠️ بازگردانی عضو ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}render();});}
 
 /* ---- جلسات خاص ---- */
 function validClassTimeRange(start,end){
@@ -667,7 +670,7 @@ const d=Store.get();d.extra=d.extra||[];
 if(d.extra.some(x=>x.key===key)){toast("⚠️ برای این تاریخ جلسه ثبت شده");return;}
 d.extra.push({key,start,end});
 Store.save();o.remove();render();toast("✅ جلسه اضافه شد");};}
-function delExtra(i){confirm2("این جلسه حذف شود؟",()=>{const d=Store.get();d.extra.splice(i,1);Store.save();render();});}
+function delExtra(i){confirm2("این جلسه حذف شود؟",()=>{const d=Store.get();d.extra=d.extra||[];if(i<0||i>=d.extra.length)return;const removed=d.extra.splice(i,1)[0];if(Store.save()===false){d.extra.splice(i,0,removed);render();toast("⚠️ حذف جلسه ذخیره نشد؛ جلسه حفظ شد");return;}render();});}
 window.addExtra=addExtra;window.delExtra=delExtra;
 
 /* ---- حضور ---- */
