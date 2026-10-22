@@ -287,7 +287,7 @@ cd.textContent=Jalali.toFa(mm)+":"+Jalali.toFa(String(ss).padStart(2,"0"));
 const d2=Store.get(),times=d2.settings.alarmTimes||[15,8,5,3];
 for(const th of times)
 if(r<=th*6e4&&!(d2.timer.fired||[]).includes(th)&&r>th*6e4-10*6e4){
-d2.timer.fired=(d2.timer.fired||[]).concat(th);Store.save();showBigAlert(th);}}}
+d2.timer.fired=(d2.timer.fired||[]).concat(th);if(Store.save()===false)toast("⚠️ هشدار نمایش داده می‌شود، اما ثبت آن برای این نوبت ذخیره نشد");showBigAlert(th);}}}
 document.addEventListener("visibilitychange",()=>{if(route==="entry"&&!document.hidden&&window._tick)window._tick();});
 function toggleEntryFilter(){UI.callOnly=!UI.callOnly;UI.filter="";renderEntry();}
 function exitEntry(){window._t&&clearInterval(window._t);window._tick=null;resetUI();fsOff();
@@ -501,7 +501,7 @@ window.pickClassDate=function(id){
 };
 
 const ul=document.getElementById("userList");if(ul){ul.innerHTML=(d.users||[]).map(u=>'<div class="mem user-setting-row"><div class="stat-ico">👤</div><div style="flex:1;min-width:0"><b>'+esc(u.name)+'</b><div class="stat-line">'+esc(({admin:"مدیر",support:"حامی",follow:"پیگیر",view:"مشاهده‌گر"})[u.role]||u.role)+'</div></div><button type="button" class="btn sm ghost" onclick="userForm(\''+u.id+'\')">ویرایش</button><button type="button" class="btn sm d" onclick="delUser(\''+u.id+'\')">حذف</button></div>').join("")||'<p class="stat-line">کاربری ثبت نشده است.</p>';}
-const addU=document.getElementById("btnAddUser");if(addU)addU.onclick=()=>userForm();const outU=document.getElementById("btnLogout");if(outU)outU.onclick=()=>logoutUser();const swL=document.getElementById("swLogin");if(swL)swL.onclick=()=>{const x=Store.get();x.settings.requireLogin=!x.settings.requireLogin;Store.save();render();toast(x.settings.requireLogin?"ورود با رمز فعال شد":"ورود با رمز غیرفعال شد");};const swC=document.getElementById("swConfirm");if(swC)swC.onclick=()=>{const x=Store.get();x.settings.quickConfirm=x.settings.quickConfirm===false;Store.save();render();toast(x.settings.quickConfirm?"تأیید عملیات فعال شد":"تأیید عملیات غیرفعال شد");};
+const addU=document.getElementById("btnAddUser");if(addU)addU.onclick=()=>userForm();const outU=document.getElementById("btnLogout");if(outU)outU.onclick=()=>logoutUser();const swL=document.getElementById("swLogin");if(swL)swL.onclick=()=>{const x=Store.get(),previous=x.settings.requireLogin;x.settings.requireLogin=!x.settings.requireLogin;if(Store.save()===false){if(previous===undefined)delete x.settings.requireLogin;else x.settings.requireLogin=previous;render();toast("⚠️ تنظیم ورود ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();toast(x.settings.requireLogin?"ورود با رمز فعال شد":"ورود با رمز غیرفعال شد");};const swC=document.getElementById("swConfirm");if(swC)swC.onclick=()=>{const x=Store.get(),previous=x.settings.quickConfirm;x.settings.quickConfirm=x.settings.quickConfirm===false;if(Store.save()===false){if(previous===undefined)delete x.settings.quickConfirm;else x.settings.quickConfirm=previous;render();toast("⚠️ تنظیم تأیید ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();toast(x.settings.quickConfirm?"تأیید عملیات فعال شد":"تأیید عملیات غیرفعال شد");};
 const gl=document.getElementById("grpList");
 if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
   const x=document.createElement("span");x.className="chip";x.style.cursor="default";
@@ -899,7 +899,7 @@ for(let i=hasHead?1:0;i<rows.length;i++){
  seenNames.add(nameKey);
 }
 if(!candidates.length){toast("ℹ️ عضو جدیدی برای افزودن پیدا نشد"+(skip?"؛ نام‌های تکراری رد شدند":""));return;}
-const commit=()=>{const oldGroups=Array.isArray(d.groups)?d.groups.slice():["عمومی"];if(!Array.isArray(d.groups))d.groups=["عمومی"];candidates.forEach(m=>{if(m.group&&!d.groups.includes(m.group))d.groups.push(m.group);});d.members.push(...candidates);const saved=Store.save();if(saved===false){d.members.splice(d.members.length-candidates.length,candidates.length);d.groups=oldGroups;return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
+const commit=()=>{const oldGroups=Array.isArray(d.groups)?d.groups.slice():["عمومی"];if(!Array.isArray(d.groups))d.groups=["عمومی"];candidates.forEach(m=>{if(m.group&&!d.groups.includes(m.group))d.groups.push(m.group);});d.members.push(...candidates);const saved=Store.save();if(saved===false){d.members.splice(d.members.length-candidates.length,candidates.length);d.groups=oldGroups;render();toast("⚠️ افزودن گروهی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
 if(sharedPhoneCount){confirm2("در "+Jalali.toFa(sharedPhoneCount)+" مورد، شماره تماس بین اعضا مشترک است. اگر عمدی است، واردکردن اعضا را ادامه دهید؟",commit);return;}
 commit();
 }catch(e){console.error("MCT CSV import:",e);toast("⚠️ خواندن فایل ناموفق بود؛ قالب و ستون‌های فایل را بررسی کنید");}finally{inp.value="";}};
