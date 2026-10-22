@@ -767,9 +767,10 @@ if(hw)shareTxt("📚 تکلیف جلسه "+Jalali.fmt(Jalali.fromKey(hw.key))+":
 
 /* ---- تنظیمات: عملیات ---- */
 function addClass(){const d=Store.get();const startDate=$("#cDate")?($("#cDate").dataset.iso||""):"",endDate=$("#cEndDate")?($("#cEndDate").dataset.iso||""):"",start=$("#cS")?$("#cS").value:"",end=$("#cE")?$("#cE").value:"";if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید بعد از ساعت شروع باشد");return;}if(startDate&&endDate&&endDate<startDate){toast("⚠️ تاریخ پایان باید بعد از شروع باشد");return;}const dow=startDate?Jalali.dow(Jalali.toJ(...startDate.split("-").map(Number))):+$("#cDow").value;
-d.classes.push({dow,start,end,startDate,endDate});
-Store.save();render();toast("✅ کلاس اضافه شد");}
-function delClass(i){confirm2("این کلاس حذف شود؟",()=>{const d=Store.get();d.classes.splice(i,1);Store.save();render();});}
+const item={dow,start,end,startDate,endDate};d.classes.push(item);
+if(Store.save()===false){const at=d.classes.indexOf(item);if(at>=0)d.classes.splice(at,1);render();toast("⚠️ کلاس ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+render();toast("✅ کلاس اضافه شد");}
+function delClass(i){confirm2("این کلاس حذف شود؟",()=>{const d=Store.get();if(i<0||i>=d.classes.length)return;const removed=d.classes.splice(i,1)[0];if(Store.save()===false){d.classes.splice(i,0,removed);render();toast("⚠️ حذف کلاس ذخیره نشد؛ کلاس حفظ شد");return;}render();});}
 function setColor(c){const d=Store.get();d.settings.color=c;Store.save();applyColor();render();}
 function toggleSound(){const d=Store.get();d.settings.sound=!d.settings.sound;Store.save();render();}
 function theme(){return Store.get().settings.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}
