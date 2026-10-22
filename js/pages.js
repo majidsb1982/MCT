@@ -899,7 +899,7 @@ for(let i=hasHead?1:0;i<rows.length;i++){
  seenNames.add(nameKey);
 }
 if(!candidates.length){toast("ℹ️ عضو جدیدی برای افزودن پیدا نشد"+(skip?"؛ نام‌های تکراری رد شدند":""));return;}
-const commit=()=>{const oldGroups=Array.isArray(d.groups)?d.groups.slice():["عمومی"];if(!Array.isArray(d.groups))d.groups=["عمومی"];candidates.forEach(m=>{if(m.group&&!d.groups.includes(m.group))d.groups.push(m.group);});d.members.push(...candidates);const saved=Store.save();if(saved===false){d.members.splice(d.members.length-candidates.length,candidates.length);d.groups=oldGroups;render();toast("⚠️ افزودن گروهی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
+const commit=()=>{const hadGroups=Array.isArray(d.groups),oldGroups=hadGroups?d.groups.slice():null;const firstNew=d.members.length;if(!hadGroups)d.groups=["عمومی"];candidates.forEach(m=>{if(m.group&&!d.groups.includes(m.group))d.groups.push(m.group);});d.members.push(...candidates);let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}if(!saved){d.members.splice(firstNew,candidates.length);if(hadGroups)d.groups=oldGroups;else delete d.groups;render();toast("⚠️ افزودن گروهی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
 if(sharedPhoneCount){confirm2("در "+Jalali.toFa(sharedPhoneCount)+" مورد، شماره تماس بین اعضا مشترک است. اگر عمدی است، واردکردن اعضا را ادامه دهید؟",commit);return;}
 commit();
 }catch(e){console.error("MCT CSV import:",e);toast("⚠️ خواندن فایل ناموفق بود؛ قالب و ستون‌های فایل را بررسی کنید");}finally{inp.value="";}};
