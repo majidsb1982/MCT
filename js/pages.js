@@ -822,7 +822,7 @@ function restore(inp){
  };
  r.readAsText(f);
 }
-function wipeAll(){if(!requirePerm("backup","فقط مدیر"))return;confirm2("همه داده‌ها پاک شود؟",()=>confirm2("واقعاً مطمئنی؟ اول پشتیبان بگیر!",()=>{Store.reset();applyTheme();applyColor();applyFS();route="home";resetUI();render();toast("همه داده‌ها پاک شد");}))}
+function wipeAll(){if(!requirePerm("backup","فقط مدیر"))return;confirm2("همه داده‌ها پاک شود؟",()=>confirm2("واقعاً مطمئنی؟ اول پشتیبان بگیر!",()=>{if(Store.reset()===false){toast("⚠️ پاک‌سازی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}applyTheme();applyColor();applyFS();route="home";resetUI();render();toast("همه داده‌ها پاک شد");}))}
 
 /* ============ اکسل: خروج و ورود ============ */
 function parseCSV(t){t=t.replace(/^\ufeff/,"");
