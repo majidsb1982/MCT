@@ -292,10 +292,13 @@ function exitEntry(){window._t&&clearInterval(window._t);window._tick=null;reset
 if(history.state&&history.state.route)history.back();
 else{route="home";render();}}
 function allPresent(){const d=Store.get(),key=d._lastSession||sessionSel();
-d.sessions[key]=d.sessions[key]||{};let n=0;
+if(!key){toast("⚠️ جلسه‌ای برای ثبت حضور انتخاب نشده است");return;}
+const hadSession=Object.prototype.hasOwnProperty.call(d.sessions,key);
+const before=hadSession?JSON.parse(JSON.stringify(d.sessions[key])):null;d.sessions[key]=d.sessions[key]||{};let n=0;
 for(const m of d.members){const cur=d.sessions[key][m.id]=d.sessions[key][m.id]||{};
 if(!cur.p2){cur.p2="present";n++;}}
-Store.save();renderEntry();celebrate("🎉 "+Jalali.toFa(n)+" نفر حاضر علامت خوردند!");}
+if(Store.save()===false){if(hadSession)d.sessions[key]=before;else delete d.sessions[key];renderEntry();toast("⚠️ ثبت گروهی ذخیره نشد؛ وضعیت قبلی حضور حفظ شد");return;}
+renderEntry();celebrate("🎉 "+Jalali.toFa(n)+" نفر حاضر علامت خوردند!");}
 window.allPresent=allPresent;
 
 /* ---- شهریه (سه تب) ---- */
@@ -668,8 +671,9 @@ const start=document.getElementById("exS").value,end=document.getElementById("ex
 if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید بعد از ساعت شروع باشد");return;}
 const d=Store.get();d.extra=d.extra||[];
 if(d.extra.some(x=>x.key===key)){toast("⚠️ برای این تاریخ جلسه ثبت شده");return;}
-d.extra.push({key,start,end});
-Store.save();o.remove();render();toast("✅ جلسه اضافه شد");};}
+const added={key,start,end};d.extra.push(added);
+if(Store.save()===false){const at=d.extra.indexOf(added);if(at>=0)d.extra.splice(at,1);toast("⚠️ ذخیره جلسه ناموفق بود؛ تغییر ثبت نشد");return;}
+o.remove();render();toast("✅ جلسه اضافه شد");};}
 function delExtra(i){confirm2("این جلسه حذف شود؟",()=>{const d=Store.get();d.extra=d.extra||[];if(i<0||i>=d.extra.length)return;const removed=d.extra.splice(i,1)[0];if(Store.save()===false){d.extra.splice(i,0,removed);render();toast("⚠️ حذف جلسه ذخیره نشد؛ جلسه حفظ شد");return;}render();});}
 window.addExtra=addExtra;window.delExtra=delExtra;
 
