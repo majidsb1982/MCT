@@ -756,11 +756,12 @@ function saveHW(){const t=document.getElementById("hwText").value.trim();
 if(!t){toast("⚠️ متن تکلیف را بنویسید");return;}
 const de=document.getElementById("hwDate");
 const key=de._j||de.dataset.key||Jalali.toKey(nextClass()?nextClass().date:Jalali.today());
-const d=Store.get();d.homework.push({id:Store.uid(),key,text:t,audio:window._hwA||null});
-window._hwA=null;Store.save();render();toast("✅ ذخیره شد");}
+const d=Store.get(),item={id:Store.uid(),key,text:t,audio:window._hwA||null};d.homework.push(item);
+if(Store.save()===false){const i=d.homework.findIndex(h=>h.id===item.id);if(i>=0)d.homework.splice(i,1);render();toast("⚠️ تکلیف ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+window._hwA=null;render();toast("✅ ذخیره شد");}
 function delHW(id){const d=Store.get();const i=d.homework.findIndex(h=>h.id===id);if(i<0)return;
-const hw=d.homework.splice(i,1)[0];Store.save();render();
-toastUndo("🗑 حذف شد",()=>{d.homework.splice(i,0,hw);Store.save();render();});}
+const hw=d.homework.splice(i,1)[0];if(Store.save()===false){d.homework.splice(i,0,hw);render();toast("⚠️ حذف تکلیف ذخیره نشد؛ تکلیف حفظ شد");return;}render();
+toastUndo("🗑 حذف شد",()=>{d.homework.splice(Math.min(i,d.homework.length),0,hw);if(Store.save()===false){const at=d.homework.findIndex(x=>x.id===hw.id);if(at>=0)d.homework.splice(at,1);render();toast("⚠️ بازگردانی ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}render();});}
 function copyHW(id){const hw=Store.get().homework.find(h=>h.id===id);
 if(hw)shareTxt("📚 تکلیف جلسه "+Jalali.fmt(Jalali.fromKey(hw.key))+":\n\n"+hw.text);}
 
