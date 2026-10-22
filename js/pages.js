@@ -392,7 +392,7 @@ const o=modal("<h3 style='font-weight:800'>✏️ ویرایش تکلیف</h3><l
 document.getElementById("heCl").onclick=()=>o.remove();
 document.getElementById("heOk").onclick=()=>{const t=document.getElementById("heT").value.trim();
 if(!t){toast("⚠️ متن خالی است");return;}
-hw.text=t;Store.save();o.remove();render();toast("✅ ویرایش شد");};}
+const previous=hw.text;hw.text=t;if(Store.save()===false){hw.text=previous;render();toast("⚠️ ویرایش ذخیره نشد؛ متن قبلی حفظ شد");return;}o.remove();render();toast("✅ ویرایش شد");};}
 window.hwEdit=hwEdit;
 
 /* ---- اعضا ---- */
@@ -692,9 +692,9 @@ window.scrollTo(0,y);
 if(cur[ph]&&was!==cur[ph]){
 const mm=d.members.find(m=>m.id===mid);if(!mm)return;
 toastUndo("📝 "+mm.name+": "+ST.lbl[cur[ph]],()=>{
-const c=d.sessions[key][mid];c[ph]=null;
-delete c[ph==="p1"?"time":"time2"];delete c[ph==="p1"?"note":"note2"];delete c[ph==="p1"?"a1":"a2"];
-Store.save();route==="entry"?renderEntry():render();});
+const c=d.sessions[key][mid];if(!c)return;const before=JSON.parse(JSON.stringify(c)),undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
+c[ph]=null;delete c[ph==="p1"?"time":"time2"];delete c[ph==="p1"?"note":"note2"];delete c[ph==="p1"?"a1":"a2"];
+if(Store.save()===false){d.sessions[key][mid]=before;d.undoStack=undoBefore;render();toast("⚠️ بازگردانی حضور ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}route==="entry"?renderEntry():render();});
 }
 if(ph==="p2"&&d.members.length&&d.members.every(m=>!needsCall((d.sessions[key][m.id]||{}).p2)))
 celebrate("🎉 همه اعضا حاضرند — کلاس کامل است!");}
