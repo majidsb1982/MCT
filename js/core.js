@@ -196,14 +196,16 @@ uid:()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6)};})();
 
 function storageInfo(){
   try{
-    const raw=localStorage.getItem("mct:data")||"";
+    const raw=localStorage.getItem("mct:data");
+    if(raw===null)return{ok:true,bytes:0,kb:0,mb:"0.00",pct:0,sessions:Object.keys(Store.get().sessions||{}).length,members:(Store.get().members||[]).length};
     const bytes=new Blob([raw]).size;
     const kb=Math.round(bytes/1024);
     const mb=(bytes/1048576).toFixed(2);
-    // typical quota ~5MB
+    // This is an estimate, not a browser-reported storage quota.
     const pct=Math.min(100,Math.round(bytes/5e6*100));
-    return{bytes,kb,mb,pct,sessions:Object.keys(Store.get().sessions||{}).length,members:(Store.get().members||[]).length};
-  }catch(e){return{bytes:0,kb:0,mb:"0",pct:0,sessions:0,members:0};}
+    const d=Store.get();
+    return{ok:true,bytes,kb,mb,pct,sessions:Object.keys(d.sessions||{}).length,members:(d.members||[]).length};
+  }catch(e){return{ok:false};}
 }
 function pruneSessions(keep,confirmed){
   const d=Store.get();
