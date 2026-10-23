@@ -797,9 +797,30 @@ function toggleTheme(){setTheme(theme()==="light"?"dark":"light");}
 function setTheme(t){const d=Store.get(),previous=d.settings.theme;if(previous===t)return;d.settings.theme=t;if(Store.save()===false){if(previous===undefined)delete d.settings.theme;else d.settings.theme=previous;applyTheme();toast("⚠️ پوسته ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}applyTheme();render();}
 function setFS(f){const d=Store.get(),previous=d.settings.fs;if(previous===f)return;d.settings.fs=f;if(Store.save()===false){if(previous===undefined)delete d.settings.fs;else d.settings.fs=previous;applyFS();toast("⚠️ اندازه نوشته ذخیره نشد؛ مقدار قبلی حفظ شد");return;}applyFS();render();}
 function applyFS(){document.documentElement.style.setProperty("--fs",{s:"13px",m:"15px",l:"17px"}[Store.get().settings.fs||"m"]);}
-function backup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;try{markBackupDone();}catch(e){}logActivity("تهیه پشتیبان");const t=Jalali.today();
-const a=document.createElement("a"),url=URL.createObjectURL(new Blob([JSON.stringify(Store.get())],{type:"application/json"}));a.href=url;
-a.download="My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+String(t.jd).padStart(2,"0")+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast("✅ پشتیبان گرفته شد");}
+function backup(){
+ if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;
+ let url="";
+ try{
+  const snapshot=JSON.stringify(Store.get());
+  if(!snapshot||snapshot==="{}")throw new Error("اطلاعات پشتیبان خالی است");
+  const t=Jalali.today();
+  const a=document.createElement("a");
+  url=URL.createObjectURL(new Blob([snapshot],{type:"application/json;charset=utf-8"}));
+  a.href=url;
+  a.download="My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+String(t.jd).padStart(2,"0")+".json";
+  a.style.display="none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}},1500);
+  try{markBackupDone();}catch(e){}
+  try{logActivity("درخواست تهیه پشتیبان");}catch(e){}
+  toast("درخواست دانلود پشتیبان ارسال شد؛ ذخیره‌شدن فایل را در مرورگر بررسی کنید");
+ }catch(e){
+  if(url)try{URL.revokeObjectURL(url);}catch(_){}
+  toast("⚠️ آماده‌سازی پشتیبان ناموفق بود؛ فایل دانلود نشد");
+ }
+}
 function shareBackup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;const j=JSON.stringify(Store.get());
 const file=new File([j],"My-Class-Track-data.json",{type:"application/json"});
 if(navigator.canShare&&navigator.canShare({files:[file]}))
