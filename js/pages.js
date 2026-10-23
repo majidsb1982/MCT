@@ -821,11 +821,17 @@ function backup(){
   toast("⚠️ آماده‌سازی پشتیبان ناموفق بود؛ فایل دانلود نشد");
  }
 }
-function shareBackup(){if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;const j=JSON.stringify(Store.get());
-const file=new File([j],"My-Class-Track-data.json",{type:"application/json"});
-if(navigator.canShare&&navigator.canShare({files:[file]}))
-navigator.share({files:[file],title:"پشتیبان My-Class-Track"}).then(()=>toast("✅ درخواست اشتراک‌گذاری باز شد")).catch(()=>toast("⚠️ اشتراک‌گذاری لغو شد یا در دسترس نیست"));
-else{toast("📤 ارسال فایل پشتیبان");backup();}}
+function shareBackup(){
+ if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;
+ try{
+  if(typeof File!=="function"||!navigator.share){backup();return;}
+  const file=new File([JSON.stringify(Store.get())],"My-Class-Track-data.json",{type:"application/json"});
+  if(!navigator.canShare||!navigator.canShare({files:[file]})){backup();return;}
+  navigator.share({files:[file],title:"پشتیبان My-Class-Track"})
+   .then(()=>toast("درخواست اشتراک‌گذاری باز شد؛ ارسال نهایی را در برنامه مقصد بررسی کنید"))
+   .catch(()=>toast("اشتراک‌گذاری لغو شد یا در دسترس نیست؛ اطلاعات برنامه تغییری نکرد"));
+ }catch(e){toast("⚠️ اشتراک‌گذاری در این دستگاه در دسترس نیست؛ از گزینه دانلود پشتیبان استفاده کنید");}
+}
 function restore(inp){
  const f=inp&&inp.files&&inp.files[0];
  if(!f)return;
