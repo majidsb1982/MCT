@@ -511,8 +511,12 @@ if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
 }).join("");}
 const sb=document.getElementById("storBody");
 if(sb){const si=storageInfo();
-sb.innerHTML='<p class="stat-line">حجم داده: <b>'+Jalali.toFa(si.kb)+'</b> کیلوبایت ('+si.mb+' MB) — حدود <b>'+Jalali.toFa(si.pct)+'٪</b> ظرفیت</p><div class="progress"><i style="width:'+Math.min(100,si.pct)+'%"></i></div><p class="stat-line">جلسات: '+Jalali.toFa(si.sessions)+' | اعضا: '+Jalali.toFa(si.members)+'</p><button class="btn sm ghost" style="margin-top:8px" id="pruneBtn">🧹 پاکسازی جلسات قدیمی</button>';
-const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>pruneSessions();}
+if(!si.ok){
+sb.innerHTML='<p class="stat-line" role="status">اطلاعات فضای ذخیره‌سازی قابل خواندن نیست. برای جلوگیری از نمایش آمار گمراه‌کننده، مقدارها پنهان شده‌اند؛ داده‌ها پاک نشده‌اند.</p>';
+}else{
+sb.innerHTML='<p class="stat-line">حجم داده: <b>'+Jalali.toFa(si.kb)+'</b> کیلوبایت ('+si.mb+' MB) — برآورد از ظرفیت معمول مرورگر</p><div class="progress"><i style="width:'+Math.min(100,si.pct)+'%"></i></div><p class="stat-line">جلسات: '+Jalali.toFa(si.sessions)+' | اعضا: '+Jalali.toFa(si.members)+'</p><button class="btn sm ghost" style="margin-top:8px" id="pruneBtn">🧹 پاکسازی جلسات قدیمی</button>';
+const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>pruneSessions();
+}}
 
 };
 
