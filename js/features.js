@@ -73,9 +73,15 @@ const mi=e.target.closest("[data-mic]");
 if(mi){const key=mi.dataset.key,mid=mi.dataset.mid,ph=mi.dataset.ph;
 const d=Store.get();const cur=(d.sessions[key]||{})[mid]||{};
 const af=ph==="p1"?"a1":"a2";
-recordVoice(res=>{d.sessions[key]=d.sessions[key]||{};
+recordVoice(res=>{
+const hadBucket=Object.prototype.hasOwnProperty.call(d.sessions,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.sessions[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
+d.sessions[key]=d.sessions[key]||{};
 const c=d.sessions[key][mid]=d.sessions[key][mid]||{};
-if(res)c[af]=res;else delete c[af];Store.save();render();},cur[af]);return;}
+if(res)c[af]=res;else delete c[af];
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+if(!saved){if(hadRecord)d.sessions[key][mid]=previous;else delete d.sessions[key][mid];if(!hadBucket)delete d.sessions[key];toast("⚠️ یادداشت صوتی ذخیره نشد؛ اطلاعات قبلی حفظ شد");render();return;}
+render();
+},cur[af]);return;}
 const rf=e.target.closest("[data-restorefee]");
 if(rf){restoreFee(rf.dataset.key,rf.dataset.mid);return;}
 const fs=e.target.closest("[data-fst]");
