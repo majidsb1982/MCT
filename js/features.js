@@ -93,10 +93,14 @@ const pr=e.target.closest(".payrow");
 if(pr&&!e.target.closest("input")&&!e.target.closest("button")&&!e.target.closest("a")){togglePay(pr.dataset.key,pr.dataset.mid);return;}});
 document.getElementById("app").addEventListener("change",e=>{
 const t=e.target;
-if(t.id==="alarmIn"){const d=Store.get();
-const times=t.value.split(",").map(x=>parseInt(x.trim(),10)).filter(x=>x>0&&x<=59).sort((a,b)=>b-a);
-if(times.length){d.settings.alarmTimes=times;Store.save();toast("✅ لحظه‌های یادآوری: "+times.join("، "));}
-else{toast("⚠️ عدد معتبر وارد کنید (مثلاً 15,8,5,3)");t.value=d.settings.alarmTimes.join(",");}return;}
+if(t.id==="alarmIn"){const d=Store.get(),raw=t.value.split(",").map(x=>x.trim());
+const valid=raw.length>0&&raw.every(x=>/^\\d+$/.test(x)&&Number(x)>=1&&Number(x)<=59);
+if(!valid){toast("⚠️ همه مقادیر باید عدد صحیح بین ۱ تا ۵۹ باشند؛ نمونه: 15,8,5,3");t.value=(d.settings.alarmTimes||[]).join(",");return;}
+const times=[...new Set(raw.map(Number))].sort((a,b)=>b-a),had=Object.prototype.hasOwnProperty.call(d.settings,"alarmTimes"),previous=had?JSON.parse(JSON.stringify(d.settings.alarmTimes)):undefined;
+d.settings.alarmTimes=times;
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+if(!saved){if(had)d.settings.alarmTimes=previous;else delete d.settings.alarmTimes;t.value=(d.settings.alarmTimes||[]).join(",");toast("⚠️ یادآوری‌ها ذخیره نشد؛ تنظیم قبلی حفظ شد");}
+else{t.value=times.join(",");toast("لحظه‌های یادآوری ذخیره شد: "+times.join("، "));}return;}
 if(t.classList.contains("ex-input")){const d=Store.get(),key=t.dataset.key,mid=t.dataset.mid,field=t.dataset.f;
 const hadBucket=Object.prototype.hasOwnProperty.call(d.sessions,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.sessions[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.sessions[key][mid])):null,previousLast=d._lastSession;
 d.sessions[key]=d.sessions[key]||{};
