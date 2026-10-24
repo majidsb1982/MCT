@@ -199,7 +199,7 @@ function restoreAtt(key,mid,ph){const d=Store.get(),cur=(d.sessions[key]||{})[mi
 const previous=JSON.parse(JSON.stringify(cur));
 cur[ph]=null;
 if(ph==="p1"){delete cur.time;delete cur.note;delete cur.a1;}else{delete cur.time2;delete cur.note2;delete cur.a2;}
-if(Store.save()===false){d.sessions[key][mid]=previous;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){d.sessions[key][mid]=previous;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
 render();
 toast("↩️ "+((d.members.find(m=>m.id===mid)||{}).name||"")+" به لیست برگشت");}
 
@@ -365,7 +365,7 @@ const y=window.scrollY;render();window.scrollTo(0,y);
 if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
 function restoreFee(key,mid){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur)return;
 const previous=JSON.parse(JSON.stringify(cur));cur.fc=null;
-if(Store.save()===false){d.fees[key][mid]=previous;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){d.fees[key][mid]=previous;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
 render();}
 window.setFeeTab=setFeeTab;
 
@@ -705,7 +705,7 @@ const mm=d.members.find(m=>m.id===mid);if(!mm)return;
 toastUndo("📝 "+mm.name+": "+ST.lbl[cur[ph]],()=>{
 const c=d.sessions[key][mid];if(!c)return;const before=JSON.parse(JSON.stringify(c)),undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
 c[ph]=null;delete c[ph==="p1"?"time":"time2"];delete c[ph==="p1"?"note":"note2"];delete c[ph==="p1"?"a1":"a2"];
-if(Store.save()===false){d.sessions[key][mid]=before;d.undoStack=undoBefore;render();toast("⚠️ بازگردانی حضور ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}route==="entry"?renderEntry():render();});
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){d.sessions[key][mid]=before;d.undoStack=undoBefore;render();toast("⚠️ بازگردانی حضور ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}route==="entry"?renderEntry():render();});
 }
 if(ph==="p2"&&d.members.length&&d.members.every(m=>!needsCall((d.sessions[key][m.id]||{}).p2)))
 celebrate("🎉 همه اعضا حاضرند — کلاس کامل است!");}
@@ -762,7 +762,7 @@ else d.fees[key][mid]={paid:true,date:Jalali.toKey(Jalali.today()),note:""};
 d._lastFee=key;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;render();toast("⚠️ ثبت پرداخت ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;render();window.scrollTo(0,y);
 if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
-function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur){toast("⚠️ رکورد پیگیری پیدا نشد؛ دوباره صفحه را باز کنید");return;}const hadNote=Object.prototype.hasOwnProperty.call(cur,"note"),previous=cur.note,previousLast=d._lastFee;cur.note=v;d._lastFee=key;if(Store.save()===false){if(hadNote)cur.note=previous;else delete cur.note;d._lastFee=previousLast;toast("⚠️ یادداشت ذخیره نشد؛ متن قبلی حفظ شد");}}
+function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur){toast("⚠️ رکورد پیگیری پیدا نشد؛ دوباره صفحه را باز کنید");return;}const hadNote=Object.prototype.hasOwnProperty.call(cur,"note"),previous=cur.note,previousLast=d._lastFee;cur.note=v;d._lastFee=key;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(hadNote)cur.note=previous;else delete cur.note;if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;toast("⚠️ یادداشت ذخیره نشد؛ متن قبلی حفظ شد");}}
 
 /* ---- تکالیف: عملیات ---- */
 function pickHWDate(){datePick(null,j=>{const e=document.getElementById("hwDate");e.value=Jalali.fmt(j);e._j=Jalali.toKey(j);});}
