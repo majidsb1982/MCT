@@ -360,7 +360,7 @@ const cur=d.fees[key][mid]=d.fees[key][mid]||{};
 if(cur.fc===st&&st!=="paid")cur.fc=null;
 else{cur.fc=st;
 if(st==="paid"&&!cur.paid){cur.paid=true;cur.date=Jalali.toKey(Jalali.today());}}
-d._lastFee=key;if(Store.save()===false){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];d._lastFee=previousLast;render();toast("⚠️ پیگیری شهریه ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+d._lastFee=key;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;render();toast("⚠️ پیگیری شهریه ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;render();window.scrollTo(0,y);
 if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
 function restoreFee(key,mid){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur)return;
@@ -685,7 +685,7 @@ window.addExtra=addExtra;window.delExtra=delExtra;
 
 /* ---- حضور ---- */
 function toggleCallFilter(){UI.callOnly=!UI.callOnly;UI.filter="";render();}
-function setAtt(key,mid,ph,st){const d=Store.get();
+function setAtt(key,mid,ph,st){const d=Store.get(),previousLast=d._lastSession;
 if(!key){toast("⚠️ اول کلاس را در تنظیمات ثبت کنید");return;}
 d._lastSession=key;d.sessions[key]=d.sessions[key]||{};
 const _prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
@@ -695,7 +695,8 @@ const was=cur[ph],undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
 if(cur[ph]===st){cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[ph==="p1"?"a1":"a2"];}
 else cur[ph]=st;
 pushUndo({type:"att",key:key,mid:mid,prev:_prev,label:"ثبت حضور"});
-if(Store.save()===false){if(_prev)d.sessions[key][mid]=_prev;else delete d.sessions[key][mid];if(!d.sessions[key]||!Object.keys(d.sessions[key]).length)delete d.sessions[key];d.undoStack=undoBefore;render();toast("⚠️ حضور ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+if(!saved){if(_prev)d.sessions[key][mid]=_prev;else delete d.sessions[key][mid];if(!d.sessions[key]||!Object.keys(d.sessions[key]).length)delete d.sessions[key];if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;d.undoStack=undoBefore;render();toast("⚠️ حضور ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;
 if(route==="entry")renderEntry();else render();
 window.scrollTo(0,y);
@@ -758,7 +759,7 @@ const sh=document.getElementById("rsh");if(sh)sh.onclick=()=>shareTxt(txt);}
 function togglePay(key,mid){const d=Store.get(),hadBucket=Object.prototype.hasOwnProperty.call(d.fees,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.fees[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.fees[key][mid])):null,previousLast=d._lastFee;d.fees[key]=d.fees[key]||{};
 if(d.fees[key][mid]&&d.fees[key][mid].paid)delete d.fees[key][mid];
 else d.fees[key][mid]={paid:true,date:Jalali.toKey(Jalali.today()),note:""};
-d._lastFee=key;if(Store.save()===false){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];d._lastFee=previousLast;render();toast("⚠️ ثبت پرداخت ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+d._lastFee=key;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;render();toast("⚠️ ثبت پرداخت ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;render();window.scrollTo(0,y);
 if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
 function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur){toast("⚠️ رکورد پیگیری پیدا نشد؛ دوباره صفحه را باز کنید");return;}const hadNote=Object.prototype.hasOwnProperty.call(cur,"note"),previous=cur.note,previousLast=d._lastFee;cur.note=v;d._lastFee=key;if(Store.save()===false){if(hadNote)cur.note=previous;else delete cur.note;d._lastFee=previousLast;toast("⚠️ یادداشت ذخیره نشد؛ متن قبلی حفظ شد");}}
