@@ -765,13 +765,19 @@ function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!c
 
 /* ---- تکالیف: عملیات ---- */
 function pickHWDate(){datePick(null,j=>{const e=document.getElementById("hwDate");e.value=Jalali.fmt(j);e._j=Jalali.toKey(j);});}
-function saveHW(){const t=document.getElementById("hwText").value.trim();
-if(!t){toast("⚠️ متن تکلیف را بنویسید");return;}
-const de=document.getElementById("hwDate");
+function saveHW(){const input=document.getElementById("hwText"),de=document.getElementById("hwDate");
+if(!input||!de){toast("⚠️ فرم تکلیف آماده نیست؛ صفحه را دوباره باز کنید");return;}
+const t=input.value.trim();
+if(!t){toast("⚠️ متن تکلیف را بنویسید");input.focus();return;}
 const key=de._j||de.dataset.key||Jalali.toKey(nextClass()?nextClass().date:Jalali.today());
-const d=Store.get(),item={id:Store.uid(),key,text:t,audio:window._hwA||null};d.homework.push(item);
-if(Store.save()===false){const i=d.homework.findIndex(h=>h.id===item.id);if(i>=0)d.homework.splice(i,1);render();toast("⚠️ تکلیف ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
-window._hwA=null;render();toast("✅ ذخیره شد");}
+if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(key)){toast("⚠️ تاریخ جلسه معتبر نیست؛ تاریخ را دوباره انتخاب کنید");return;}
+const d=Store.get(),list=Array.isArray(d.homework)?d.homework:(d.homework=[]);
+if(list.some(h=>h&&h.key===key&&String(h.text||"").trim().toLocaleLowerCase()===t.toLocaleLowerCase())){
+toast("⚠️ تکلیف مشابهی برای همین جلسه ثبت شده است؛ متن یا جلسه را بررسی کنید");return;}
+const item={id:Store.uid(),key,text:t,audio:window._hwA||null};list.push(item);
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+if(!saved){const i=list.findIndex(h=>h.id===item.id);if(i>=0)list.splice(i,1);render();toast("⚠️ تکلیف ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+window._hwA=null;render();toast("تکلیف این جلسه ذخیره شد");}
 function delHW(id){const d=Store.get();const i=d.homework.findIndex(h=>h.id===id);if(i<0)return;
 const hw=d.homework.splice(i,1)[0];if(Store.save()===false){d.homework.splice(i,0,hw);render();toast("⚠️ حذف تکلیف ذخیره نشد؛ تکلیف حفظ شد");return;}render();
 toastUndo("🗑 حذف شد",()=>{d.homework.splice(Math.min(i,d.homework.length),0,hw);if(Store.save()===false){const at=d.homework.findIndex(x=>x.id===hw.id);if(at>=0)d.homework.splice(at,1);render();toast("⚠️ بازگردانی ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}render();});}
