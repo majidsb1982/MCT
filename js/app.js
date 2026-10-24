@@ -837,9 +837,12 @@ function saveSessionNote(){
   if(!key)return;
   const el=document.getElementById("sessNote");
   if(!el)return;
+  const hadNotes=Object.prototype.hasOwnProperty.call(d,"sessionNotes"),hadNote=hadNotes&&Object.prototype.hasOwnProperty.call(d.sessionNotes,key),previous=hadNote?d.sessionNotes[key]:undefined;
   d.sessionNotes=d.sessionNotes||{};
   d.sessionNotes[key]=el.value.trim();
-  Store.save();toast("یادداشت جلسه ذخیره شد");logActivity("یادداشت جلسه");
+  let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+  if(!saved){if(hadNote)d.sessionNotes[key]=previous;else delete d.sessionNotes[key];if(!hadNotes)delete d.sessionNotes;el.value=previous||"";toast("⚠️ یادداشت جلسه ذخیره نشد؛ متن قبلی حفظ شد");return;}
+  toast("یادداشت جلسه ذخیره شد");logActivity("یادداشت جلسه");
 }
 function sessionNoteHTML(){
   const d=Store.get();
