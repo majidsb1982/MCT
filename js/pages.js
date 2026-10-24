@@ -925,8 +925,9 @@ for(let i=hasHead?1:0;i<rows.length;i++){
  const bs=iBirth>=0?latinPhoneDigits((row[iBirth]||"").trim()):"";
  if(bs){
   const bm=bs.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
-  if(!bm||+bm[2]<1||+bm[2]>12||+bm[3]<1||+bm[3]>31){toast("⚠️ تاریخ تولد ردیف "+Jalali.toFa(i+1)+" معتبر نیست؛ هیچ عضوی وارد نشد");return;}
-  birth={jy:+bm[1],jm:+bm[2],jd:+bm[3]};
+  const jy=bm?+bm[1]:0,jm=bm?+bm[2]:0,jd=bm?+bm[3]:0;
+  if(!bm||jy<1310||jy>1470||jm<1||jm>12||jd<1||jd>Jalali.mLen(jy,jm)){toast("⚠️ تاریخ تولد ردیف "+Jalali.toFa(i+1)+" معتبر نیست؛ هیچ عضوی وارد نشد");return;}
+  birth={jy,jm,jd};
  }
  for(const key of phoneKeys){if(phoneOwners.has(key))sharedPhoneCount++;phoneOwners.set(key,(phoneOwners.get(key)||0)+1);}
  const splitList=value=>String(value||"").split(/[|؛;]/).map(x=>x.trim()).filter(Boolean);
