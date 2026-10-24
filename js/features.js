@@ -97,10 +97,14 @@ if(t.id==="alarmIn"){const d=Store.get();
 const times=t.value.split(",").map(x=>parseInt(x.trim(),10)).filter(x=>x>0&&x<=59).sort((a,b)=>b-a);
 if(times.length){d.settings.alarmTimes=times;Store.save();toast("✅ لحظه‌های یادآوری: "+times.join("، "));}
 else{toast("⚠️ عدد معتبر وارد کنید (مثلاً 15,8,5,3)");t.value=d.settings.alarmTimes.join(",");}return;}
-if(t.classList.contains("ex-input")){const d=Store.get();
-d.sessions[t.dataset.key]=d.sessions[t.dataset.key]||{};
-const cur=d.sessions[t.dataset.key][t.dataset.mid]=d.sessions[t.dataset.key][t.dataset.mid]||{};
-cur[t.dataset.f]=t.value;d._lastSession=t.dataset.key;Store.save();return;}
+if(t.classList.contains("ex-input")){const d=Store.get(),key=t.dataset.key,mid=t.dataset.mid,field=t.dataset.f;
+const hadBucket=Object.prototype.hasOwnProperty.call(d.sessions,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.sessions[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.sessions[key][mid])):null,previousLast=d._lastSession;
+d.sessions[key]=d.sessions[key]||{};
+const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
+cur[field]=t.value;d._lastSession=key;
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+if(!saved){if(hadRecord)d.sessions[key][mid]=previous;else delete d.sessions[key][mid];if(!hadBucket)delete d.sessions[key];if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;t.value=hadRecord&&previous[field]!=null?previous[field]:"";toast("⚠️ تغییر ذخیره نشد؛ مقدار قبلی حفظ شد");}
+return;}
 if(t.classList.contains("fee-note")){feeNote(t.dataset.key,t.dataset.mid,t.value);return;}});
 
 
