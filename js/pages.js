@@ -241,7 +241,7 @@ try{
 }catch(e){}};
 function setDoneTab(v){UI.doneTab=v;UI.filter="";render();}
 window.setDoneTab=setDoneTab;
-function setSel(k){const d=Store.get(),previous=d._lastSession;d._lastSession=k;if(Store.save()===false){if(previous===undefined)delete d._lastSession;else d._lastSession=previous;toast("⚠️ انتخاب جلسه ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}resetUI();render();}
+function setSel(k){const d=Store.get(),previous=d._lastSession;if(k!==""&&!/^\d{4}-\d{2}-\d{2}$/.test(String(k))){toast("⚠️ تاریخ جلسه معتبر نیست؛ انتخاب قبلی حفظ شد");return;}d._lastSession=k;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(previous===undefined)delete d._lastSession;else d._lastSession=previous;toast("⚠️ انتخاب جلسه ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}resetUI();render();}
 window.setSel=setSel;
 
 /* ---- ثبت ورود ---- */
