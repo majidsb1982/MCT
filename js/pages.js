@@ -860,18 +860,26 @@ function parseCSV(t){t=t.replace(/^\ufeff/,"");
 const rows=[];let row=[],cur="",q=false;
 for(let i=0;i<t.length;i++){const c=t[i];
 if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;}
-else if(c==='"')q=true;
+else if(c==='"'){if(cur!=="")throw new Error("ساختار نقل‌قول در فایل CSV نامعتبر است");q=true;}
 else if(c===","){row.push(cur);cur="";}
 else if(c==="\n"||c==="\r"){if(c==="\r"&&t[i+1]==="\n")i++;
 row.push(cur);cur="";
 if(row.some(x=>x!==""))rows.push(row);row=[];}
 else cur+=c;}
+if(q)throw new Error("یک نقل‌قول در فایل CSV بسته نشده است");
 if(cur!==""||row.length){row.push(cur);if(row.some(x=>x!==""))rows.push(row);}
 return rows;}
-function dlCSV(rows,name){const q=v=>{let s=String(v??"");if(typeof v==="string"&&/^[\u0000-\u0020]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+function dlCSV(rows,name){let url="";
+try{
+const q=v=>{let s=String(v??"");if(typeof v==="string"&&/^[\u0000-\u0020]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
 const csv="\ufeff"+rows.map(r=>r.map(q).join(",")).join("\r\n");
-const a=document.createElement("a"),url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.href=url;
-a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast("✅ فایل اکسل (CSV) دانلود شد");}
+url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+const a=document.createElement("a");a.href=url;
+a.download=String(name||"MCT-export.csv").replace(/[\\/:*?"<>|\u0000-\u001f]/g,"_");
+a.style.display="none";document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}},1500);
+toast("درخواست دانلود فایل CSV ارسال شد؛ ذخیره‌شدن فایل را در مرورگر بررسی کنید");
+}catch(e){if(url)try{URL.revokeObjectURL(url);}catch(_){}toast("⚠️ آماده‌سازی خروجی CSV ناموفق بود؛ فایل دانلود نشد");}}
 function exportCSV(kind,key){const d=Store.get();let rows;
 if(kind==="fees"){const f=d.fees[key]||{};
 rows=[["نام","تلفن‌ها","وضعیت","تاریخ پرداخت","پیگیری","یادداشت"]];
