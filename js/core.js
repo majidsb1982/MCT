@@ -371,7 +371,8 @@ function roleIconsHTML(roles){
   }).join("");
 }
 
-function sessionSel(){const d=Store.get(),k=d._lastSession;if(typeof k==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(k)){const known=k===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},k)||Object.prototype.hasOwnProperty.call(d.fees||{},k)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===k));if(known)return k;}return curKey();}
+function validSessionKey(k){if(typeof k!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(k))return false;const p=k.split("-").map(Number);return p[0]>=1&&p[1]>=1&&p[1]<=12&&p[2]>=1&&p[2]<=Jalali.mLen(p[0],p[1]);}
+function sessionSel(){const d=Store.get(),k=d._lastSession;if(validSessionKey(k)){const known=k===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},k)||Object.prototype.hasOwnProperty.call(d.fees||{},k)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===k));if(known)return k;}return curKey();}
 function curFeeKey(){return sessionSel()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
 const needsCall=st=>st!=="present";
 function absCount(id){const s=Store.get().sessions;let a=0;
