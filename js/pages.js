@@ -771,7 +771,7 @@ if(!input||!de){toast("⚠️ فرم تکلیف آماده نیست؛ صفحه �
 const t=input.value.trim();
 if(!t){toast("⚠️ متن تکلیف را بنویسید");input.focus();return;}
 const key=de._j||de.dataset.key||Jalali.toKey(nextClass()?nextClass().date:Jalali.today());
-if(!/^\d{4}-\d{2}-\d{2}$/.test(key)){toast("⚠️ تاریخ جلسه معتبر نیست؛ تاریخ را دوباره انتخاب کنید");return;}
+if(!validSessionKey(key)){toast("⚠️ تاریخ جلسه معتبر نیست؛ تاریخ را دوباره انتخاب کنید");return;}
 const d=Store.get(),list=Array.isArray(d.homework)?d.homework:(d.homework=[]);
 if(list.some(h=>h&&h.key===key&&String(h.text||"").trim().toLocaleLowerCase()===t.toLocaleLowerCase())){
 toast("⚠️ تکلیف مشابهی برای همین جلسه ثبت شده است؛ متن یا جلسه را بررسی کنید");return;}
