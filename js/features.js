@@ -94,7 +94,7 @@ if(pr&&!e.target.closest("input")&&!e.target.closest("button")&&!e.target.closes
 document.getElementById("app").addEventListener("change",e=>{
 const t=e.target;
 if(t.id==="alarmIn"){const d=Store.get(),raw=t.value.split(",").map(x=>x.trim());
-const valid=raw.length>0&&raw.every(x=>/^\\d+$/.test(x)&&Number(x)>=1&&Number(x)<=59);
+const valid=raw.length>0&&raw.every(x=>/^\d+$/.test(x)&&Number(x)>=1&&Number(x)<=59);
 if(!valid){toast("⚠️ همه مقادیر باید عدد صحیح بین ۱ تا ۵۹ باشند؛ نمونه: 15,8,5,3");t.value=(d.settings.alarmTimes||[]).join(",");return;}
 const times=[...new Set(raw.map(Number))].sort((a,b)=>b-a),had=Object.prototype.hasOwnProperty.call(d.settings,"alarmTimes"),previous=had?JSON.parse(JSON.stringify(d.settings.alarmTimes)):undefined;
 d.settings.alarmTimes=times;
