@@ -9,6 +9,7 @@
  */
 "use strict";
 const Pages={};let route="home";
+function saveStoreSafe(){try{return saveStoreSafe();}catch(e){return false;}}
 const UI={callOnly:false,doneTab:false,filter:"",repFull:false,feeTab:0};
 function resetUI(){UI.callOnly=false;UI.doneTab=false;UI.filter="";UI.feeTab=0;window._hwA=null;}
 
@@ -199,7 +200,7 @@ function restoreAtt(key,mid,ph){const d=Store.get(),cur=(d.sessions[key]||{})[mi
 const previous=JSON.parse(JSON.stringify(cur));
 cur[ph]=null;
 if(ph==="p1"){delete cur.time;delete cur.note;delete cur.a1;}else{delete cur.time2;delete cur.note2;delete cur.a2;}
-let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){d.sessions[key][mid]=previous;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
+let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){d.sessions[key][mid]=previous;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
 render();
 toast("↩️ "+((d.members.find(m=>m.id===mid)||{}).name||"")+" به لیست برگشت");}
 
@@ -241,7 +242,7 @@ try{
 }catch(e){}};
 function setDoneTab(v){UI.doneTab=v;UI.filter="";render();}
 window.setDoneTab=setDoneTab;
-function setSel(k){const d=Store.get(),previous=d._lastSession;if(k!==""&&!validSessionKey(k)){toast("⚠️ تاریخ جلسه معتبر نیست؛ انتخاب قبلی حفظ شد");return;}d._lastSession=k;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(previous===undefined)delete d._lastSession;else d._lastSession=previous;toast("⚠️ انتخاب جلسه ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}resetUI();render();}
+function setSel(k){const d=Store.get(),previous=d._lastSession;if(k!==""&&!validSessionKey(k)){toast("⚠️ تاریخ جلسه معتبر نیست؛ انتخاب قبلی حفظ شد");return;}d._lastSession=k;let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){if(previous===undefined)delete d._lastSession;else d._lastSession=previous;toast("⚠️ انتخاب جلسه ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}resetUI();render();}
 window.setSel=setSel;
 
 /* ---- ثبت ورود ---- */
@@ -252,7 +253,7 @@ const target=nc.t.getTime();
 const previousLast=d._lastSession,previousTimer=d.timer?JSON.parse(JSON.stringify(d.timer)):null;
 d._lastSession=Jalali.toKey(nc.date);
 if(!d.timer||d.timer.target!==target)d.timer={target,fired:[]};
-if(Store.save()===false){if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;if(previousTimer)d.timer=previousTimer;else delete d.timer;toast("⚠️ نوبت شروع نشد؛ ذخیره‌سازی ناموفق بود");return;}
+if(!saveStoreSafe()){if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;if(previousTimer)d.timer=previousTimer;else delete d.timer;toast("⚠️ نوبت شروع نشد؛ ذخیره‌سازی ناموفق بود");return;}
 route="entry";resetUI();UI.callOnly=true;
 pushState();renderEntry();}
 function renderEntry(){const d=Store.get();
@@ -287,7 +288,7 @@ cd.textContent=Jalali.toFa(mm)+":"+Jalali.toFa(String(ss).padStart(2,"0"));
 const d2=Store.get(),times=d2.settings.alarmTimes||[15,8,5,3];
 for(const th of times)
 if(r<=th*6e4&&!(d2.timer.fired||[]).includes(th)&&r>th*6e4-10*6e4){
-d2.timer.fired=(d2.timer.fired||[]).concat(th);if(Store.save()===false)toast("⚠️ هشدار نمایش داده می‌شود، اما ثبت آن برای این نوبت ذخیره نشد");showBigAlert(th);}}}
+d2.timer.fired=(d2.timer.fired||[]).concat(th);if(!saveStoreSafe())toast("⚠️ هشدار نمایش داده می‌شود، اما ثبت آن برای این نوبت ذخیره نشد");showBigAlert(th);}}}
 document.addEventListener("visibilitychange",()=>{if(route==="entry"&&!document.hidden&&window._tick)window._tick();});
 function toggleEntryFilter(){UI.callOnly=!UI.callOnly;UI.filter="";renderEntry();}
 function exitEntry(){window._t&&clearInterval(window._t);window._tick=null;resetUI();fsOff();
@@ -299,7 +300,7 @@ const hadSession=Object.prototype.hasOwnProperty.call(d.sessions,key);
 const before=hadSession?JSON.parse(JSON.stringify(d.sessions[key])):null;d.sessions[key]=d.sessions[key]||{};let n=0;
 for(const m of d.members){const cur=d.sessions[key][m.id]=d.sessions[key][m.id]||{};
 if(!cur.p2){cur.p2="present";n++;}}
-if(Store.save()===false){if(hadSession)d.sessions[key]=before;else delete d.sessions[key];renderEntry();toast("⚠️ ثبت گروهی ذخیره نشد؛ وضعیت قبلی حضور حفظ شد");return;}
+if(!saveStoreSafe()){if(hadSession)d.sessions[key]=before;else delete d.sessions[key];renderEntry();toast("⚠️ ثبت گروهی ذخیره نشد؛ وضعیت قبلی حضور حفظ شد");return;}
 renderEntry();celebrate("🎉 "+Jalali.toFa(n)+" نفر حاضر علامت خوردند!");}
 window.allPresent=allPresent;
 
@@ -360,12 +361,12 @@ const cur=d.fees[key][mid]=d.fees[key][mid]||{};
 if(cur.fc===st&&st!=="paid")cur.fc=null;
 else{cur.fc=st;
 if(st==="paid"&&!cur.paid){cur.paid=true;cur.date=Jalali.toKey(Jalali.today());}}
-d._lastFee=key;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;render();toast("⚠️ پیگیری شهریه ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+d._lastFee=key;let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;render();toast("⚠️ پیگیری شهریه ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;render();window.scrollTo(0,y);
 if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
 function restoreFee(key,mid){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur)return;
 const previous=JSON.parse(JSON.stringify(cur));cur.fc=null;
-let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){d.fees[key][mid]=previous;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
+let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){d.fees[key][mid]=previous;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
 render();}
 window.setFeeTab=setFeeTab;
 
@@ -397,7 +398,7 @@ const o=modal("<h3 style='font-weight:800'>✏️ ویرایش تکلیف</h3><l
 document.getElementById("heCl").onclick=()=>o.remove();
 document.getElementById("heOk").onclick=()=>{const t=document.getElementById("heT").value.trim();
 if(!t){toast("⚠️ متن خالی است");return;}
-const previous=hw.text;hw.text=t;if(Store.save()===false){hw.text=previous;render();toast("⚠️ ویرایش ذخیره نشد؛ متن قبلی حفظ شد");return;}o.remove();render();toast("✅ ویرایش شد");};}
+const previous=hw.text;hw.text=t;if(!saveStoreSafe()){hw.text=previous;render();toast("⚠️ ویرایش ذخیره نشد؛ متن قبلی حفظ شد");return;}o.remove();render();toast("✅ ویرایش شد");};}
 window.hwEdit=hwEdit;
 
 /* ---- اعضا ---- */
@@ -501,7 +502,7 @@ window.pickClassDate=function(id){
 };
 
 const ul=document.getElementById("userList");if(ul){ul.innerHTML=(d.users||[]).map(u=>'<div class="mem user-setting-row"><div class="stat-ico">👤</div><div style="flex:1;min-width:0"><b>'+esc(u.name)+'</b><div class="stat-line">'+esc(({admin:"مدیر",support:"حامی",follow:"پیگیر",view:"مشاهده‌گر"})[u.role]||u.role)+'</div></div><button type="button" class="btn sm ghost" onclick="userForm(\''+u.id+'\')">ویرایش</button><button type="button" class="btn sm d" onclick="delUser(\''+u.id+'\')">حذف</button></div>').join("")||'<p class="stat-line">کاربری ثبت نشده است.</p>';}
-const addU=document.getElementById("btnAddUser");if(addU)addU.onclick=()=>userForm();const outU=document.getElementById("btnLogout");if(outU)outU.onclick=()=>logoutUser();const swL=document.getElementById("swLogin");if(swL)swL.onclick=()=>{const x=Store.get(),previous=x.settings.requireLogin;x.settings.requireLogin=!x.settings.requireLogin;if(Store.save()===false){if(previous===undefined)delete x.settings.requireLogin;else x.settings.requireLogin=previous;render();toast("⚠️ تنظیم ورود ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();toast(x.settings.requireLogin?"ورود با رمز فعال شد":"ورود با رمز غیرفعال شد");};const swC=document.getElementById("swConfirm");if(swC)swC.onclick=()=>{const x=Store.get(),previous=x.settings.quickConfirm;x.settings.quickConfirm=x.settings.quickConfirm===false;if(Store.save()===false){if(previous===undefined)delete x.settings.quickConfirm;else x.settings.quickConfirm=previous;render();toast("⚠️ تنظیم تأیید ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();toast(x.settings.quickConfirm?"تأیید عملیات فعال شد":"تأیید عملیات غیرفعال شد");};
+const addU=document.getElementById("btnAddUser");if(addU)addU.onclick=()=>userForm();const outU=document.getElementById("btnLogout");if(outU)outU.onclick=()=>logoutUser();const swL=document.getElementById("swLogin");if(swL)swL.onclick=()=>{const x=Store.get(),previous=x.settings.requireLogin;x.settings.requireLogin=!x.settings.requireLogin;if(!saveStoreSafe()){if(previous===undefined)delete x.settings.requireLogin;else x.settings.requireLogin=previous;render();toast("⚠️ تنظیم ورود ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();toast(x.settings.requireLogin?"ورود با رمز فعال شد":"ورود با رمز غیرفعال شد");};const swC=document.getElementById("swConfirm");if(swC)swC.onclick=()=>{const x=Store.get(),previous=x.settings.quickConfirm;x.settings.quickConfirm=x.settings.quickConfirm===false;if(!saveStoreSafe()){if(previous===undefined)delete x.settings.quickConfirm;else x.settings.quickConfirm=previous;render();toast("⚠️ تنظیم تأیید ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();toast(x.settings.quickConfirm?"تأیید عملیات فعال شد":"تأیید عملیات غیرفعال شد");};
 const gl=document.getElementById("grpList");
 if(gl){gl.innerHTML=(d.groups||["عمومی"]).map(g=>{
   const x=document.createElement("span");x.className="chip";x.style.cursor="default";
@@ -650,7 +651,7 @@ const commitMember=()=>{
 const previous=m?JSON.parse(JSON.stringify(m)):null;
 const savedMember=m?m:Object.assign({id:Store.uid()},obj);
 if(m)Object.assign(m,obj);else d.members.push(savedMember);
-if(Store.save()===false){if(m){for(const k of Object.keys(m))delete m[k];Object.assign(m,previous);}else{const at=d.members.indexOf(savedMember);if(at>=0)d.members.splice(at,1);}render();toast("⚠️ ذخیره عضو ناموفق بود؛ اطلاعات قبلی حفظ شد");return;}
+if(!saveStoreSafe()){if(m){for(const k of Object.keys(m))delete m[k];Object.assign(m,previous);}else{const at=d.members.indexOf(savedMember);if(at>=0)d.members.splice(at,1);}render();toast("⚠️ ذخیره عضو ناموفق بود؛ اطلاعات قبلی حفظ شد");return;}
 o.remove();render();toast("✅ ذخیره شد");
 };
 if(duplicateOwners.length){
@@ -659,8 +660,8 @@ if(duplicateOwners.length){
 }
 commitMember();};}
 function delMember(id){if(!requirePerm("delete","اجازه حذف ندارید"))return;const d=Store.get();const i=d.members.findIndex(m=>m.id===id);if(i<0)return;
-const mm=d.members.splice(i,1)[0];if(Store.save()===false){d.members.splice(i,0,mm);render();toast("⚠️ حذف عضو ذخیره نشد؛ اطلاعات عضو حفظ شد");return;}render();
-toastUndo("🗑 "+mm.name+" حذف شد",()=>{const at=Math.min(i,d.members.length);d.members.splice(at,0,mm);if(Store.save()===false){const restored=d.members.indexOf(mm);if(restored>=0)d.members.splice(restored,1);render();toast("⚠️ بازگردانی عضو ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}render();});}
+const mm=d.members.splice(i,1)[0];if(!saveStoreSafe()){d.members.splice(i,0,mm);render();toast("⚠️ حذف عضو ذخیره نشد؛ اطلاعات عضو حفظ شد");return;}render();
+toastUndo("🗑 "+mm.name+" حذف شد",()=>{const at=Math.min(i,d.members.length);d.members.splice(at,0,mm);if(!saveStoreSafe()){const restored=d.members.indexOf(mm);if(restored>=0)d.members.splice(restored,1);render();toast("⚠️ بازگردانی عضو ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}render();});}
 
 /* ---- جلسات خاص ---- */
 function validClassTimeRange(start,end){
@@ -678,9 +679,9 @@ if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید �
 const d=Store.get();d.extra=d.extra||[];
 if(d.extra.some(x=>x.key===key)){toast("⚠️ برای این تاریخ جلسه ثبت شده");return;}
 const added={key,start,end};d.extra.push(added);
-if(Store.save()===false){const at=d.extra.indexOf(added);if(at>=0)d.extra.splice(at,1);toast("⚠️ ذخیره جلسه ناموفق بود؛ تغییر ثبت نشد");return;}
+if(!saveStoreSafe()){const at=d.extra.indexOf(added);if(at>=0)d.extra.splice(at,1);toast("⚠️ ذخیره جلسه ناموفق بود؛ تغییر ثبت نشد");return;}
 o.remove();render();toast("✅ جلسه اضافه شد");};}
-function delExtra(i){confirm2("این جلسه حذف شود؟",()=>{const d=Store.get();d.extra=d.extra||[];if(i<0||i>=d.extra.length)return;const removed=d.extra.splice(i,1)[0];if(Store.save()===false){d.extra.splice(i,0,removed);render();toast("⚠️ حذف جلسه ذخیره نشد؛ جلسه حفظ شد");return;}render();});}
+function delExtra(i){confirm2("این جلسه حذف شود؟",()=>{const d=Store.get();d.extra=d.extra||[];if(i<0||i>=d.extra.length)return;const removed=d.extra.splice(i,1)[0];if(!saveStoreSafe()){d.extra.splice(i,0,removed);render();toast("⚠️ حذف جلسه ذخیره نشد؛ جلسه حفظ شد");return;}render();});}
 window.addExtra=addExtra;window.delExtra=delExtra;
 
 /* ---- حضور ---- */
@@ -695,7 +696,7 @@ const was=cur[ph],undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
 if(cur[ph]===st){cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[ph==="p1"?"a1":"a2"];}
 else cur[ph]=st;
 pushUndo({type:"att",key:key,mid:mid,prev:_prev,label:"ثبت حضور"});
-let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}
 if(!saved){if(_prev)d.sessions[key][mid]=_prev;else delete d.sessions[key][mid];if(!d.sessions[key]||!Object.keys(d.sessions[key]).length)delete d.sessions[key];if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;d.undoStack=undoBefore;render();toast("⚠️ حضور ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;
 if(route==="entry")renderEntry();else render();
@@ -705,7 +706,7 @@ const mm=d.members.find(m=>m.id===mid);if(!mm)return;
 toastUndo("📝 "+mm.name+": "+ST.lbl[cur[ph]],()=>{
 const c=d.sessions[key][mid];if(!c)return;const before=JSON.parse(JSON.stringify(c)),undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
 c[ph]=null;delete c[ph==="p1"?"time":"time2"];delete c[ph==="p1"?"note":"note2"];delete c[ph==="p1"?"a1":"a2"];
-let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){d.sessions[key][mid]=before;d.undoStack=undoBefore;render();toast("⚠️ بازگردانی حضور ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}route==="entry"?renderEntry():render();});
+let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){d.sessions[key][mid]=before;d.undoStack=undoBefore;render();toast("⚠️ بازگردانی حضور ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}route==="entry"?renderEntry():render();});
 }
 if(ph==="p2"&&d.members.length&&d.members.every(m=>!needsCall((d.sessions[key][m.id]||{}).p2)))
 celebrate("🎉 همه اعضا حاضرند — کلاس کامل است!");}
@@ -759,10 +760,10 @@ const sh=document.getElementById("rsh");if(sh)sh.onclick=()=>shareTxt(txt);}
 function togglePay(key,mid){const d=Store.get(),hadBucket=Object.prototype.hasOwnProperty.call(d.fees,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.fees[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.fees[key][mid])):null,previousLast=d._lastFee;d.fees[key]=d.fees[key]||{};
 if(d.fees[key][mid]&&d.fees[key][mid].paid)delete d.fees[key][mid];
 else d.fees[key][mid]={paid:true,date:Jalali.toKey(Jalali.today()),note:""};
-d._lastFee=key;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;render();toast("⚠️ ثبت پرداخت ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+d._lastFee=key;let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;render();toast("⚠️ ثبت پرداخت ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;render();window.scrollTo(0,y);
 if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
-function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur){toast("⚠️ رکورد پیگیری پیدا نشد؛ دوباره صفحه را باز کنید");return;}const hadNote=Object.prototype.hasOwnProperty.call(cur,"note"),previous=cur.note,previousLast=d._lastFee;cur.note=v;d._lastFee=key;let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){if(hadNote)cur.note=previous;else delete cur.note;if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;toast("⚠️ یادداشت ذخیره نشد؛ متن قبلی حفظ شد");}}
+function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur){toast("⚠️ رکورد پیگیری پیدا نشد؛ دوباره صفحه را باز کنید");return;}const hadNote=Object.prototype.hasOwnProperty.call(cur,"note"),previous=cur.note,previousLast=d._lastFee;cur.note=v;d._lastFee=key;let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){if(hadNote)cur.note=previous;else delete cur.note;if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;toast("⚠️ یادداشت ذخیره نشد؛ متن قبلی حفظ شد");}}
 
 /* ---- تکالیف: عملیات ---- */
 function pickHWDate(){datePick(null,j=>{const e=document.getElementById("hwDate");e.value=Jalali.fmt(j);e._j=Jalali.toKey(j);});}
@@ -776,23 +777,23 @@ const d=Store.get(),list=Array.isArray(d.homework)?d.homework:(d.homework=[]);
 if(list.some(h=>h&&h.key===key&&String(h.text||"").trim().toLocaleLowerCase()===t.toLocaleLowerCase())){
 toast("⚠️ تکلیف مشابهی برای همین جلسه ثبت شده است؛ متن یا جلسه را بررسی کنید");return;}
 const item={id:Store.uid(),key,text:t,audio:window._hwA||null};list.push(item);
-let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}
 if(!saved){const i=list.findIndex(h=>h.id===item.id);if(i>=0)list.splice(i,1);render();toast("⚠️ تکلیف ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 window._hwA=null;render();toast("تکلیف این جلسه ذخیره شد");}
 function delHW(id){const d=Store.get();const i=d.homework.findIndex(h=>h.id===id);if(i<0)return;
-const hw=d.homework.splice(i,1)[0];let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}if(!saved){d.homework.splice(i,0,hw);render();toast("⚠️ حذف تکلیف ذخیره نشد؛ تکلیف حفظ شد");return;}render();
-toastUndo("🗑 حذف شد",()=>{d.homework.splice(Math.min(i,d.homework.length),0,hw);let restored=false;try{restored=Store.save()!==false;}catch(err){restored=false;}if(!restored){const at=d.homework.findIndex(x=>x.id===hw.id);if(at>=0)d.homework.splice(at,1);render();toast("⚠️ بازگردانی ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}render();});}
+const hw=d.homework.splice(i,1)[0];let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){d.homework.splice(i,0,hw);render();toast("⚠️ حذف تکلیف ذخیره نشد؛ تکلیف حفظ شد");return;}render();
+toastUndo("🗑 حذف شد",()=>{d.homework.splice(Math.min(i,d.homework.length),0,hw);let restored=false;try{restored=saveStoreSafe();}catch(err){restored=false;}if(!restored){const at=d.homework.findIndex(x=>x.id===hw.id);if(at>=0)d.homework.splice(at,1);render();toast("⚠️ بازگردانی ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}render();});}
 function copyHW(id){const hw=Store.get().homework.find(h=>h.id===id);
 if(hw)shareTxt("📚 تکلیف جلسه "+Jalali.fmt(Jalali.fromKey(hw.key))+":\n\n"+hw.text);}
 
 /* ---- تنظیمات: عملیات ---- */
 function addClass(){const d=Store.get();const startDate=$("#cDate")?($("#cDate").dataset.iso||""):"",endDate=$("#cEndDate")?($("#cEndDate").dataset.iso||""):"",start=$("#cS")?$("#cS").value:"",end=$("#cE")?$("#cE").value:"";if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید بعد از ساعت شروع باشد");return;}if(startDate&&endDate&&endDate<startDate){toast("⚠️ تاریخ پایان باید بعد از شروع باشد");return;}const dow=startDate?Jalali.dow(Jalali.toJ(...startDate.split("-").map(Number))):+$("#cDow").value;
 const item={dow,start,end,startDate,endDate};d.classes.push(item);
-if(Store.save()===false){const at=d.classes.indexOf(item);if(at>=0)d.classes.splice(at,1);render();toast("⚠️ کلاس ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+if(!saveStoreSafe()){const at=d.classes.indexOf(item);if(at>=0)d.classes.splice(at,1);render();toast("⚠️ کلاس ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 render();toast("✅ کلاس اضافه شد");}
-function delClass(i){confirm2("این کلاس حذف شود؟",()=>{const d=Store.get();if(i<0||i>=d.classes.length)return;const removed=d.classes.splice(i,1)[0];if(Store.save()===false){d.classes.splice(i,0,removed);render();toast("⚠️ حذف کلاس ذخیره نشد؛ کلاس حفظ شد");return;}render();});}
-function setColor(c){const d=Store.get(),previous=d.settings.color;if(previous===c)return;d.settings.color=c;if(Store.save()===false){if(previous===undefined)delete d.settings.color;else d.settings.color=previous;applyColor();toast("⚠️ رنگ‌بندی ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}applyColor();render();}
-function toggleSound(){const d=Store.get(),previous=d.settings.sound;d.settings.sound=!d.settings.sound;if(Store.save()===false){if(previous===undefined)delete d.settings.sound;else d.settings.sound=previous;toast("⚠️ تنظیم صدا ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();}
+function delClass(i){confirm2("این کلاس حذف شود؟",()=>{const d=Store.get();if(i<0||i>=d.classes.length)return;const removed=d.classes.splice(i,1)[0];if(!saveStoreSafe()){d.classes.splice(i,0,removed);render();toast("⚠️ حذف کلاس ذخیره نشد؛ کلاس حفظ شد");return;}render();});}
+function setColor(c){const d=Store.get(),previous=d.settings.color;if(previous===c)return;d.settings.color=c;if(!saveStoreSafe()){if(previous===undefined)delete d.settings.color;else d.settings.color=previous;applyColor();toast("⚠️ رنگ‌بندی ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}applyColor();render();}
+function toggleSound(){const d=Store.get(),previous=d.settings.sound;d.settings.sound=!d.settings.sound;if(!saveStoreSafe()){if(previous===undefined)delete d.settings.sound;else d.settings.sound=previous;toast("⚠️ تنظیم صدا ذخیره نشد؛ مقدار قبلی حفظ شد");return;}render();}
 function theme(){return Store.get().settings.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");}
 function applyTheme(){const t=theme();document.body.classList.toggle("dark",t==="dark");
 document.querySelector('meta[name="theme-color"]').setAttribute("content",t==="dark"?"#0b1220":"#f4f7fe");
@@ -801,8 +802,8 @@ function applyColor(){const c=Store.get().settings.color||"blue";
 document.body.classList.remove("c-teal","c-purple","c-warm");
 if(c!=="blue")document.body.classList.add("c-"+c);}
 function toggleTheme(){setTheme(theme()==="light"?"dark":"light");}
-function setTheme(t){const d=Store.get(),previous=d.settings.theme;if(previous===t)return;d.settings.theme=t;if(Store.save()===false){if(previous===undefined)delete d.settings.theme;else d.settings.theme=previous;applyTheme();toast("⚠️ پوسته ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}applyTheme();render();}
-function setFS(f){const d=Store.get(),previous=d.settings.fs;if(previous===f)return;d.settings.fs=f;if(Store.save()===false){if(previous===undefined)delete d.settings.fs;else d.settings.fs=previous;applyFS();toast("⚠️ اندازه نوشته ذخیره نشد؛ مقدار قبلی حفظ شد");return;}applyFS();render();}
+function setTheme(t){const d=Store.get(),previous=d.settings.theme;if(previous===t)return;d.settings.theme=t;if(!saveStoreSafe()){if(previous===undefined)delete d.settings.theme;else d.settings.theme=previous;applyTheme();toast("⚠️ پوسته ذخیره نشد؛ انتخاب قبلی حفظ شد");return;}applyTheme();render();}
+function setFS(f){const d=Store.get(),previous=d.settings.fs;if(previous===f)return;d.settings.fs=f;if(!saveStoreSafe()){if(previous===undefined)delete d.settings.fs;else d.settings.fs=previous;applyFS();toast("⚠️ اندازه نوشته ذخیره نشد؛ مقدار قبلی حفظ شد");return;}applyFS();render();}
 function applyFS(){document.documentElement.style.setProperty("--fs",{s:"13px",m:"15px",l:"17px"}[Store.get().settings.fs||"m"]);}
 function backup(){
  if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;
@@ -946,7 +947,7 @@ for(let i=hasHead?1:0;i<rows.length;i++){
  seenNames.add(nameKey);
 }
 if(!candidates.length){toast("ℹ️ عضو جدیدی برای افزودن پیدا نشد"+(skip?"؛ نام‌های تکراری رد شدند":""));return;}
-const commit=()=>{const hadGroups=Array.isArray(d.groups),oldGroups=hadGroups?d.groups.slice():null;const firstNew=d.members.length;if(!hadGroups)d.groups=["عمومی"];candidates.forEach(m=>{if(m.group&&!d.groups.includes(m.group))d.groups.push(m.group);});d.members.push(...candidates);let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}if(!saved){d.members.splice(firstNew,candidates.length);if(hadGroups)d.groups=oldGroups;else delete d.groups;render();toast("⚠️ افزودن گروهی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
+const commit=()=>{const hadGroups=Array.isArray(d.groups),oldGroups=hadGroups?d.groups.slice():null;const firstNew=d.members.length;if(!hadGroups)d.groups=["عمومی"];candidates.forEach(m=>{if(m.group&&!d.groups.includes(m.group))d.groups.push(m.group);});d.members.push(...candidates);let saved=false;try{saved=saveStoreSafe();}catch(e){saved=false;}if(!saved){d.members.splice(firstNew,candidates.length);if(hadGroups)d.groups=oldGroups;else delete d.groups;render();toast("⚠️ افزودن گروهی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}render();toast("✅ "+Jalali.toFa(candidates.length)+" عضو اضافه شد"+(skip?" — "+Jalali.toFa(skip)+" نام تکراری رد شد":""));};
 if(sharedPhoneCount){confirm2("در "+Jalali.toFa(sharedPhoneCount)+" مورد، شماره تماس بین اعضا مشترک است. اگر عمدی است، واردکردن اعضا را ادامه دهید؟",commit);return;}
 commit();
 }catch(e){console.error("MCT CSV import:",e);toast("⚠️ خواندن فایل ناموفق بود؛ قالب و ستون‌های فایل را بررسی کنید");}finally{inp.value="";}};
