@@ -371,8 +371,8 @@ function roleIconsHTML(roles){
   }).join("");
 }
 
-function sessionSel(){const d=Store.get();return d._lastSession||curKey();}
-function curFeeKey(){return sessionSel()||(Store.get()._lastFee||curKey()||Jalali.toKey(Jalali.today()));}
+function sessionSel(){const d=Store.get(),k=d._lastSession;if(typeof k==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(k)){const known=k===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},k)||Object.prototype.hasOwnProperty.call(d.fees||{},k)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===k));if(known)return k;}return curKey();}
+function curFeeKey(){return sessionSel()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
 const needsCall=st=>st!=="present";
 function absCount(id){const s=Store.get().sessions;let a=0;
 for(const k in s){const st=(s[k][id]||{}).p2||(s[k][id]||{}).p1;if(st==="absent")a++;}return a;}
