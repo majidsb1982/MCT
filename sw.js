@@ -1,5 +1,5 @@
-const C="mct-v107";
-const A=["./","./index.html","./css/app.css?v=107","./js/core.js?v=107","./js/pages.js?v=107","./js/features.js?v=107","./js/app.js?v=107","./manifest.webmanifest","./icon.svg","./icon-192.svg","./icon-512.svg"];
+const C="mct-v108";
+const A=["./","./index.html","./css/app.css?v=108","./js/core.js?v=108","./js/pages.js?v=108","./js/features.js?v=108","./js/app.js?v=108","./manifest.webmanifest","./icon.svg","./icon-192.svg","./icon-512.svg"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(C).then(cache=>cache.addAll(A)).then(()=>self.skipWaiting()));
 });
