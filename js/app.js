@@ -54,14 +54,23 @@ function periodForm(){
   $("#perCl",o).onclick=()=>o.remove();
   $("#perSave",o).onclick=()=>{
     const pick=id=>[...o.querySelectorAll("#"+id+" option:checked")].map(x=>x.value);
+    const hadPeriod=Object.prototype.hasOwnProperty.call(d,"period");
+    const previousPeriod=hadPeriod?JSON.parse(JSON.stringify(d.period)):null;
+    const previousRoles=d.members.map(m=>({id:m.id,had:Object.prototype.hasOwnProperty.call(m,"roles"),value:Array.isArray(m.roles)?m.roles.slice():m.roles}));
     d.period={title:($("#perTitle",o).value||"دوره جاری").trim(),attendIds:pick("perAtt"),feeIds:pick("perFee"),hwIds:pick("perHw"),note:($("#perNote",o).value||"").trim()};
-    // sync member roles lightly
+    // Keep historical roles; add the current workflow assignments.
     d.members.forEach(m=>{
-      m.roles=m.roles||[];
-      const set=(role,ids)=>{const on=ids.includes(m.id);if(on&&!m.roles.includes(role))m.roles.push(role);};
+      m.roles=Array.isArray(m.roles)?m.roles:[];
+      const set=(role,ids)=>{if(ids.includes(m.id)&&!m.roles.includes(role))m.roles.push(role);};
       set("attend",d.period.attendIds);set("fee",d.period.feeIds);set("hw",d.period.hwIds);
     });
-    Store.save();o.remove();render();toast("✅ دوره ذخیره شد");
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      if(hadPeriod)d.period=previousPeriod;else delete d.period;
+      d.members.forEach(m=>{const old=previousRoles.find(x=>x.id===m.id);if(!old)return;if(old.had)m.roles=old.value;else delete m.roles;});
+      toast("⚠️ دوره ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;
+    }
+    o.remove();render();toast("✅ دوره ذخیره شد");
   };
 }
 
@@ -122,16 +131,28 @@ function doorState(){
   if(!d.doorChecks[k])d.doorChecks[k]={};
   return d.doorChecks[k];
 }
-function toggleDoorCheck(min){
-  const d=Store.get();const st=doorState();
-  st[String(min)]=!st[String(min)];
-  Store.save();
-  if(route==="entry")renderEntry();
-  else render();
-  if(st[String(min)]){
-    const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
-    toast(msg);
+function changeDoorCheck(min){
+  const d=Store.get(),key=doorKey(),field=String(min);
+  const hadBucket=Object.prototype.hasOwnProperty.call(d.doorChecks||{},key);
+  const hadValue=hadBucket&&Object.prototype.hasOwnProperty.call(d.doorChecks[key],field);
+  const previous=hadValue?d.doorChecks[key][field]:undefined;
+  d.doorChecks=d.doorChecks||{};
+  d.doorChecks[key]=d.doorChecks[key]||{};
+  d.doorChecks[key][field]=!d.doorChecks[key][field];
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(hadValue)d.doorChecks[key][field]=previous;else delete d.doorChecks[key][field];
+    if(!hadBucket&&d.doorChecks[key]&&!Object.keys(d.doorChecks[key]).length)delete d.doorChecks[key];
+    toast("⚠️ یادآوری ذخیره نشد؛ وضعیت قبلی حفظ شد");return null;
   }
+  return !!d.doorChecks[key][field];
+}
+function toggleDoorCheck(min){
+  const checked=changeDoorCheck(min);
+  if(checked===null)return;
+  if(route==="entry")renderEntry();else render();
+  const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
+  toast(msg);
 }
 function doorChecklistHTML(){
   const st=doorState();
@@ -151,9 +172,11 @@ function bindDoorChecklist(container){
   container.querySelectorAll("[data-door-check]").forEach(btn=>{
     btn.onclick=()=>{
       const min=Number(btn.getAttribute("data-door-check"));
-      const st=doorState();st[String(min)]=!st[String(min)];Store.save();
+      const checked=changeDoorCheck(min);
+      container.innerHTML=doorChecklistHTML();bindDoorChecklist(container);
+      if(checked===null)return;
       const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
-      toast(msg);container.innerHTML=doorChecklistHTML();bindDoorChecklist(container);
+      toast(msg);
     };
   });
 }
