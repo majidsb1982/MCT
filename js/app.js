@@ -151,6 +151,7 @@ function toggleDoorCheck(min){
   const checked=changeDoorCheck(min);
   if(checked===null)return;
   if(route==="entry")renderEntry();else render();
+  if(!checked)return;
   const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
   toast(msg);
 }
@@ -174,7 +175,7 @@ function bindDoorChecklist(container){
       const min=Number(btn.getAttribute("data-door-check"));
       const checked=changeDoorCheck(min);
       container.innerHTML=doorChecklistHTML();bindDoorChecklist(container);
-      if(checked===null)return;
+      if(checked===null||!checked)return;
       const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
       toast(msg);
     };
