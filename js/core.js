@@ -150,7 +150,7 @@ importObj(input){
  o=Object.assign({},JSON.parse(JSON.stringify(DEF)),o);
  const arrayKeys=["members","classes","extra","homework","groups","users","pinned","pinnedMembers","activityLog","undoStack"];
  for(const k of arrayKeys)if(o[k]!=null&&!Array.isArray(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
- for(const k of ["sessions","fees","doorChecks","sessionNotes","assignments"])if(o[k]!=null&&!isObj(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
+ for(const k of ["sessions","fees","doorChecks","sessionNotes","assignments","period"])if(o[k]!=null&&!isObj(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
  if(o.settings!=null&&!isObj(o.settings))throw new Error("ساختار تنظیمات معتبر نیست");
  if(o.members.some(m=>!isObj(m)||typeof m.name!=="string"||!m.name.trim()))throw new Error("یکی از اعضا ساختار یا نام معتبر ندارد");
  if((o.classes||[]).some(c=>!isObj(c)||!Number.isInteger(Number(c.dow))||Number(c.dow)<0||Number(c.dow)>6||typeof c.start!=="string"))throw new Error("تعریف یکی از کلاس‌های هفتگی معتبر نیست");
