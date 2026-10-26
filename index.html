@@ -18,7 +18,7 @@ window.addEventListener("load",function(){
 </script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.svg">
-<link rel="stylesheet" href="css/app.css?v=104">
+<link rel="stylesheet" href="css/app.css?v=105">
 <title>My-Class-Track</title>
 </head>
 <body>
@@ -36,10 +36,10 @@ window.addEventListener("load",function(){
 <script>(function(){function show(message){var box=document.getElementById("bootError"),text=document.getElementById("bootErrorText");if(box&&text){box.hidden=false;text.textContent=message;}}window.addEventListener("error",function(event){if(event.message)show("خطای اجرا: "+event.message);else if(event.target&&event.target.src)show("فایل بارگذاری نشد: "+event.target.src);},true);window.addEventListener("unhandledrejection",function(event){show("خطای برنامه: "+String(event.reason||"نامشخص"));});window.addEventListener("load",function(){setTimeout(function(){var app=document.getElementById("app");if(app&&!app.children.length)show("محتوای برنامه ساخته نشد؛ صفحه را دوباره بارگذاری کنید.");},4000);});})();</script>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <nav id="nav" aria-label="ناوبری اصلی"></nav>
-<script src="js/core.js?v=104"></script>
-<script src="js/pages.js?v=104"></script>
-<script src="js/features.js?v=104"></script>
-<script src="js/app.js?v=104"></script>
+<script src="js/core.js?v=105"></script>
+<script src="js/pages.js?v=105"></script>
+<script src="js/features.js?v=105"></script>
+<script src="js/app.js?v=105"></script>
 <script>
 (function(){
   var deferredPrompt=null,btn=document.getElementById("installBtn");
@@ -63,7 +63,7 @@ window.addEventListener("load",function(){
 })();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){
   window.addEventListener("load",function(){
-    navigator.serviceWorker.register("./sw.js?v=104").then(function(reg){return reg.update();}).catch(function(){});
+    navigator.serviceWorker.register("./sw.js?v=105").then(function(reg){return reg.update();}).catch(function(){});
   });
 }
 </script>
