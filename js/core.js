@@ -141,7 +141,7 @@ const save=()=>{
  }
 };
 load();
-return{get:()=>data,save,reset(){data=JSON.parse(JSON.stringify(DEF));save();},
+return{get:()=>data,save,reset(){const previous=data;data=JSON.parse(JSON.stringify(DEF));let saved=false;try{saved=save()!==false;}catch(e){saved=false;}if(!saved){data=previous;return false;}return true;},
 importObj(input){
  if(!input||typeof input!=="object"||Array.isArray(input)||!Array.isArray(input.members))throw new Error("ساختار فایل پشتیبان معتبر نیست");
  let o;
@@ -150,7 +150,17 @@ importObj(input){
  o=Object.assign({},JSON.parse(JSON.stringify(DEF)),o);
  const arrayKeys=["members","classes","extra","homework","groups","users","pinned","pinnedMembers","activityLog","undoStack"];
  for(const k of arrayKeys)if(o[k]!=null&&!Array.isArray(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
- for(const k of ["sessions","fees","doorChecks","sessionNotes","assignments"])if(o[k]!=null&&!isObj(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
+ for(const k of ["sessions","fees","doorChecks","sessionNotes","assignments","period"])if(o[k]!=null&&!isObj(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
+ for(const k of ["sessions","fees"])for(const [key,bucket] of Object.entries(o[k]||{})){
+   if(!isObj(bucket))throw new Error("ساختار رکورد جلسه «"+key+"» در بخش «"+k+"» معتبر نیست");
+   for(const [id,entry] of Object.entries(bucket))if(!isObj(entry))throw new Error("ساختار رکورد عضو «"+id+"» در جلسه «"+key+"» معتبر نیست");
+ }
+ for(const [key,bucket] of Object.entries(o.doorChecks||{}))if(!isObj(bucket))throw new Error("ساختار پیگیری یادآوری جلسه «"+key+"» معتبر نیست");
+ for(const [key,note] of Object.entries(o.sessionNotes||{}))if(typeof note!=="string")throw new Error("یادداشت جلسه «"+key+"» باید متن باشد");
+ if(o.assignments!=null){
+   if(!isObj(o.assignments))throw new Error("ساختار مسئولیت‌ها معتبر نیست");
+   for(const k of ["attend","fee"])if(o.assignments[k]!=null&&!isObj(o.assignments[k]))throw new Error("ساختار مسئولیت‌های «"+k+"» معتبر نیست");
+ }
  if(o.settings!=null&&!isObj(o.settings))throw new Error("ساختار تنظیمات معتبر نیست");
  if(o.members.some(m=>!isObj(m)||typeof m.name!=="string"||!m.name.trim()))throw new Error("یکی از اعضا ساختار یا نام معتبر ندارد");
  if((o.classes||[]).some(c=>!isObj(c)||!Number.isInteger(Number(c.dow))||Number(c.dow)<0||Number(c.dow)>6||typeof c.start!=="string"))throw new Error("تعریف یکی از کلاس‌های هفتگی معتبر نیست");
@@ -196,14 +206,16 @@ uid:()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6)};})();
 
 function storageInfo(){
   try{
-    const raw=localStorage.getItem("mct:data")||"";
+    const raw=localStorage.getItem("mct:data");
+    if(raw===null)return{ok:true,bytes:0,kb:0,mb:"0.00",pct:0,sessions:Object.keys(Store.get().sessions||{}).length,members:(Store.get().members||[]).length};
     const bytes=new Blob([raw]).size;
     const kb=Math.round(bytes/1024);
     const mb=(bytes/1048576).toFixed(2);
-    // typical quota ~5MB
+    // This is an estimate, not a browser-reported storage quota.
     const pct=Math.min(100,Math.round(bytes/5e6*100));
-    return{bytes,kb,mb,pct,sessions:Object.keys(Store.get().sessions||{}).length,members:(Store.get().members||[]).length};
-  }catch(e){return{bytes:0,kb:0,mb:"0",pct:0,sessions:0,members:0};}
+    const d=Store.get();
+    return{ok:true,bytes,kb,mb,pct,sessions:Object.keys(d.sessions||{}).length,members:(d.members||[]).length};
+  }catch(e){return{ok:false};}
 }
 function pruneSessions(keep,confirmed){
   const d=Store.get();
@@ -212,11 +224,27 @@ function pruneSessions(keep,confirmed){
   const requested=keep==null?configured: Number(keep);
   const max=Number.isFinite(requested)?Math.max(0,Math.floor(requested)):40;
   const removedKeys=keys.slice(max);
+  const oldSessions={},oldFees={};
+  removedKeys.forEach(key=>{
+    oldSessions[key]=d.sessions[key];
+    if(d.fees&&Object.prototype.hasOwnProperty.call(d.fees,key))oldFees[key]=d.fees[key];
+  });
   removedKeys.forEach(key=>{delete d.sessions[key];});
   // Fees share session keys: only remove fees belonging to sessions actually pruned.
   // Do not prune fees by their independent count; fee-only records may still be valid.
   removedKeys.forEach(key=>{if(d.fees&&Object.prototype.hasOwnProperty.call(d.fees,key))delete d.fees[key];});
-  Store.save();
+  let saved=false;
+  try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(!d.sessions||typeof d.sessions!=="object")d.sessions={};
+    Object.keys(oldSessions).forEach(key=>{d.sessions[key]=oldSessions[key];});
+    if(Object.keys(oldFees).length){
+      if(!d.fees||typeof d.fees!=="object")d.fees={};
+      Object.keys(oldFees).forEach(key=>{d.fees[key]=oldFees[key];});
+    }
+    try{toast("⚠️ پاک‌سازی جلسات ذخیره نشد؛ اطلاعات جلسات و شهریه‌ها حفظ شد");}catch(e){}
+    return 0;
+  }
   return removedKeys.length;
 }
 
@@ -353,8 +381,9 @@ function roleIconsHTML(roles){
   }).join("");
 }
 
-function sessionSel(){const d=Store.get();return d._lastSession||curKey();}
-function curFeeKey(){return sessionSel()||(Store.get()._lastFee||curKey()||Jalali.toKey(Jalali.today()));}
+function validSessionKey(k){if(typeof k!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(k))return false;const p=k.split("-").map(Number);return p[0]>=1&&p[1]>=1&&p[1]<=12&&p[2]>=1&&p[2]<=Jalali.mLen(p[0],p[1]);}
+function sessionSel(){const d=Store.get(),k=d._lastSession;if(validSessionKey(k)){const known=k===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},k)||Object.prototype.hasOwnProperty.call(d.fees||{},k)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===k));if(known)return k;}return curKey();}
+function curFeeKey(){return sessionSel()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
 const needsCall=st=>st!=="present";
 function absCount(id){const s=Store.get().sessions;let a=0;
 for(const k in s){const st=(s[k][id]||{}).p2||(s[k][id]||{}).p1;if(st==="absent")a++;}return a;}

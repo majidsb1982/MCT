@@ -610,3 +610,172 @@ test("home navigation is the first right-to-left item and calendar shortcut is c
   expect(first).toBe("خانه");
   await expect(page.getByRole("button", { name: /تقویم و مناسبت‌ها/ }).first()).toBeVisible();
 });
+
+
+test("failed member pin save restores the previous pin state", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.pinnedMembers = ["pin-save-failure"];
+    d.pinned = ["pin-save-failure"];
+    const originalSave = Store.save;
+    Store.save = () => false;
+    try { togglePinMember("pin-save-failure"); }
+    finally { Store.save = originalSave; }
+    return { members: d.pinnedMembers, pinned: d.pinned };
+  });
+  expect(result.members).toEqual(["pin-save-failure"]);
+  expect(result.pinned).toEqual(["pin-save-failure"]);
+});
+
+test("failed door reminder save does not leave a false completed state", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.doorChecks = {};
+    const originalSave = Store.save;
+    let outcome;
+    Store.save = () => false;
+    try { outcome = changeDoorCheck(15); }
+    finally { Store.save = originalSave; }
+    return { outcome, keys: Object.keys(d.doorChecks || {}), checks: d.doorChecks };
+  });
+  expect(result.outcome).toBeNull();
+  expect(result.keys).toEqual([]);
+});
+
+
+test("compact sync import rolls back every changed collection when storage fails", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.sessions = { "1405-01-08": { keep: { p1: "present" } } };
+    d.fees = { "1405-01-08": { keep: { paid: true } } };
+    d.assignments = { attend: { old: "u1" }, fee: { old: "u2" } };
+    d.period = { id: "prior-period", name: "دوره قبلی" };
+    Store.save();
+    communicationHub();
+  });
+  await page.locator("#c8").click();
+  await page.locator("#syI").click();
+
+  const payload = {
+    key: "1405-01-09",
+    sessions: { incoming: { p1: "absent" } },
+    fees: { incoming: { paid: false } },
+    assignments: { attend: { incoming: "u3" }, fee: { incoming: "u4" } },
+    period: { id: "incoming-period", name: "دوره وارداتی" }
+  };
+  const encoded = await page.evaluate(p =>
+    btoa(unescape(encodeURIComponent(JSON.stringify(p)))), payload);
+  await page.locator("#syncIn").fill(encoded);
+
+  const before = await page.evaluate(() => {
+    const d = Store.get();
+    return JSON.stringify({
+      sessions: d.sessions, fees: d.fees, assignments: d.assignments, period: d.period
+    });
+  });
+  await page.evaluate(() => {
+    window.__originalStoreSave = Store.save;
+    Store.save = () => false;
+  });
+  try {
+    await page.locator("#syGo").click();
+    await expect(page.locator(".toast")).toContainText("همگام‌سازی ذخیره نشد");
+    const after = await page.evaluate(() => {
+      const d = Store.get();
+      return JSON.stringify({
+        sessions: d.sessions, fees: d.fees, assignments: d.assignments, period: d.period
+      });
+    });
+    expect(after).toBe(before);
+  } finally {
+    await page.evaluate(() => {
+      if (window.__originalStoreSave) Store.save = window.__originalStoreSave;
+      delete window.__originalStoreSave;
+    });
+  }
+});
+
+test("compact sync rejects array-shaped assignments without changing stored data", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.assignments = { attend: { keep: "u1" }, fee: { keep: "u2" } };
+    Store.save();
+    communicationHub();
+  });
+  await page.locator("#c8").click();
+  await page.locator("#syI").click();
+  const payload = { assignments: [] };
+  const encoded = await page.evaluate(p =>
+    btoa(unescape(encodeURIComponent(JSON.stringify(p)))), payload);
+  await page.locator("#syncIn").fill(encoded);
+  const before = await page.evaluate(() => JSON.stringify(Store.get().assignments));
+  await page.locator("#syGo").click();
+  await expect(page.locator(".toast")).toContainText("کد نامعتبر است");
+  const after = await page.evaluate(() => JSON.stringify(Store.get().assignments));
+  expect(after).toBe(before);
+});
+
+
+test("backup restore rejects an array-shaped period without altering current data", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
+    d.period = { title: "دوره فعلی", attendIds: ["restore-keep"], feeIds: [], hwIds: [], note: "" };
+    Store.save();
+    const before = JSON.stringify({ members: d.members, period: d.period });
+    let message = "";
+    try { Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], period: [] }); }
+    catch (e) { message = e.message; }
+    return { before, after: JSON.stringify({ members: Store.get().members, period: Store.get().period }), message };
+  });
+  expect(result.message).toContain("period");
+  expect(result.after).toBe(result.before);
+});
+
+test("backup restore rejects malformed session records without altering current data", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
+    d.sessions = { "1405-01-01": { "restore-keep": { p1: "present" } } };
+    Store.save();
+    const before = JSON.stringify({ members: d.members, sessions: d.sessions });
+    let message = "";
+    try { Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], sessions: { "1405-01-01": [] } }); }
+    catch (e) { message = e.message; }
+    return { before, after: JSON.stringify({ members: Store.get().members, sessions: Store.get().sessions }), message };
+  });
+  expect(result.message).toContain("رکورد جلسه");
+  expect(result.after).toBe(result.before);
+});
+
+test("backup restore rolls back in-memory data when browser storage fails", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
+    d.period = { title: "دوره فعلی", attendIds: [], feeIds: [], hwIds: [], note: "" };
+    Store.save();
+    const before = JSON.stringify({ members: d.members, period: d.period });
+    const originalSetItem = Storage.prototype.setItem;
+    let message = "";
+    Storage.prototype.setItem = function(key, value) {
+      if (key === "mct:data") throw new Error("simulated storage failure");
+      return originalSetItem.call(this, key, value);
+    };
+    try {
+      Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], period: { title: "دوره جدید" } });
+    } catch (e) { message = e.message; }
+    finally { Storage.prototype.setItem = originalSetItem; }
+    return { before, after: JSON.stringify({ members: Store.get().members, period: Store.get().period }), message };
+  });
+  expect(result.message).toContain("داده فعلی حفظ شد");
+  expect(result.after).toBe(result.before);
+});

@@ -1,1 +1,35 @@
-{"name":"My-Class-Track","short_name":"MCT","description":"دستیار گروه درمانی","start_url":".","scope":".","display":"standalone","orientation":"any","dir":"rtl","lang":"fa","background_color":"#f4f7fe","theme_color":"#2563eb","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
+{
+  "id": "./",
+  "name": "My-Class-Track",
+  "short_name": "MCT",
+  "description": "دستیار گروه درمانی؛ مدیریت حضور، شهریه، تکالیف و یادآوری‌ها",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "dir": "rtl",
+  "lang": "fa",
+  "background_color": "#f4f7fe",
+  "theme_color": "#2563eb",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

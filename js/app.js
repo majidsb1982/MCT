@@ -54,14 +54,23 @@ function periodForm(){
   $("#perCl",o).onclick=()=>o.remove();
   $("#perSave",o).onclick=()=>{
     const pick=id=>[...o.querySelectorAll("#"+id+" option:checked")].map(x=>x.value);
+    const hadPeriod=Object.prototype.hasOwnProperty.call(d,"period");
+    const previousPeriod=hadPeriod?JSON.parse(JSON.stringify(d.period)):null;
+    const previousRoles=d.members.map(m=>({id:m.id,had:Object.prototype.hasOwnProperty.call(m,"roles"),value:Array.isArray(m.roles)?m.roles.slice():m.roles}));
     d.period={title:($("#perTitle",o).value||"دوره جاری").trim(),attendIds:pick("perAtt"),feeIds:pick("perFee"),hwIds:pick("perHw"),note:($("#perNote",o).value||"").trim()};
-    // sync member roles lightly
+    // Keep historical roles; add the current workflow assignments.
     d.members.forEach(m=>{
-      m.roles=m.roles||[];
-      const set=(role,ids)=>{const on=ids.includes(m.id);if(on&&!m.roles.includes(role))m.roles.push(role);};
+      m.roles=Array.isArray(m.roles)?m.roles:[];
+      const set=(role,ids)=>{if(ids.includes(m.id)&&!m.roles.includes(role))m.roles.push(role);};
       set("attend",d.period.attendIds);set("fee",d.period.feeIds);set("hw",d.period.hwIds);
     });
-    Store.save();o.remove();render();toast("✅ دوره ذخیره شد");
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      if(hadPeriod)d.period=previousPeriod;else delete d.period;
+      d.members.forEach(m=>{const old=previousRoles.find(x=>x.id===m.id);if(!old)return;if(old.had)m.roles=old.value;else delete m.roles;});
+      toast("⚠️ دوره ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;
+    }
+    o.remove();render();toast("✅ دوره ذخیره شد");
   };
 }
 
@@ -115,23 +124,36 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
 }
 
 /* چک‌لیست در کلاس برای اعلام به درمانگر */
-function doorKey(){const k=curKey()||sessionSel();return k||Jalali.toKey(Jalali.today());}
+function doorKey(){const k=sessionSel()||curKey();return k||Jalali.toKey(Jalali.today());}
 function doorState(){
   const d=Store.get();const k=doorKey();
   d.doorChecks=d.doorChecks||{};
   if(!d.doorChecks[k])d.doorChecks[k]={};
   return d.doorChecks[k];
 }
-function toggleDoorCheck(min){
-  const d=Store.get();const st=doorState();
-  st[String(min)]=!st[String(min)];
-  Store.save();
-  if(route==="entry")renderEntry();
-  else render();
-  if(st[String(min)]){
-    const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
-    toast(msg);
+function changeDoorCheck(min){
+  const d=Store.get(),key=doorKey(),field=String(min);
+  const hadBucket=Object.prototype.hasOwnProperty.call(d.doorChecks||{},key);
+  const hadValue=hadBucket&&Object.prototype.hasOwnProperty.call(d.doorChecks[key],field);
+  const previous=hadValue?d.doorChecks[key][field]:undefined;
+  d.doorChecks=d.doorChecks||{};
+  d.doorChecks[key]=d.doorChecks[key]||{};
+  d.doorChecks[key][field]=!d.doorChecks[key][field];
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(hadValue)d.doorChecks[key][field]=previous;else delete d.doorChecks[key][field];
+    if(!hadBucket&&d.doorChecks[key]&&!Object.keys(d.doorChecks[key]).length)delete d.doorChecks[key];
+    toast("⚠️ یادآوری ذخیره نشد؛ وضعیت قبلی حفظ شد");return null;
   }
+  return !!d.doorChecks[key][field];
+}
+function toggleDoorCheck(min){
+  const checked=changeDoorCheck(min);
+  if(checked===null)return;
+  if(route==="entry")renderEntry();else render();
+  if(!checked)return;
+  const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
+  toast(msg);
 }
 function doorChecklistHTML(){
   const st=doorState();
@@ -151,9 +173,11 @@ function bindDoorChecklist(container){
   container.querySelectorAll("[data-door-check]").forEach(btn=>{
     btn.onclick=()=>{
       const min=Number(btn.getAttribute("data-door-check"));
-      const st=doorState();st[String(min)]=!st[String(min)];Store.save();
+      const checked=changeDoorCheck(min);
+      container.innerHTML=doorChecklistHTML();bindDoorChecklist(container);
+      if(checked===null||!checked)return;
       const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
-      toast(msg);container.innerHTML=doorChecklistHTML();bindDoorChecklist(container);
+      toast(msg);
     };
   });
 }
@@ -179,15 +203,16 @@ function feeDeadlineInfo(){
 }
 function reportFeesToHami(){
   if(!requirePerm("shareSupport"))return;
-  const info=feeDeadlineInfo();
   const d=Store.get();
+  const info=feeDeadlineInfo();
+  const key=curFeeKey();
   const lines=[];
   lines.push("💰 گزارش شهریه برای حامی‌ها");
   lines.push(d.settings.className||"کلاس");
-  if(info.key)lines.push("جلسه: "+Jalali.fmt(Jalali.fromKey(info.key)));
-  lines.push(info.text);
+  if(key)lines.push("جلسه: "+Jalali.fmt(Jalali.fromKey(key)));
+  lines.push(info.key===key?info.text:"وضعیت پرداخت مربوط به جلسه انتخاب‌شده است.");
   lines.push("");
-  const f=info.key?(d.fees[info.key]||{}):{};
+  const f=key?(d.fees[key]||{}):{};
   const paid=[],unpaid=[];
   d.members.forEach(m=>{(f[m.id]&&f[m.id].paid?paid:unpaid).push(m);});
   if(paid.length){lines.push("✅ واریز شده ("+Jalali.toFa(paid.length)+"):");paid.forEach(m=>lines.push("• "+m.name));lines.push("");}
@@ -398,7 +423,7 @@ function streakBadge(id){
 function smartNextActionHTML(){
   const d=Store.get();
   const nc=nextClass();
-  const key=curKey()||sessionSel();
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
   const un1=d.members.filter(m=>!(s[m.id]||{}).p1).length;
@@ -819,6 +844,8 @@ function copyPrevSession(){
   const prev=keys.filter(k=>k<cur).pop();
   if(!prev){toast("جلسه قبلی برای کپی نیست");return;}
   confirm2("وضعیت حضور جلسه قبل روی این جلسه کپی شود؟ (فقط خانه‌های خالی پر می‌شوند)",()=>{
+    const hadTarget=Object.prototype.hasOwnProperty.call(d.sessions,cur);
+    const previousTarget=hadTarget?JSON.parse(JSON.stringify(d.sessions[cur])):null;
     d.sessions[cur]=d.sessions[cur]||{};
     let n=0;
     d.members.forEach(m=>{
@@ -827,7 +854,12 @@ function copyPrevSession(){
       const dst=d.sessions[cur][m.id]=d.sessions[cur][m.id]||{};
       if(!dst.p1&&src.p1){dst.p1=src.p1;n++;}
     });
-    Store.save();logActivity("کپی از جلسه قبل: "+n);toast("✅ "+Jalali.toFa(n)+" مورد از جلسه قبل");render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      if(hadTarget)d.sessions[cur]=previousTarget;else delete d.sessions[cur];
+      toast("⚠️ کپی حضور ذخیره نشد؛ اطلاعات جلسه حفظ شد");return;
+    }
+    logActivity("کپی از جلسه قبل: "+n);toast("✅ "+Jalali.toFa(n)+" مورد از جلسه قبل");render();
   });
 }
 function saveSessionNote(){
@@ -836,9 +868,12 @@ function saveSessionNote(){
   if(!key)return;
   const el=document.getElementById("sessNote");
   if(!el)return;
+  const hadNotes=Object.prototype.hasOwnProperty.call(d,"sessionNotes"),hadNote=hadNotes&&Object.prototype.hasOwnProperty.call(d.sessionNotes,key),previous=hadNote?d.sessionNotes[key]:undefined;
   d.sessionNotes=d.sessionNotes||{};
   d.sessionNotes[key]=el.value.trim();
-  Store.save();toast("یادداشت جلسه ذخیره شد");logActivity("یادداشت جلسه");
+  let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+  if(!saved){if(hadNote)d.sessionNotes[key]=previous;else delete d.sessionNotes[key];if(!hadNotes)delete d.sessionNotes;el.value=previous||"";toast("⚠️ یادداشت جلسه ذخیره نشد؛ متن قبلی حفظ شد");return;}
+  toast("یادداشت جلسه ذخیره شد");logActivity("یادداشت جلسه");
 }
 function sessionNoteHTML(){
   const d=Store.get();
@@ -871,10 +906,16 @@ function transferMyTasks(kind){
     const to=$("#trTo",o).value;
     const me=myAssigneeId();
     let n=0;
+    const previousMap=Object.assign({},map);
     d.members.forEach(m=>{
       if(map[m.id]===me){map[m.id]=to;n++;}
     });
-    Store.save();o.remove();toast("✅ "+Jalali.toFa(n)+" وظیفه منتقل شد");logActivity("انتقال وظایف");render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      Object.keys(map).forEach(k=>delete map[k]);Object.assign(map,previousMap);
+      toast("⚠️ انتقال وظایف ذخیره نشد؛ تقسیم قبلی حفظ شد");return;
+    }
+    o.remove();toast("✅ "+Jalali.toFa(n)+" وظیفه منتقل شد");logActivity("انتقال وظایف");render();
   };
 }
 function weeklyDigest(){
@@ -1254,7 +1295,7 @@ function heatmapHTML(){
 }
 function kpiRowHTML(){
   const d=Store.get();
-  const key=curKey()||sessionSel();
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
   let openA=0,openF=0,done=0;
@@ -1299,24 +1340,58 @@ function compactSyncExport(){
     const o2=modal('<h3 style="font-weight:800">وارد کردن همگام</h3><textarea rows="6" id="syncIn" placeholder="کد را بچسبانید"></textarea>'+
       '<button class="btn p" style="width:100%;margin-top:8px" id="syGo">ادغام</button>');
     $("#syGo",o2).onclick=()=>{
+      let d=null,snapshot=null,committed=false;
       try{
         const raw=decodeURIComponent(escape(atob($("#syncIn",o2).value.trim())));
         const p=JSON.parse(raw);
-        const d=Store.get();
+        if(!p||typeof p!=="object"||Array.isArray(p))throw new Error("invalid payload");
+        if((p.sessions||p.fees)&&(!validSessionKey(p.key)))throw new Error("invalid session key");
+        if(p.sessions&&(!p.sessions||typeof p.sessions!=="object"||Array.isArray(p.sessions)))throw new Error("invalid sessions");
+        if(p.fees&&(!p.fees||typeof p.fees!=="object"||Array.isArray(p.fees)))throw new Error("invalid fees");
+        if(p.assignments&&(typeof p.assignments!=="object"||Array.isArray(p.assignments)))throw new Error("invalid assignments");
+        if(p.assignments&&p.assignments.attend&&(typeof p.assignments.attend!=="object"||Array.isArray(p.assignments.attend)))throw new Error("invalid attendance assignments");
+        if(p.assignments&&p.assignments.fee&&(typeof p.assignments.fee!=="object"||Array.isArray(p.assignments.fee)))throw new Error("invalid fee assignments");
+        if(p.period&&(typeof p.period!=="object"||Array.isArray(p.period)))throw new Error("invalid period");
+        d=Store.get();
+        snapshot={
+          sessions:JSON.parse(JSON.stringify(d.sessions||{})),
+          fees:JSON.parse(JSON.stringify(d.fees||{})),
+          assignments:JSON.parse(JSON.stringify(d.assignments||{attend:{},fee:{}})),
+          hadPeriod:Object.prototype.hasOwnProperty.call(d,"period"),
+          period:d.period?JSON.parse(JSON.stringify(d.period)):null
+        };
         if(p.sessions&&p.key){
+          d.sessions=d.sessions||{};
           d.sessions[p.key]=Object.assign({},d.sessions[p.key]||{},p.sessions);
         }
         if(p.fees&&p.key){
+          d.fees=d.fees||{};
           d.fees[p.key]=Object.assign({},d.fees[p.key]||{},p.fees);
         }
         if(p.assignments){
           d.assignments=d.assignments||{attend:{},fee:{}};
-          d.assignments.attend=Object.assign({},d.assignments.attend,p.assignments.attend||{});
-          d.assignments.fee=Object.assign({},d.assignments.fee,p.assignments.fee||{});
+          d.assignments.attend=Object.assign({},d.assignments.attend||{},p.assignments.attend||{});
+          d.assignments.fee=Object.assign({},d.assignments.fee||{},p.assignments.fee||{});
         }
-        if(p.period)d.period=Object.assign({},d.period,p.period);
-        Store.save();o2.remove();toast("✅ همگام‌سازی انجام شد");logActivity("وارد کردن همگام فشرده");render();
-      }catch(e){toast("کد نامعتبر است");}
+        if(p.period)d.period=Object.assign({},d.period||{},p.period);
+        let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+        if(!saved){
+          d.sessions=snapshot.sessions;d.fees=snapshot.fees;d.assignments=snapshot.assignments;
+          if(snapshot.hadPeriod)d.period=snapshot.period;else delete d.period;
+          toast("⚠️ همگام‌سازی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;
+        }
+        committed=true;
+        o2.remove();
+        try{logActivity("وارد کردن همگام فشرده");}catch(e){}
+        try{render();}catch(e){toast("همگام‌سازی ذخیره شد؛ برای نمایش تازه صفحه را باز کنید");return;}
+        toast("✅ همگام‌سازی انجام شد");
+      }catch(e){
+        if(!committed&&d&&snapshot){
+          d.sessions=snapshot.sessions;d.fees=snapshot.fees;d.assignments=snapshot.assignments;
+          if(snapshot.hadPeriod)d.period=snapshot.period;else delete d.period;
+        }
+        toast(committed?"همگام‌سازی ذخیره شد، اما نمایش صفحه نیاز به تازه‌سازی دارد":"کد نامعتبر است یا ساختار آن پشتیبانی نمی‌شود");
+      }
     };
   };
 }
@@ -1389,7 +1464,10 @@ function requirePerm(perm,msg){
   return false;
 }
 function logoutUser(){
-  const d=Store.get();d.currentUserId=null;Store.save();
+  const d=Store.get(),previous=d.currentUserId;
+  d.currentUserId=null;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.currentUserId=previous;toast("⚠️ خروج ذخیره نشد؛ وضعیت حساب تغییر نکرد");return;}
   if(d.settings.requireLogin){route="login";render();}
   else toast("از حساب خارج شدید");
 }
@@ -1398,7 +1476,10 @@ function loginUser(userId,pin){
   const u=d.users.find(x=>x.id===userId);
   if(!u){toast("کاربر یافت نشد");return false;}
   if(String(u.pin||"")!==String(pin||"")){toast("⚠️ رمز نادرست");return false;}
-  d.currentUserId=u.id;Store.save();
+  const previous=d.currentUserId;
+  d.currentUserId=u.id;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.currentUserId=previous;toast("⚠️ ورود ذخیره نشد؛ دوباره تلاش کنید");return false;}
   route="home";resetUI();render();
   toast("سلام "+u.name+" 👋");
   return true;
@@ -1504,22 +1585,28 @@ function saveUserForm(id){
   const role=$("#uRole")?$("#uRole").value:"follow";
   if(!name){toast("نام کاربر را وارد کنید");return;}
   if(!/^\d{4}$/.test(pin)){toast("رمز باید ۴ رقم باشد");return;}
+  const previousUsers=d.users.map(u=>Object.assign({},u));
   if(id){
     const u=d.users.find(x=>x.id===id);if(!u)return;
     u.name=name;u.pin=pin;u.role=role;
   }else{
     d.users.push({id:Store.uid(),name,pin,role});
   }
-  Store.save();render();toast("✅ کاربر ذخیره شد");
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.users=previousUsers;toast("⚠️ اطلاعات کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+  render();toast("✅ کاربر ذخیره شد");
 }
 function delUser(id){
   if(!requirePerm("settings"))return;
   const d=Store.get();
   if(d.users.length<=1){toast("حداقل یک کاربر لازم است");return;}
   confirm2("این کاربر حذف شود؟",()=>{
+    const previousUsers=d.users.map(u=>Object.assign({},u)),previousCurrent=d.currentUserId;
     d.users=d.users.filter(x=>x.id!==id);
     if(d.currentUserId===id)d.currentUserId=d.users[0].id;
-    Store.save();render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){d.users=previousUsers;d.currentUserId=previousCurrent;toast("⚠️ حذف کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+    render();
   });
 }
 function userForm(id){
@@ -1974,7 +2061,6 @@ if(Store.get().settings.requireLogin&&!currentUser())route="login";
 render();
 try{scheduleClassNotif();}catch(e){}
 
-if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)
-navigator.serviceWorker.register("sw.js").catch(()=>{});
+/* Service worker registration is centralized in index.html. */
 window.addEventListener("online",()=>{toast("🟢 آنلاین شدید");render();});
 window.addEventListener("offline",()=>{toast("🔴 آفلاین — داده محلی امن است");render();});
