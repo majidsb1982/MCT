@@ -844,6 +844,8 @@ function copyPrevSession(){
   const prev=keys.filter(k=>k<cur).pop();
   if(!prev){toast("جلسه قبلی برای کپی نیست");return;}
   confirm2("وضعیت حضور جلسه قبل روی این جلسه کپی شود؟ (فقط خانه‌های خالی پر می‌شوند)",()=>{
+    const hadTarget=Object.prototype.hasOwnProperty.call(d.sessions,cur);
+    const previousTarget=hadTarget?JSON.parse(JSON.stringify(d.sessions[cur])):null;
     d.sessions[cur]=d.sessions[cur]||{};
     let n=0;
     d.members.forEach(m=>{
@@ -852,7 +854,12 @@ function copyPrevSession(){
       const dst=d.sessions[cur][m.id]=d.sessions[cur][m.id]||{};
       if(!dst.p1&&src.p1){dst.p1=src.p1;n++;}
     });
-    Store.save();logActivity("کپی از جلسه قبل: "+n);toast("✅ "+Jalali.toFa(n)+" مورد از جلسه قبل");render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      if(hadTarget)d.sessions[cur]=previousTarget;else delete d.sessions[cur];
+      toast("⚠️ کپی حضور ذخیره نشد؛ اطلاعات جلسه حفظ شد");return;
+    }
+    logActivity("کپی از جلسه قبل: "+n);toast("✅ "+Jalali.toFa(n)+" مورد از جلسه قبل");render();
   });
 }
 function saveSessionNote(){
@@ -899,10 +906,16 @@ function transferMyTasks(kind){
     const to=$("#trTo",o).value;
     const me=myAssigneeId();
     let n=0;
+    const previousMap=Object.assign({},map);
     d.members.forEach(m=>{
       if(map[m.id]===me){map[m.id]=to;n++;}
     });
-    Store.save();o.remove();toast("✅ "+Jalali.toFa(n)+" وظیفه منتقل شد");logActivity("انتقال وظایف");render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      Object.keys(map).forEach(k=>delete map[k]);Object.assign(map,previousMap);
+      toast("⚠️ انتقال وظایف ذخیره نشد؛ تقسیم قبلی حفظ شد");return;
+    }
+    o.remove();toast("✅ "+Jalali.toFa(n)+" وظیفه منتقل شد");logActivity("انتقال وظایف");render();
   };
 }
 function weeklyDigest(){
@@ -1417,7 +1430,10 @@ function requirePerm(perm,msg){
   return false;
 }
 function logoutUser(){
-  const d=Store.get();d.currentUserId=null;Store.save();
+  const d=Store.get(),previous=d.currentUserId;
+  d.currentUserId=null;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.currentUserId=previous;toast("⚠️ خروج ذخیره نشد؛ وضعیت حساب تغییر نکرد");return;}
   if(d.settings.requireLogin){route="login";render();}
   else toast("از حساب خارج شدید");
 }
@@ -1426,7 +1442,10 @@ function loginUser(userId,pin){
   const u=d.users.find(x=>x.id===userId);
   if(!u){toast("کاربر یافت نشد");return false;}
   if(String(u.pin||"")!==String(pin||"")){toast("⚠️ رمز نادرست");return false;}
-  d.currentUserId=u.id;Store.save();
+  const previous=d.currentUserId;
+  d.currentUserId=u.id;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.currentUserId=previous;toast("⚠️ ورود ذخیره نشد؛ دوباره تلاش کنید");return false;}
   route="home";resetUI();render();
   toast("سلام "+u.name+" 👋");
   return true;
@@ -1532,22 +1551,28 @@ function saveUserForm(id){
   const role=$("#uRole")?$("#uRole").value:"follow";
   if(!name){toast("نام کاربر را وارد کنید");return;}
   if(!/^\d{4}$/.test(pin)){toast("رمز باید ۴ رقم باشد");return;}
+  const previousUsers=d.users.map(u=>Object.assign({},u));
   if(id){
     const u=d.users.find(x=>x.id===id);if(!u)return;
     u.name=name;u.pin=pin;u.role=role;
   }else{
     d.users.push({id:Store.uid(),name,pin,role});
   }
-  Store.save();render();toast("✅ کاربر ذخیره شد");
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.users=previousUsers;toast("⚠️ اطلاعات کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+  render();toast("✅ کاربر ذخیره شد");
 }
 function delUser(id){
   if(!requirePerm("settings"))return;
   const d=Store.get();
   if(d.users.length<=1){toast("حداقل یک کاربر لازم است");return;}
   confirm2("این کاربر حذف شود؟",()=>{
+    const previousUsers=d.users.map(u=>Object.assign({},u)),previousCurrent=d.currentUserId;
     d.users=d.users.filter(x=>x.id!==id);
     if(d.currentUserId===id)d.currentUserId=d.users[0].id;
-    Store.save();render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){d.users=previousUsers;d.currentUserId=previousCurrent;toast("⚠️ حذف کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+    render();
   });
 }
 function userForm(id){
