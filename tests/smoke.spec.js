@@ -297,6 +297,9 @@ test("attendance session selector includes dates that have only fee or homework 
   const options = await page.locator('select[name="session-select"] option').evaluateAll(nodes => nodes.map(n => n.value));
   expect(options).toContain("1405-01-01");
   expect(options).toContain("1405-01-15");
+  await page.evaluate(() => go("fees"));
+  const feeOptions = await page.locator("#feeSessionSelect option").evaluateAll(nodes => nodes.map(n => n.value));
+  expect(feeOptions).toContain("1405-01-15");
 });
 
 test("absence reason is saved against the selected session and survives reload", async ({ page }) => {
