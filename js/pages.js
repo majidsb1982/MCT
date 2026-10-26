@@ -9,7 +9,7 @@
  */
 "use strict";
 const Pages={};let route="home";
-function saveStoreSafe(){try{return saveStoreSafe();}catch(e){return false;}}
+function saveStoreSafe(){try{return Store.save()!==false;}catch(e){return false;}}
 const UI={callOnly:false,doneTab:false,filter:"",repFull:false,feeTab:0};
 function resetUI(){UI.callOnly=false;UI.doneTab=false;UI.filter="";UI.feeTab=0;window._hwA=null;}
 
