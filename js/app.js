@@ -1340,24 +1340,52 @@ function compactSyncExport(){
     const o2=modal('<h3 style="font-weight:800">وارد کردن همگام</h3><textarea rows="6" id="syncIn" placeholder="کد را بچسبانید"></textarea>'+
       '<button class="btn p" style="width:100%;margin-top:8px" id="syGo">ادغام</button>');
     $("#syGo",o2).onclick=()=>{
+      let d=null,snapshot=null;
       try{
         const raw=decodeURIComponent(escape(atob($("#syncIn",o2).value.trim())));
         const p=JSON.parse(raw);
-        const d=Store.get();
+        if(!p||typeof p!=="object"||Array.isArray(p))throw new Error("invalid payload");
+        if((p.sessions||p.fees)&&(!validSessionKey(p.key)))throw new Error("invalid session key");
+        if(p.sessions&&(!p.sessions||typeof p.sessions!=="object"||Array.isArray(p.sessions)))throw new Error("invalid sessions");
+        if(p.fees&&(!p.fees||typeof p.fees!=="object"||Array.isArray(p.fees)))throw new Error("invalid fees");
+        if(p.assignments&&typeof p.assignments!=="object")throw new Error("invalid assignments");
+        if(p.period&&typeof p.period!=="object")throw new Error("invalid period");
+        d=Store.get();
+        snapshot={
+          sessions:JSON.parse(JSON.stringify(d.sessions||{})),
+          fees:JSON.parse(JSON.stringify(d.fees||{})),
+          assignments:JSON.parse(JSON.stringify(d.assignments||{attend:{},fee:{}})),
+          hadPeriod:Object.prototype.hasOwnProperty.call(d,"period"),
+          period:d.period?JSON.parse(JSON.stringify(d.period)):null
+        };
         if(p.sessions&&p.key){
+          d.sessions=d.sessions||{};
           d.sessions[p.key]=Object.assign({},d.sessions[p.key]||{},p.sessions);
         }
         if(p.fees&&p.key){
+          d.fees=d.fees||{};
           d.fees[p.key]=Object.assign({},d.fees[p.key]||{},p.fees);
         }
         if(p.assignments){
           d.assignments=d.assignments||{attend:{},fee:{}};
-          d.assignments.attend=Object.assign({},d.assignments.attend,p.assignments.attend||{});
-          d.assignments.fee=Object.assign({},d.assignments.fee,p.assignments.fee||{});
+          d.assignments.attend=Object.assign({},d.assignments.attend||{},p.assignments.attend||{});
+          d.assignments.fee=Object.assign({},d.assignments.fee||{},p.assignments.fee||{});
         }
-        if(p.period)d.period=Object.assign({},d.period,p.period);
-        Store.save();o2.remove();toast("✅ همگام‌سازی انجام شد");logActivity("وارد کردن همگام فشرده");render();
-      }catch(e){toast("کد نامعتبر است");}
+        if(p.period)d.period=Object.assign({},d.period||{},p.period);
+        let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+        if(!saved){
+          d.sessions=snapshot.sessions;d.fees=snapshot.fees;d.assignments=snapshot.assignments;
+          if(snapshot.hadPeriod)d.period=snapshot.period;else delete d.period;
+          toast("⚠️ همگام‌سازی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;
+        }
+        o2.remove();toast("✅ همگام‌سازی انجام شد");logActivity("وارد کردن همگام فشرده");render();
+      }catch(e){
+        if(d&&snapshot){
+          d.sessions=snapshot.sessions;d.fees=snapshot.fees;d.assignments=snapshot.assignments;
+          if(snapshot.hadPeriod)d.period=snapshot.period;else delete d.period;
+        }
+        toast("کد نامعتبر است یا ساختار آن پشتیبانی نمی‌شود");
+      }
     };
   };
 }
