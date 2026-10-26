@@ -281,6 +281,24 @@ test("fee session selector switches the active session without mixing payment re
   expect(records).toEqual([true, false]);
 });
 
+test("attendance session selector includes dates that have only fee or homework records", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "session-picker-member", name: "عضو انتخاب جلسه", phones: [], roles: [], group: "عمومی" }];
+    d.sessions = { "1405-01-08": { "session-picker-member": { p1: "present" } } };
+    d.fees = { "1405-01-01": { "session-picker-member": { paid: true } } };
+    d.homework = [{ id: "hw-picker", key: "1405-01-15", text: "تکلیف آزمایشی" }];
+    d._lastSession = "1405-01-08";
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.evaluate(() => go("attend"));
+  const options = await page.locator('select[name="session-select"] option').evaluateAll(nodes => nodes.map(n => n.value));
+  expect(options).toContain("1405-01-01");
+  expect(options).toContain("1405-01-15");
+});
+
 test("absence reason is saved against the selected session and survives reload", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
