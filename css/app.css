@@ -1013,3 +1013,6 @@ html{min-height:100%;background:var(--bg)}
 body{min-height:100vh;background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 7% 3%,rgba(59,130,246,.13),transparent 46%),radial-gradient(ellipse at 96% 38%,rgba(139,92,246,.09),transparent 48%),linear-gradient(180deg,rgba(224,236,255,.36),transparent 76%)!important;background-repeat:no-repeat;background-size:100% 100%;background-attachment:fixed!important}
 #app.page{background:transparent!important}
 body.dark{background-color:var(--bg)!important;background-image:radial-gradient(ellipse at 7% 3%,rgba(59,130,246,.13),transparent 46%),radial-gradient(ellipse at 96% 38%,rgba(139,92,246,.08),transparent 48%)!important}
+
+/* PWA install control */
+.install-btn[hidden]{display:none!important}
