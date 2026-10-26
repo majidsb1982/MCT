@@ -1,12 +1,12 @@
-const C="mct-v101";
-const A=["./","./index.html","./css/app.css?v=101","./js/core.js?v=101","./js/pages.js?v=101","./js/features.js?v=101","./js/app.js?v=101","./manifest.webmanifest","./icon.svg","./icon-192.svg","./icon-512.svg"];
-const OLD_MCT_CACHES=Array.from({length:39},(_,i)=>"mct-v"+(62+i));
+const C="mct-v102";
+const A=["./","./index.html","./css/app.css?v=102","./js/core.js?v=102","./js/pages.js?v=102","./js/features.js?v=102","./js/app.js?v=102","./manifest.webmanifest","./icon.svg","./icon-192.svg","./icon-512.svg"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(C).then(cache=>cache.addAll(A)).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",event=>{
   event.waitUntil((async()=>{
-    await Promise.all(OLD_MCT_CACHES.map(name=>caches.delete(name)));
+    const keys=await caches.keys();
+    await Promise.all(keys.filter(name=>name.startsWith("mct-v")&&name!==C).map(name=>caches.delete(name)));
     await self.clients.claim();
   })());
 });
