@@ -1,12 +1,12 @@
-const C="mct-v100";
-const A=["./","./index.html","./css/app.css?v=100","./js/core.js?v=100","./js/pages.js?v=100","./js/features.js?v=100","./js/app.js?v=100","./manifest.webmanifest","./icon.svg"];
+const C="mct-v101";
+const A=["./","./index.html","./css/app.css?v=101","./js/core.js?v=101","./js/pages.js?v=101","./js/features.js?v=101","./js/app.js?v=101","./manifest.webmanifest","./icon.svg","./icon-192.svg","./icon-512.svg"];
+const OLD_MCT_CACHES=Array.from({length:39},(_,i)=>"mct-v"+(62+i));
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(C).then(cache=>cache.addAll(A)).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",event=>{
   event.waitUntil((async()=>{
-    const keys=await caches.keys();
-    await Promise.all(keys.filter(key=>key.startsWith("mct-")&&key!==C).map(key=>caches.delete(key)));
+    await Promise.all(OLD_MCT_CACHES.map(name=>caches.delete(name)));
     await self.clients.claim();
   })());
 });
@@ -24,9 +24,7 @@ self.addEventListener("fetch",event=>{
       }
       return response;
     }catch(error){
-      if(request.mode==="navigate"){
-        return (await cache.match("./index.html"))||Response.error();
-      }
+      if(request.mode==="navigate")return (await cache.match("./index.html"))||Response.error();
       return Response.error();
     }
   })());
