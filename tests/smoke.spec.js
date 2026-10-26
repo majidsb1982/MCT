@@ -795,6 +795,30 @@ test("backup restore rejects malformed session and fee records without altering 
   expect(result.after).toBe(result.before);
 });
 
+test("backup restore rejects malformed homework records without altering current data", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
+    d.homework = [{ id: "hw-existing", key: "1405-01-08", text: "تکلیف سالم" }];
+    Store.save();
+    const before = JSON.stringify({ members: d.members, homework: d.homework });
+    const errors = [];
+    for (const homework of [
+      [null],
+      [{ id: "bad-text", key: "1405-01-08", text: 12 }],
+      [{ id: "bad-date", key: "تاریخ نامعتبر", text: "تکلیف نامعتبر" }]
+    ]) {
+      try { Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], homework }); errors.push(""); }
+      catch (e) { errors.push(e.message); }
+    }
+    return { before, after: JSON.stringify({ members: Store.get().members, homework: Store.get().homework }), errors };
+  });
+  expect(result.errors).toHaveLength(3);
+  expect(result.errors.every(message => !!message)).toBeTruthy();
+  expect(result.after).toBe(result.before);
+});
+
 test("backup restore rolls back in-memory data when browser storage fails", async ({ page }) => {
   await page.goto("/");
   const result = await page.evaluate(() => {
