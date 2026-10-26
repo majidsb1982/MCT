@@ -739,20 +739,29 @@ test("backup restore rejects an array-shaped period without altering current dat
   expect(result.after).toBe(result.before);
 });
 
-test("backup restore rejects malformed session records without altering current data", async ({ page }) => {
+test("backup restore rejects malformed session and fee records without altering current data", async ({ page }) => {
   await page.goto("/");
   const result = await page.evaluate(() => {
     const d = Store.get();
     d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
     d.sessions = { "1405-01-01": { "restore-keep": { p1: "present" } } };
+    d.fees = { "1405-01-01": { "restore-keep": { paid: true } } };
     Store.save();
-    const before = JSON.stringify({ members: d.members, sessions: d.sessions });
-    let message = "";
-    try { Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], sessions: { "1405-01-01": [] } }); }
-    catch (e) { message = e.message; }
-    return { before, after: JSON.stringify({ members: Store.get().members, sessions: Store.get().sessions }), message };
+    const before = JSON.stringify({ members: d.members, sessions: d.sessions, fees: d.fees });
+    const errors = [];
+    for (const backup of [
+      { members: [{ id: "new", name: "عضو جدید" }], sessions: { "1405-01-01": [] } },
+      { members: [{ id: "new", name: "عضو جدید" }], fees: { "1405-01-01": { "restore-keep": "پرداخت نامعتبر" } } },
+      { members: [{ id: "new", name: "عضو جدید" }], doorChecks: { "1405-01-01": [] } },
+      { members: [{ id: "new", name: "عضو جدید" }], sessionNotes: { "1405-01-01": { note: "متن نامعتبر" } } }
+    ]) {
+      try { Store.importObj(backup); errors.push(""); }
+      catch (e) { errors.push(e.message); }
+    }
+    return { before, after: JSON.stringify({ members: Store.get().members, sessions: Store.get().sessions, fees: Store.get().fees }), errors };
   });
-  expect(result.message).toContain("رکورد جلسه");
+  expect(result.errors).toHaveLength(4);
+  expect(result.errors.every(message => !!message)).toBeTruthy();
   expect(result.after).toBe(result.before);
 });
 
