@@ -610,3 +610,36 @@ test("home navigation is the first right-to-left item and calendar shortcut is c
   expect(first).toBe("خانه");
   await expect(page.getByRole("button", { name: /تقویم و مناسبت‌ها/ }).first()).toBeVisible();
 });
+
+
+test("failed member pin save restores the previous pin state", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.pinnedMembers = ["pin-save-failure"];
+    d.pinned = ["pin-save-failure"];
+    const originalSave = Store.save;
+    Store.save = () => false;
+    try { togglePinMember("pin-save-failure"); }
+    finally { Store.save = originalSave; }
+    return { members: d.pinnedMembers, pinned: d.pinned };
+  });
+  expect(result.members).toEqual(["pin-save-failure"]);
+  expect(result.pinned).toEqual(["pin-save-failure"]);
+});
+
+test("failed door reminder save does not leave a false completed state", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.doorChecks = {};
+    const originalSave = Store.save;
+    let outcome;
+    Store.save = () => false;
+    try { outcome = changeDoorCheck(15); }
+    finally { Store.save = originalSave; }
+    return { outcome, keys: Object.keys(d.doorChecks || {}), checks: d.doorChecks };
+  });
+  expect(result.outcome).toBeNull();
+  expect(result.keys).toEqual([]);
+});
