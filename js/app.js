@@ -1340,7 +1340,7 @@ function compactSyncExport(){
     const o2=modal('<h3 style="font-weight:800">وارد کردن همگام</h3><textarea rows="6" id="syncIn" placeholder="کد را بچسبانید"></textarea>'+
       '<button class="btn p" style="width:100%;margin-top:8px" id="syGo">ادغام</button>');
     $("#syGo",o2).onclick=()=>{
-      let d=null,snapshot=null;
+      let d=null,snapshot=null,committed=false;
       try{
         const raw=decodeURIComponent(escape(atob($("#syncIn",o2).value.trim())));
         const p=JSON.parse(raw);
@@ -1348,8 +1348,10 @@ function compactSyncExport(){
         if((p.sessions||p.fees)&&(!validSessionKey(p.key)))throw new Error("invalid session key");
         if(p.sessions&&(!p.sessions||typeof p.sessions!=="object"||Array.isArray(p.sessions)))throw new Error("invalid sessions");
         if(p.fees&&(!p.fees||typeof p.fees!=="object"||Array.isArray(p.fees)))throw new Error("invalid fees");
-        if(p.assignments&&typeof p.assignments!=="object")throw new Error("invalid assignments");
-        if(p.period&&typeof p.period!=="object")throw new Error("invalid period");
+        if(p.assignments&&(typeof p.assignments!=="object"||Array.isArray(p.assignments)))throw new Error("invalid assignments");
+        if(p.assignments&&p.assignments.attend&&(typeof p.assignments.attend!=="object"||Array.isArray(p.assignments.attend)))throw new Error("invalid attendance assignments");
+        if(p.assignments&&p.assignments.fee&&(typeof p.assignments.fee!=="object"||Array.isArray(p.assignments.fee)))throw new Error("invalid fee assignments");
+        if(p.period&&(typeof p.period!=="object"||Array.isArray(p.period)))throw new Error("invalid period");
         d=Store.get();
         snapshot={
           sessions:JSON.parse(JSON.stringify(d.sessions||{})),
@@ -1378,13 +1380,17 @@ function compactSyncExport(){
           if(snapshot.hadPeriod)d.period=snapshot.period;else delete d.period;
           toast("⚠️ همگام‌سازی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;
         }
-        o2.remove();toast("✅ همگام‌سازی انجام شد");logActivity("وارد کردن همگام فشرده");render();
+        committed=true;
+        o2.remove();
+        try{logActivity("وارد کردن همگام فشرده");}catch(e){}
+        try{render();}catch(e){toast("همگام‌سازی ذخیره شد؛ برای نمایش تازه صفحه را باز کنید");return;}
+        toast("✅ همگام‌سازی انجام شد");
       }catch(e){
-        if(d&&snapshot){
+        if(!committed&&d&&snapshot){
           d.sessions=snapshot.sessions;d.fees=snapshot.fees;d.assignments=snapshot.assignments;
           if(snapshot.hadPeriod)d.period=snapshot.period;else delete d.period;
         }
-        toast("کد نامعتبر است یا ساختار آن پشتیبانی نمی‌شود");
+        toast(committed?"همگام‌سازی ذخیره شد، اما نمایش صفحه نیاز به تازه‌سازی دارد":"کد نامعتبر است یا ساختار آن پشتیبانی نمی‌شود");
       }
     };
   };
