@@ -151,6 +151,7 @@ importObj(input){
  const arrayKeys=["members","classes","extra","homework","groups","users","pinned","pinnedMembers","activityLog","undoStack"];
  for(const k of arrayKeys)if(o[k]!=null&&!Array.isArray(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
  for(const k of ["sessions","fees","doorChecks","sessionNotes","assignments","period"])if(o[k]!=null&&!isObj(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
+ if((o.homework||[]).some((item,index)=>!isObj(item)||(item.id!=null&&typeof item.id!=="string")||(item.text!=null&&typeof item.text!=="string")||(item.key!=null&&(typeof item.key!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(item.key)))))throw new Error("ساختار تکلیف شماره «"+( (o.homework||[]).findIndex((item)=>!isObj(item)||(item.id!=null&&typeof item.id!=="string")||(item.text!=null&&typeof item.text!=="string")||(item.key!=null&&(typeof item.key!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(item.key))))+1)+"» معتبر نیست");
  for(const k of ["sessions","fees"])for(const [key,bucket] of Object.entries(o[k]||{})){
    if(!isObj(bucket))throw new Error("ساختار رکورد جلسه «"+key+"» در بخش «"+k+"» معتبر نیست");
    for(const [id,entry] of Object.entries(bucket))if(!isObj(entry))throw new Error("ساختار رکورد عضو «"+id+"» در جلسه «"+key+"» معتبر نیست");
