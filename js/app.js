@@ -1978,7 +1978,6 @@ if(Store.get().settings.requireLogin&&!currentUser())route="login";
 render();
 try{scheduleClassNotif();}catch(e){}
 
-if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)
-navigator.serviceWorker.register("sw.js").catch(()=>{});
+/* Service worker registration is centralized in index.html. */
 window.addEventListener("online",()=>{toast("🟢 آنلاین شدید");render();});
 window.addEventListener("offline",()=>{toast("🔴 آفلاین — داده محلی امن است");render();});
