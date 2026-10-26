@@ -18,7 +18,7 @@ window.addEventListener("load",function(){
 </script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon.svg">
-<link rel="stylesheet" href="css/app.css?v=99">
+<link rel="stylesheet" href="css/app.css?v=100">
 <title>My-Class-Track</title>
 </head>
 <body>
@@ -29,16 +29,43 @@ window.addEventListener("load",function(){
   <button type="button" class="hbtn first" id="exitBtn" onclick="exitApp()" aria-label="خانه یا خروج" title="خانه / خروج">⌂</button>
   <button type="button" class="hbtn" onclick="toggleFS()" aria-label="تمام‌صفحه">⛶</button>
   <button type="button" class="hbtn" id="themeBtn" onclick="toggleTheme()" aria-label="تغییر تم">🌙</button>
+  <button type="button" class="hbtn install-btn" id="installBtn" aria-label="نصب برنامه روی موبایل" title="نصب برنامه روی موبایل">⬇</button>
 </div></header>
 <main id="app" class="page" role="main"></main>
 <div id="bootError" hidden role="alert" style="margin:16px;padding:16px;border:1px solid #dc2626;border-radius:14px;background:#fff;color:#7f1d1d;direction:rtl;line-height:1.8"><b>برنامه کامل بارگذاری نشد</b><p id="bootErrorText"></p></div>
 <script>(function(){function show(message){var box=document.getElementById("bootError"),text=document.getElementById("bootErrorText");if(box&&text){box.hidden=false;text.textContent=message;}}window.addEventListener("error",function(event){if(event.message)show("خطای اجرا: "+event.message);else if(event.target&&event.target.src)show("فایل بارگذاری نشد: "+event.target.src);},true);window.addEventListener("unhandledrejection",function(event){show("خطای برنامه: "+String(event.reason||"نامشخص"));});window.addEventListener("load",function(){setTimeout(function(){var app=document.getElementById("app");if(app&&!app.children.length)show("محتوای برنامه ساخته نشد؛ صفحه را دوباره بارگذاری کنید.");},4000);});})();</script>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <nav id="nav" aria-label="ناوبری اصلی"></nav>
-<script src="js/core.js?v=99"></script>
-<script src="js/pages.js?v=99"></script>
-<script src="js/features.js?v=99"></script>
-<script src="js/app.js?v=99"></script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./sw.js?v=99").then(function(registration){return registration.update();}).catch(function(){});});}</script>
+<script src="js/core.js?v=100"></script>
+<script src="js/pages.js?v=100"></script>
+<script src="js/features.js?v=100"></script>
+<script src="js/app.js?v=100"></script>
+<script>
+(function(){
+  var deferredPrompt=null,btn=document.getElementById("installBtn");
+  var standalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+  if(!btn)return;
+  if(standalone){btn.hidden=true;return;}
+  window.addEventListener("beforeinstallprompt",function(event){event.preventDefault();deferredPrompt=event;btn.title="نصب برنامه";btn.setAttribute("aria-label","نصب برنامه روی موبایل");btn.textContent="⬇";});
+  btn.addEventListener("click",async function(){
+    if(deferredPrompt){
+      var promptEvent=deferredPrompt;deferredPrompt=null;
+      try{await promptEvent.prompt();await promptEvent.userChoice;}catch(e){}
+      return;
+    }
+    var ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    var msg=ios
+      ?"برای نصب روی آیفون یا آیپد:\n۱) این صفحه را در Safari باز کنید.\n۲) دکمهٔ اشتراک‌گذاری را بزنید.\n۳) گزینهٔ «Add to Home Screen» یا «افزودن به صفحهٔ اصلی» را انتخاب کنید.\n\nپس از افزودن، برنامه از آیکون صفحهٔ اصلی باز می‌شود."
+      :"برای نصب روی اندروید:\n۱) این صفحه را در Chrome باز کنید.\n۲) منوی سه‌نقطه را باز کنید.\n۳) «Install app» یا «افزودن به صفحهٔ اصلی» را بزنید.\n\nاگر گزینه را نمی‌بینید، صفحه را یک‌بار با اینترنت باز کنید و کمی بعد دوباره بررسی کنید.";
+    window.alert(msg);
+  });
+  window.addEventListener("appinstalled",function(){btn.hidden=true;deferredPrompt=null;});
+})();
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("./sw.js?v=100").then(function(reg){return reg.update();}).catch(function(){});
+  });
+}
+</script>
 </body>
 </html>
