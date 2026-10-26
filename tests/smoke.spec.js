@@ -818,3 +818,44 @@ test("backup restore rolls back in-memory data when browser storage fails", asyn
   expect(result.message).toContain("داده فعلی حفظ شد");
   expect(result.after).toBe(result.before);
 });
+
+
+test("homework save failure rolls back the new task and preserves existing records", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.homework = [{ id: "hw-existing", key: "1405-01-08", text: "تکلیف قبلی" }];
+    Store.save();
+  });
+  await page.locator("#app .home-shortcut-tasks").click();
+  await page.locator("#hwText").fill("تکلیف ذخیره‌نشده");
+  await page.evaluate(() => { Store.save = () => false; });
+  await page.getByRole("button", { name: /ذخیره/ }).click();
+  const result = await page.evaluate(() => ({
+    homework: Store.get().homework.map(h => ({ id: h.id, text: h.text })),
+    toast: document.querySelector("#toast")?.textContent || ""
+  }));
+  expect(result.homework).toEqual([{ id: "hw-existing", text: "تکلیف قبلی" }]);
+  expect(result.toast).toContain("اطلاعات قبلی حفظ شد");
+});
+
+test("homework delete failure restores the deleted task", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.homework = [{ id: "hw-keep-on-failure", key: "1405-01-08", text: "تکلیفی که باید حفظ شود" }];
+    Store.save();
+  });
+  await page.reload();
+  await page.locator("#app .home-shortcut-tasks").click();
+  await page.getByRole("button", { name: /آرشیو/ }).click();
+  await page.evaluate(() => { Store.save = () => false; });
+  await page.locator('#app button[aria-label="حذف"]').click();
+  await expect(page.locator("#app")).toContainText("تکلیفی که باید حفظ شود");
+  const result = await page.evaluate(() => ({
+    homework: Store.get().homework.map(h => h.id),
+    toast: document.querySelector("#toast")?.textContent || ""
+  }));
+  expect(result.homework).toEqual(["hw-keep-on-failure"]);
+  expect(result.toast).toContain("تکلیف حفظ شد");
+});
