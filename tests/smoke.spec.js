@@ -720,3 +720,42 @@ test("compact sync rejects array-shaped assignments without changing stored data
   const after = await page.evaluate(() => JSON.stringify(Store.get().assignments));
   expect(after).toBe(before);
 });
+
+
+test("backup restore rejects an array-shaped period without altering current data", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
+    d.period = { title: "دوره فعلی", attendIds: ["restore-keep"], feeIds: [], hwIds: [], note: "" };
+    Store.save();
+    const before = JSON.stringify({ members: d.members, period: d.period });
+    let message = "";
+    try { Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], period: [] }); }
+    catch (e) { message = e.message; }
+    return { before, after: JSON.stringify({ members: Store.get().members, period: Store.get().period }), message };
+  });
+  expect(result.message).toContain("period");
+  expect(result.after).toBe(result.before);
+});
+
+test("backup restore rolls back in-memory data when browser storage fails", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
+    d.period = { title: "دوره فعلی", attendIds: [], feeIds: [], hwIds: [], note: "" };
+    Store.save();
+    const before = JSON.stringify({ members: d.members, period: d.period });
+    const originalSave = Store.save;
+    let message = "";
+    Store.save = () => false;
+    try {
+      Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], period: { title: "دوره جدید" } });
+    } catch (e) { message = e.message; }
+    finally { Store.save = originalSave; }
+    return { before, after: JSON.stringify({ members: Store.get().members, period: Store.get().period }), message };
+  });
+  expect(result.message).toContain("داده فعلی حفظ شد");
+  expect(result.after).toBe(result.before);
+});
