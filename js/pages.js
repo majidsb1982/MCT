@@ -213,7 +213,7 @@ let need=d.members.filter(m=>!(s[m.id]||{}).p1);
 done=smartSortMembers(applyListFilter(filterMembersForMe(done,"attend"),"attend"),"attend");
 need=smartSortMembers(applyListFilter(filterMembersForMe(need,"attend"),"attend"),"attend");
 const pct=d.members.length?Math.round(done.length/d.members.length*100):0;
-const pastKeys=Object.keys(d.sessions).filter(k=>k!==key&&validSessionKey(k)).sort().reverse();
+const pastKeys=[...new Set([...Object.keys(d.sessions||{}),...Object.keys(d.fees||{}),...(Array.isArray(d.homework)?d.homework.map(x=>x&&x.key).filter(Boolean):[])])].filter(k=>k!==key&&validSessionKey(k)).sort().reverse();
 let sel='<select name="session-select" aria-label="انتخاب جلسه" onchange="setSel(this.value)" style="flex:1;font-weight:700">';
 sel+='<option value="'+key+'"'+(key===curKey()?" selected":"")+">"+(key===curKey()?"📅 جلسه بعد: ":"جلسه: ")+(key?Jalali.fmt(Jalali.fromKey(key)):"—")+"</option>";
 for(const k of pastKeys)sel+='<option value="'+k+'"'+(k===key?" selected":"")+">جلسه گذشته: "+Jalali.fmt(Jalali.fromKey(k))+"</option>";
