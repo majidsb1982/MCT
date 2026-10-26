@@ -300,6 +300,15 @@ test("attendance session selector includes dates that have only fee or homework 
   await page.evaluate(() => go("fees"));
   const feeOptions = await page.locator("#feeSessionSelect option").evaluateAll(nodes => nodes.map(n => n.value));
   expect(feeOptions).toContain("1405-01-15");
+  await page.locator("#feeSessionSelect").selectOption("1405-01-15");
+  const selected = await page.evaluate(() => ({
+    session: Store.get()._lastSession,
+    feeKeys: Object.keys(Store.get().fees).sort(),
+    originalPaid: Store.get().fees["1405-01-01"]["session-picker-member"].paid
+  }));
+  expect(selected.session).toBe("1405-01-15");
+  expect(selected.feeKeys).toEqual(["1405-01-01"]);
+  expect(selected.originalPaid).toBe(true);
 });
 
 test("absence reason is saved against the selected session and survives reload", async ({ page }) => {
