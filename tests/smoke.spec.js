@@ -747,13 +747,16 @@ test("backup restore rolls back in-memory data when browser storage fails", asyn
     d.period = { title: "دوره فعلی", attendIds: [], feeIds: [], hwIds: [], note: "" };
     Store.save();
     const before = JSON.stringify({ members: d.members, period: d.period });
-    const originalSave = Store.save;
+    const originalSetItem = Storage.prototype.setItem;
     let message = "";
-    Store.save = () => false;
+    Storage.prototype.setItem = function(key, value) {
+      if (key === "mct:data") throw new Error("simulated storage failure");
+      return originalSetItem.call(this, key, value);
+    };
     try {
       Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], period: { title: "دوره جدید" } });
     } catch (e) { message = e.message; }
-    finally { Store.save = originalSave; }
+    finally { Storage.prototype.setItem = originalSetItem; }
     return { before, after: JSON.stringify({ members: Store.get().members, period: Store.get().period }), message };
   });
   expect(result.message).toContain("داده فعلی حفظ شد");
