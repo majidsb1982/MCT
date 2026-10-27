@@ -281,6 +281,36 @@ test("fee session selector switches the active session without mixing payment re
   expect(records).toEqual([true, false]);
 });
 
+test("attendance session selector includes dates that have only fee or homework records", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "session-picker-member", name: "عضو انتخاب جلسه", phones: [], roles: [], group: "عمومی" }];
+    d.sessions = { "1405-01-08": { "session-picker-member": { p1: "present" } } };
+    d.fees = { "1405-01-01": { "session-picker-member": { paid: true } } };
+    d.homework = [{ id: "hw-picker", key: "1405-01-15", text: "تکلیف آزمایشی" }];
+    d._lastSession = "1405-01-08";
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.evaluate(() => go("attend"));
+  const options = await page.locator('select[name="session-select"] option').evaluateAll(nodes => nodes.map(n => n.value));
+  expect(options).toContain("1405-01-01");
+  expect(options).toContain("1405-01-15");
+  await page.evaluate(() => go("fees"));
+  const feeOptions = await page.locator("#feeSessionSelect option").evaluateAll(nodes => nodes.map(n => n.value));
+  expect(feeOptions).toContain("1405-01-15");
+  await page.locator("#feeSessionSelect").selectOption("1405-01-15");
+  const selected = await page.evaluate(() => ({
+    session: Store.get()._lastSession,
+    feeKeys: Object.keys(Store.get().fees).sort(),
+    originalPaid: Store.get().fees["1405-01-01"]["session-picker-member"].paid
+  }));
+  expect(selected.session).toBe("1405-01-15");
+  expect(selected.feeKeys).toEqual(["1405-01-01"]);
+  expect(selected.originalPaid).toBe(true);
+});
+
 test("absence reason is saved against the selected session and survives reload", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
@@ -739,20 +769,53 @@ test("backup restore rejects an array-shaped period without altering current dat
   expect(result.after).toBe(result.before);
 });
 
-test("backup restore rejects malformed session records without altering current data", async ({ page }) => {
+test("backup restore rejects malformed session and fee records without altering current data", async ({ page }) => {
   await page.goto("/");
   const result = await page.evaluate(() => {
     const d = Store.get();
     d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
     d.sessions = { "1405-01-01": { "restore-keep": { p1: "present" } } };
+    d.fees = { "1405-01-01": { "restore-keep": { paid: true } } };
     Store.save();
-    const before = JSON.stringify({ members: d.members, sessions: d.sessions });
-    let message = "";
-    try { Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], sessions: { "1405-01-01": [] } }); }
-    catch (e) { message = e.message; }
-    return { before, after: JSON.stringify({ members: Store.get().members, sessions: Store.get().sessions }), message };
+    const before = JSON.stringify({ members: d.members, sessions: d.sessions, fees: d.fees });
+    const errors = [];
+    for (const backup of [
+      { members: [{ id: "new", name: "عضو جدید" }], sessions: { "1405-01-01": [] } },
+      { members: [{ id: "new", name: "عضو جدید" }], fees: { "1405-01-01": { "restore-keep": "پرداخت نامعتبر" } } },
+      { members: [{ id: "new", name: "عضو جدید" }], doorChecks: { "1405-01-01": [] } },
+      { members: [{ id: "new", name: "عضو جدید" }], sessionNotes: { "1405-01-01": { note: "متن نامعتبر" } } }
+    ]) {
+      try { Store.importObj(backup); errors.push(""); }
+      catch (e) { errors.push(e.message); }
+    }
+    return { before, after: JSON.stringify({ members: Store.get().members, sessions: Store.get().sessions, fees: Store.get().fees }), errors };
   });
-  expect(result.message).toContain("رکورد جلسه");
+  expect(result.errors).toHaveLength(4);
+  expect(result.errors.every(message => !!message)).toBeTruthy();
+  expect(result.after).toBe(result.before);
+});
+
+test("backup restore rejects malformed homework records without altering current data", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "restore-keep", name: "عضو موجود", phones: [] }];
+    d.homework = [{ id: "hw-existing", key: "1405-01-08", text: "تکلیف سالم" }];
+    Store.save();
+    const before = JSON.stringify({ members: d.members, homework: d.homework });
+    const errors = [];
+    for (const homework of [
+      [null],
+      [{ id: "bad-text", key: "1405-01-08", text: 12 }],
+      [{ id: "bad-date", key: "تاریخ نامعتبر", text: "تکلیف نامعتبر" }]
+    ]) {
+      try { Store.importObj({ members: [{ id: "new", name: "عضو جدید" }], homework }); errors.push(""); }
+      catch (e) { errors.push(e.message); }
+    }
+    return { before, after: JSON.stringify({ members: Store.get().members, homework: Store.get().homework }), errors };
+  });
+  expect(result.errors).toHaveLength(3);
+  expect(result.errors.every(message => !!message)).toBeTruthy();
   expect(result.after).toBe(result.before);
 });
 
@@ -779,3 +842,131 @@ test("backup restore rolls back in-memory data when browser storage fails", asyn
   expect(result.message).toContain("داده فعلی حفظ شد");
   expect(result.after).toBe(result.before);
 });
+
+
+test("tuition status save failure restores the previous record and session pointer", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "fee-rollback-member", name: "عضو شهریه", phones: [] }];
+    d.fees = { "1405-01-08": { "fee-rollback-member": { paid: false, fc: "late", note: "یادداشت قبلی" } } };
+    d._lastFee = "1405-01-01";
+    Store.save();
+    const beforeRecord = JSON.stringify(d.fees["1405-01-08"]["fee-rollback-member"]);
+    const beforeLast = d._lastFee;
+    const originalSave = Store.save;
+    Store.save = () => false;
+    try { feeStatus("1405-01-08", "fee-rollback-member", "paid"); }
+    finally { Store.save = originalSave; }
+    return {
+      record: JSON.stringify(Store.get().fees["1405-01-08"]["fee-rollback-member"]),
+      beforeRecord,
+      lastFee: Store.get()._lastFee,
+      beforeLast,
+      toast: document.querySelector(".toast")?.textContent || ""
+    };
+  });
+  expect(result.record).toBe(result.beforeRecord);
+  expect(result.lastFee).toBe(result.beforeLast);
+  expect(result.toast).toContain("اطلاعات قبلی حفظ شد");
+});
+
+test("tuition status save failure removes a newly-created empty session bucket", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "fee-new-member", name: "عضو جدید شهریه", phones: [] }];
+    d.fees = {};
+    delete d._lastFee;
+    Store.save();
+    const originalSave = Store.save;
+    Store.save = () => false;
+    try { feeStatus("1405-01-15", "fee-new-member", "late"); }
+    finally { Store.save = originalSave; }
+    return { hasBucket: Object.prototype.hasOwnProperty.call(Store.get().fees, "1405-01-15"), hasPointer: Object.prototype.hasOwnProperty.call(Store.get(), "_lastFee") };
+  });
+  expect(result.hasBucket).toBe(false);
+  expect(result.hasPointer).toBe(false);
+});
+
+test("homework save failure rolls back the new task and preserves existing records", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.homework = [{ id: "hw-existing", key: "1405-01-08", text: "تکلیف قبلی" }];
+    Store.save();
+  });
+  await page.locator("#app .home-shortcut-tasks").click();
+  await page.locator("#hwText").fill("تکلیف ذخیره‌نشده");
+  await page.evaluate(() => { Store.save = () => false; });
+  await page.getByRole("button", { name: /ذخیره/ }).click();
+  const result = await page.evaluate(() => ({
+    homework: Store.get().homework.map(h => ({ id: h.id, text: h.text })),
+    toast: document.querySelector("#toast")?.textContent || ""
+  }));
+  expect(result.homework).toEqual([{ id: "hw-existing", text: "تکلیف قبلی" }]);
+  expect(result.toast).toContain("اطلاعات قبلی حفظ شد");
+});
+
+test("homework delete failure restores the deleted task", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.homework = [{ id: "hw-keep-on-failure", key: "1405-01-08", text: "تکلیفی که باید حفظ شود" }];
+    Store.save();
+  });
+  await page.reload();
+  await page.locator("#app .home-shortcut-tasks").click();
+  await page.getByRole("button", { name: /آرشیو/ }).click();
+  await page.evaluate(() => { Store.save = () => false; });
+  await page.locator('#app button[aria-label="حذف"]').click();
+  await expect(page.locator("#app")).toContainText("تکلیفی که باید حفظ شود");
+  const result = await page.evaluate(() => ({
+    homework: Store.get().homework.map(h => h.id),
+    toast: document.querySelector("#toast")?.textContent || ""
+  }));
+  expect(result.homework).toEqual(["hw-keep-on-failure"]);
+  expect(result.toast).toContain("تکلیف حفظ شد");
+});
+
+test("second attendance round preserves the first round timestamp", async ({ page }) => {
+  await page.goto("/");
+  const sessionKey = await page.evaluate(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const key = Jalali.toKey(Jalali.toJ(
+      tomorrow.getFullYear(), tomorrow.getMonth() + 1, tomorrow.getDate()
+    ));
+    const d = Store.get();
+    d.members = [{
+      id: "round-time-member", name: "عضو آزمون زمان نوبت", phones: [],
+      roles: [], group: "عمومی", needs: []
+    }];
+    d.classes = [];
+    d.extra = [{ key, start: "23:59", end: "23:59" }];
+    d._lastSession = key;
+    Store.save();
+    render();
+    return key;
+  });
+
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  const firstRoundButton = page.locator('#app .mblk').filter({ hasText: "عضو آزمون زمان نوبت" }).first().locator(".st-btn").first();
+  await firstRoundButton.click();
+  const firstTimestamp = await page.evaluate(key =>
+    Store.get().sessions[key]["round-time-member"].time, sessionKey
+  );
+  expect(firstTimestamp).toBeTruthy();
+
+  await page.getByRole("button", { name: /نوبت ۲ پشت در/ }).click();
+  const secondRoundButton = page.locator("#app .mblk").filter({ hasText: "عضو آزمون زمان نوبت" }).first().locator(".st-btn").first();
+  await secondRoundButton.click();
+
+  const timestamps = await page.evaluate(key => {
+    const record = Store.get().sessions[key]["round-time-member"];
+    return { first: record.time, second: record.time2 };
+  }, sessionKey);
+  expect(timestamps.first).toBe(firstTimestamp);
+  expect(timestamps.second).toBeTruthy();
+});
+

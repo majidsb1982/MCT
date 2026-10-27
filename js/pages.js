@@ -213,7 +213,7 @@ let need=d.members.filter(m=>!(s[m.id]||{}).p1);
 done=smartSortMembers(applyListFilter(filterMembersForMe(done,"attend"),"attend"),"attend");
 need=smartSortMembers(applyListFilter(filterMembersForMe(need,"attend"),"attend"),"attend");
 const pct=d.members.length?Math.round(done.length/d.members.length*100):0;
-const pastKeys=Object.keys(d.sessions).filter(k=>k!==key&&validSessionKey(k)).sort().reverse();
+const pastKeys=[...new Set([...Object.keys(d.sessions||{}),...Object.keys(d.fees||{}),...(Array.isArray(d.homework)?d.homework.map(x=>x&&x.key).filter(Boolean):[])])].filter(k=>k!==key&&validSessionKey(k)).sort().reverse();
 let sel='<select name="session-select" aria-label="انتخاب جلسه" onchange="setSel(this.value)" style="flex:1;font-weight:700">';
 sel+='<option value="'+key+'"'+(key===curKey()?" selected":"")+">"+(key===curKey()?"📅 جلسه بعد: ":"جلسه: ")+(key?Jalali.fmt(Jalali.fromKey(key)):"—")+"</option>";
 for(const k of pastKeys)sel+='<option value="'+k+'"'+(k===key?" selected":"")+">جلسه گذشته: "+Jalali.fmt(Jalali.fromKey(k))+"</option>";
@@ -314,7 +314,7 @@ const pct=d.members.length?Math.round((d.members.length-np)/d.members.length*100
 let unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));unpaid=smartSortMembers(filterMembersForMe(unpaid,"fee"),"fee");
 const follow=unpaid.filter(m=>!(f[m.id]||{}).fc);
 const contacted=d.members.filter(m=>(f[m.id]&&f[m.id].paid)||((f[m.id]||{}).fc));
-const feeKeys=[...new Set([key,...Object.keys(d.fees||{}),...Object.keys(d.sessions||{})].filter(k=>validSessionKey(k)))].sort().reverse();
+const feeKeys=[...new Set([key,...Object.keys(d.fees||{}),...Object.keys(d.sessions||{}),...(Array.isArray(d.homework)?d.homework.map(x=>x&&x.key).filter(Boolean):[])].filter(k=>validSessionKey(k)))].sort().reverse();
 let feeSel='<label for="feeSessionSelect">جلسهٔ مربوط به این شهریه</label><select id="feeSessionSelect" name="fee-session" aria-label="انتخاب جلسه برای شهریه" onchange="setSel(this.value)" style="width:100%;margin-bottom:8px">'+feeKeys.map(k=>'<option value="'+k+'"'+(k===key?" selected":"")+'>جلسه: '+Jalali.fmt(Jalali.fromKey(k))+'</option>').join("")+'</select>';
 let h=feeSel+'<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">جلسه: '+(key?Jalali.fmt(Jalali.fromKey(key)):"جلسه تنظیم نشده")+' · مهلت: '+esc(feeDeadlineText)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
 '<div class="row" style="margin:6px 0 8px;flex-wrap:wrap"><button class="btn sm ghost" type="button" id="btnFeeXls">⬇️ خروجی اکسل</button><button class="btn sm ghost" type="button" onclick="feeReport()">📨 مشاهده گزارش</button><button class="btn sm ghost" type="button" onclick="window.print()">🖨️ چاپ / PDF</button></div>'+
@@ -690,8 +690,8 @@ function setAtt(key,mid,ph,st){const d=Store.get(),previousLast=d._lastSession;
 if(!key){toast("⚠️ اول کلاس را در تنظیمات ثبت کنید");return;}
 d._lastSession=key;d.sessions[key]=d.sessions[key]||{};
 const _prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
-const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};cur.time=Date.now();cur.by=(currentUser()||{}).name||"";
-const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2";
+const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
+const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2";cur[tF]=Date.now();cur.by=(currentUser()||{}).name||"";
 const was=cur[ph],undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
 if(cur[ph]===st){cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[ph==="p1"?"a1":"a2"];}
 else cur[ph]=st;
