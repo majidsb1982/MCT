@@ -844,6 +844,51 @@ test("backup restore rolls back in-memory data when browser storage fails", asyn
 });
 
 
+test("tuition status save failure restores the previous record and session pointer", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "fee-rollback-member", name: "عضو شهریه", phones: [] }];
+    d.fees = { "1405-01-08": { "fee-rollback-member": { paid: false, fc: "late", note: "یادداشت قبلی" } } };
+    d._lastFee = "1405-01-01";
+    Store.save();
+    const beforeRecord = JSON.stringify(d.fees["1405-01-08"]["fee-rollback-member"]);
+    const beforeLast = d._lastFee;
+    const originalSave = Store.save;
+    Store.save = () => false;
+    try { feeStatus("1405-01-08", "fee-rollback-member", "paid"); }
+    finally { Store.save = originalSave; }
+    return {
+      record: JSON.stringify(Store.get().fees["1405-01-08"]["fee-rollback-member"]),
+      beforeRecord,
+      lastFee: Store.get()._lastFee,
+      beforeLast,
+      toast: document.querySelector(".toast")?.textContent || ""
+    };
+  });
+  expect(result.record).toBe(result.beforeRecord);
+  expect(result.lastFee).toBe(result.beforeLast);
+  expect(result.toast).toContain("اطلاعات قبلی حفظ شد");
+});
+
+test("tuition status save failure removes a newly-created empty session bucket", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "fee-new-member", name: "عضو جدید شهریه", phones: [] }];
+    d.fees = {};
+    delete d._lastFee;
+    Store.save();
+    const originalSave = Store.save;
+    Store.save = () => false;
+    try { feeStatus("1405-01-15", "fee-new-member", "late"); }
+    finally { Store.save = originalSave; }
+    return { hasBucket: Object.prototype.hasOwnProperty.call(Store.get().fees, "1405-01-15"), hasPointer: Object.prototype.hasOwnProperty.call(Store.get(), "_lastFee") };
+  });
+  expect(result.hasBucket).toBe(false);
+  expect(result.hasPointer).toBe(false);
+});
+
 test("homework save failure rolls back the new task and preserves existing records", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
