@@ -928,3 +928,45 @@ test("homework delete failure restores the deleted task", async ({ page }) => {
   expect(result.homework).toEqual(["hw-keep-on-failure"]);
   expect(result.toast).toContain("تکلیف حفظ شد");
 });
+
+test("second attendance round preserves the first round timestamp", async ({ page }) => {
+  await page.goto("/");
+  const sessionKey = await page.evaluate(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const key = Jalali.toKey(Jalali.toJ(
+      tomorrow.getFullYear(), tomorrow.getMonth() + 1, tomorrow.getDate()
+    ));
+    const d = Store.get();
+    d.members = [{
+      id: "round-time-member", name: "عضو آزمون زمان نوبت", phones: [],
+      roles: [], group: "عمومی", needs: []
+    }];
+    d.classes = [];
+    d.extra = [{ key, start: "23:59", end: "23:59" }];
+    d._lastSession = key;
+    Store.save();
+    render();
+    return key;
+  });
+
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  const firstRoundButton = page.locator('#app .mblk').filter({ hasText: "عضو آزمون زمان نوبت" }).first().locator(".st-btn").first();
+  await firstRoundButton.click();
+  const firstTimestamp = await page.evaluate(key =>
+    Store.get().sessions[key]["round-time-member"].time, sessionKey
+  );
+  expect(firstTimestamp).toBeTruthy();
+
+  await page.getByRole("button", { name: /نوبت ۲ پشت در/ }).click();
+  const secondRoundButton = page.locator("#app .mblk").filter({ hasText: "عضو آزمون زمان نوبت" }).first().locator(".st-btn").first();
+  await secondRoundButton.click();
+
+  const timestamps = await page.evaluate(key => {
+    const record = Store.get().sessions[key]["round-time-member"];
+    return { first: record.time, second: record.time2 };
+  }, sessionKey);
+  expect(timestamps.first).toBe(firstTimestamp);
+  expect(timestamps.second).toBeTruthy();
+});
+
