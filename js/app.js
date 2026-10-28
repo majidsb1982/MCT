@@ -1958,23 +1958,38 @@ function printAttendReport(key){
 }
 
 
-function setClassName(v){const d=Store.get();d.settings.className=(v||"").trim()||"کلاس من";Store.save();
-document.querySelector(".htitle")&&(document.querySelector(".htitle").textContent=d.settings.className);
-toast("✅ نام کلاس ذخیره شد");}
+function setClassName(v){
+  const d=Store.get(),previous=d.settings.className;
+  d.settings.className=(v||"").trim()||"کلاس من";
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){if(previous===undefined)delete d.settings.className;else d.settings.className=previous;toast("⚠️ نام کلاس ذخیره نشد؛ مقدار قبلی حفظ شد");return;}
+  document.querySelector(".htitle")&&(document.querySelector(".htitle").textContent=d.settings.className);
+  toast("✅ نام کلاس ذخیره شد");
+}
 function addGroup(){
   const name=prompt("نام گروه جدید:");
   if(!name||!name.trim())return;
-  const d=Store.get();
-  if(d.groups.includes(name.trim())){toast("این گروه از قبل هست");return;}
-  d.groups.push(name.trim());Store.save();render();toast("✅ گروه اضافه شد");
+  const d=Store.get(),value=name.trim();
+  if(d.groups.includes(value)){toast("این گروه از قبل هست");return;}
+  d.groups.push(value);
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.groups.pop();toast("⚠️ گروه ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+  render();toast("✅ گروه اضافه شد");
 }
 function delGroup(g){
   if(g==="عمومی"){toast("گروه «عمومی» قابل حذف نیست");return;}
   confirm2("گروه «"+g+"» حذف شود؟ اعضای آن به عمومی منتقل می‌شوند",()=>{
-    const d=Store.get();
+    const d=Store.get(),previousGroups=d.groups.slice();
+    const previousMembers=d.members.filter(m=>m.group===g).map(m=>({id:m.id,group:m.group}));
     d.groups=d.groups.filter(x=>x!==g);
     d.members.forEach(m=>{if(m.group===g)m.group="عمومی";});
-    Store.save();render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      d.groups=previousGroups;
+      previousMembers.forEach(old=>{const m=d.members.find(x=>x.id===old.id);if(m)m.group=old.group;});
+      toast("⚠️ حذف گروه ذخیره نشد؛ گروه و اعضا حفظ شدند");return;
+    }
+    render();
   });
 }
 
