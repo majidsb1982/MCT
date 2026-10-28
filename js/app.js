@@ -367,9 +367,16 @@ function editTemplates(){
   };
 }
 function toggleAutoTheme(){
-  const d=Store.get();
-  d.settings.autoTheme=!d.settings.autoTheme;
-  Store.save();
+  const d=Store.get(),previous=!!d.settings.autoTheme,previousTheme=d.settings.theme;
+  d.settings.autoTheme=!previous;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    d.settings.autoTheme=previous;
+    if(previousTheme===undefined)delete d.settings.theme;else d.settings.theme=previousTheme;
+    applyTheme();
+    toast("⚠️ تنظیم تم خودکار ذخیره نشد؛ تنظیم قبلی حفظ شد");
+    return;
+  }
   applyAutoTheme();
   toast(d.settings.autoTheme?"تم خودکار روشن شد":"تم خودکار خاموش شد");
   render();
