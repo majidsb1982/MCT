@@ -758,12 +758,24 @@ document.getElementById("rcp").onclick=()=>copyTxt(txt);
 const sh=document.getElementById("rsh");if(sh)sh.onclick=()=>shareTxt(txt);}
 
 /* ---- شهریه: عملیات ---- */
-function togglePay(key,mid){const d=Store.get(),hadBucket=Object.prototype.hasOwnProperty.call(d.fees,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.fees[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.fees[key][mid])):null,previousLast=d._lastFee;d.fees[key]=d.fees[key]||{};
-if(d.fees[key][mid]&&d.fees[key][mid].paid)delete d.fees[key][mid];
-else d.fees[key][mid]={paid:true,date:Jalali.toKey(Jalali.today()),note:""};
-d._lastFee=key;let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];if(!hadBucket)delete d.fees[key];if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;render();toast("⚠️ ثبت پرداخت ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
-const y=window.scrollY;render();window.scrollTo(0,y);
-if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");}
+function togglePay(key,mid){
+  const d=Store.get(),hadBucket=Object.prototype.hasOwnProperty.call(d.fees,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.fees[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.fees[key][mid])):null,previousLast=d._lastFee;
+  d.fees[key]=d.fees[key]||{};
+  const cur=d.fees[key][mid]=d.fees[key][mid]||{};
+  if(cur.paid){cur.paid=false;delete cur.date;}
+  else{cur.paid=true;cur.date=Jalali.toKey(Jalali.today());}
+  if(!cur.paid&&!cur.fc&&!cur.note)delete d.fees[key][mid];
+  d._lastFee=key;
+  let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}
+  if(!saved){
+    if(hadRecord)d.fees[key][mid]=previous;else delete d.fees[key][mid];
+    if(!hadBucket)delete d.fees[key];
+    if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;
+    render();toast("⚠️ ثبت پرداخت ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;
+  }
+  const y=window.scrollY;render();window.scrollTo(0,y);
+  if(d.members.length&&d.members.every(m=>(d.fees[key][m.id]||{}).paid))celebrate("🎉 شهریه این جلسه کامل شد!");
+}
 function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!cur){toast("⚠️ رکورد پیگیری پیدا نشد؛ دوباره صفحه را باز کنید");return;}const hadNote=Object.prototype.hasOwnProperty.call(cur,"note"),previous=cur.note,previousLast=d._lastFee;cur.note=v;d._lastFee=key;let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){if(hadNote)cur.note=previous;else delete cur.note;if(previousLast===undefined)delete d._lastFee;else d._lastFee=previousLast;toast("⚠️ یادداشت ذخیره نشد؛ متن قبلی حفظ شد");}}
 
 /* ---- تکالیف: عملیات ---- */
