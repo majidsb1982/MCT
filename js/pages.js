@@ -122,7 +122,7 @@ function openReportPanel(kind){
 }
 window.openReportPanel=openReportPanel;
 
-window.openCalendarSettings=function(){go("settings");let tries=0;const open=()=>{const b=document.querySelector("#settingsHome .settings-shortcut[data-settings-group=\'calendar\']");if(b){b.click();return;}if(++tries<12)setTimeout(open,80);};requestAnimationFrame(open);};
+window.openCalendarSettings=function(){window._mctSettingsOpenGroup="calendar";go("settings");};
 
 Pages.home=function(el){
   const d=Store.get(),nc=nextClass();
@@ -478,6 +478,7 @@ const showSettingsGroup=id=>{
  document.getElementById("settingsBack")?.focus();
 };
 el.querySelectorAll(".settings-shortcut[data-settings-group]").forEach(b=>b.addEventListener("click",()=>showSettingsGroup(b.dataset.settingsGroup)));
+if(window._mctSettingsOpenGroup){const requested=window._mctSettingsOpenGroup;window._mctSettingsOpenGroup=null;showSettingsGroup(requested);}
 const settingsBack=document.getElementById("settingsBack");
 if(settingsBack)settingsBack.onclick=()=>{
  const returnTo=activeSettingsGroup;
