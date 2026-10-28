@@ -810,11 +810,18 @@ function wireHomeSplit(){
 
 /* ============ v15: پیشرفته ============ */
 function togglePin(id){
-  const d=Store.get();
-  d.pinned=d.pinned||[];
+  const d=Store.get(),hadPinned=Array.isArray(d.pinned),previous=hadPinned?d.pinned.slice():[];
+  d.pinned=previous.slice();
   const i=d.pinned.indexOf(id);
   if(i>=0)d.pinned.splice(i,1);else d.pinned.push(id);
-  Store.save();render();
+  let saved=false;
+  try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(hadPinned)d.pinned=previous;else delete d.pinned;
+    toast("⚠️ تغییر ترتیب ذخیره نشد؛ وضعیت قبلی حفظ شد");
+    return;
+  }
+  render();
 }
 
 function smartSortMembers(list, kind){
