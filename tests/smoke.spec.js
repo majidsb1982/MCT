@@ -970,3 +970,23 @@ test("second attendance round preserves the first round timestamp", async ({ pag
   expect(timestamps.second).toBeTruthy();
 });
 
+test("next session skips a class that has already ended", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-29T19:30:00") });
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const now = new Date();
+    const d = Store.get();
+    d.classes = [{ dow: (now.getDay() + 1) % 7, start: "18:00", end: "19:00" }];
+    d.extra = [];
+    Store.save();
+    const next = nextClass();
+    return {
+      sameDay: !!next && next.t.toDateString() === now.toDateString(),
+      start: next && next.c.start,
+      isFuture: !!next && next.t.getTime() > now.getTime()
+    };
+  });
+  expect(result.sameDay).toBe(false);
+  expect(result.start).toBe("18:00");
+  expect(result.isFuture).toBe(true);
+});
