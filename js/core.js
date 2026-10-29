@@ -360,6 +360,16 @@ h+='</div><div class="row" style="margin-top:14px"><button class="btn p" style="
 o.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{sel={jy:y,jm:m,jd:+b.dataset.d};draw();});};draw();}
 
 /* ============ جلسات: هفتگی + خاص ============ */
+function sessionEndAt(day,start,end){
+  const parse=v=>String(v||"").match(/^([01]\\d|2[0-3]):([0-5]\\d)$/);
+  const sp=parse(start);if(!sp)return null;
+  const startAt=new Date(day);startAt.setHours(+sp[1],+sp[2],0,0);
+  const ep=parse(end);
+  if(!ep)return new Date(startAt.getTime()+2*3600e3);
+  const endAt=new Date(day);endAt.setHours(+ep[1],+ep[2],0,0);
+  if(endAt<=startAt)endAt.setDate(endAt.getDate()+1);
+  return endAt;
+}
 function nextClass(){const d=Store.get();if(!d.classes.length&&!(d.extra||[]).length)return null;
 const now=new Date();let best=null;
 for(let i=0;i<8;i++){const dt=new Date(now);dt.setDate(now.getDate()+i);const dw=(dt.getDay()+1)%7;
@@ -367,13 +377,15 @@ const iso=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+Strin
 for(const c of d.classes){if(c.dow!==dw)continue;
 if(c.startDate&&iso<c.startDate)continue;
 if(c.endDate&&iso>c.endDate)continue;
-const[h,mi]=c.start.split(":").map(Number);
-const t=new Date(dt);t.setHours(h,mi,0,0);
-if(t>now-2*3600e3&&(!best||t<best.t))best={t,c,date:Jalali.toJ(dt.getFullYear(),dt.getMonth()+1,dt.getDate())};}}
+const t=new Date(dt),parts=String(c.start||"").match(/^([01]\\d|2[0-3]):([0-5]\\d)$/);if(!parts)continue;
+t.setHours(+parts[1],+parts[2],0,0);
+const endAt=sessionEndAt(dt,c.start,c.end);
+if(endAt&&endAt>now&&(!best||t<best.t))best={t,c,date:Jalali.toJ(dt.getFullYear(),dt.getMonth()+1,dt.getDate())};}}
 for(const ex of d.extra||[]){const j=Jalali.fromKey(ex.key);const g=Jalali.toG(j.jy,j.jm,j.jd);
-const[h,mi]=(ex.start||"19:00").split(":").map(Number);
-const t=new Date(g.gy,g.gm-1,g.gd,h,mi,0,0);
-if(t>now-2*3600e3&&(!best||t<best.t))best={t,c:{dow:Jalali.dow(j),start:ex.start,end:ex.end,date:j,extra:true},date:j};}
+const start=ex.start||"19:00",day=new Date(g.gy,g.gm-1,g.gd),parts=String(start).match(/^([01]\\d|2[0-3]):([0-5]\\d)$/);if(!parts)continue;
+const t=new Date(day);t.setHours(+parts[1],+parts[2],0,0);
+const endAt=sessionEndAt(day,start,ex.end);
+if(endAt&&endAt>now&&(!best||t<best.t))best={t,c:{dow:Jalali.dow(j),start,end:ex.end,date:j,extra:true},date:j};}
 return best;}
 function curKey(){const nc=nextClass();return nc?Jalali.toKey(nc.date):null;}
 const STK=["present","delay","absent","problem"],STL=["حاضر","تأخیر","غایب","مشکل"];
