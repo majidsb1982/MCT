@@ -122,7 +122,52 @@ function openReportPanel(kind){
 }
 window.openReportPanel=openReportPanel;
 
-window.openCalendarSettings=function(){window._mctSettingsOpenGroup="calendar";go("settings");};
+window.openCalendarSettings=function(){
+  const d=Store.get();
+  let view=Jalali.today(),selected=Jalali.today();
+  const o=modal('<div class="calendar-popup" dir="rtl" style="min-width:0;max-width:640px"><div style="display:flex;align-items:center;gap:8px;justify-content:space-between"><h2 style="margin:0;font-size:1.15rem">تقویم و جلسات</h2><button type="button" class="btn sm ghost" id="calClose">بستن</button></div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0"><button type="button" class="btn sm ghost" id="calPrev" aria-label="ماه قبل">‹ ماه قبل</button><b id="calMonth"></b><button type="button" class="btn sm ghost" id="calNext" aria-label="ماه بعد">ماه بعد ›</button></div><div id="calGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px"></div><div id="calDetails" class="card" style="margin-top:12px;padding:12px"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button type="button" class="btn p" id="calAttend" style="flex:1">ثبت حضور این تاریخ</button><button type="button" class="btn ghost" id="calExport">خروجی تقویم</button><button type="button" class="btn ghost" id="calManage">مدیریت کلاس‌ها</button></div></div>');
+  const $=(id)=>o.querySelector("#"+id);
+  const keyOf=j=>Jalali.toKey(j);
+  const isoOf=j=>{const g=Jalali.toG(j.jy,j.jm,j.jd);return g.gy+"-"+String(g.gm).padStart(2,"0")+"-"+String(g.gd).padStart(2,"0");};
+  function draw(){
+    $("calMonth").textContent=Jalali.MN[view.jm-1]+" "+Jalali.toFa(view.jy);
+    const todayKey=keyOf(Jalali.today()),selectedKey=keyOf(selected),offset=Jalali.dow({jy:view.jy,jm:view.jm,jd:1}),len=Jalali.mLen(view.jy,view.jm);
+    let html=Jalali.DN.map(n=>'<div style="text-align:center;font-size:.78rem;font-weight:700;padding:5px 0">'+n+'</div>').join("");
+    for(let i=0;i<offset;i++)html+='<div aria-hidden="true"></div>';
+    for(let day=1;day<=len;day++){
+      const j={jy:view.jy,jm:view.jm,jd:day},key=keyOf(j),dow=Jalali.dow(j),iso=isoOf(j);
+      const weekly=(d.classes||[]).some(c=>Number(c.dow)===dow&&(!c.startDate||iso>=c.startDate)&&(!c.endDate||iso<=c.endDate));
+      const extra=(d.extra||[]).some(ex=>ex&&ex.key===key);
+      const marked=weekly||extra,chosen=key===selectedKey,isToday=key===todayKey;
+      const style="min-height:42px;border:1px solid "+(chosen?"var(--primary,#2563eb)":isToday?"#0d9488":"var(--line,#dbe2ee)")+";border-radius:10px;background:"+(chosen?"var(--primary-soft,#e8f1ff)":isToday?"rgba(13,148,136,.08)":"var(--card,#fff)")+";color:var(--text,#1f2937);font:inherit;padding:4px 1px;cursor:pointer";
+      html+='<button type="button" data-calday="'+day+'" aria-label="'+Jalali.fmt(j)+(marked?"، جلسه دارد":"")+'" style="'+style+'"><span>'+Jalali.toFa(day)+'</span>'+(marked?'<span style="display:block;color:'+(extra?"#d97706":"#0d9488")+';font-size:.75rem;line-height:1.2">●</span>':'<span style="display:block;height:.75rem"></span>')+'</button>';
+    }
+    $("calGrid").innerHTML=html;
+    $("calDetails").innerHTML=detailsFor(selected);
+    $("calGrid").querySelectorAll("[data-calday]").forEach(b=>b.onclick=()=>{selected={jy:view.jy,jm:view.jm,jd:Number(b.dataset.calday)};draw();});
+  }
+  function detailsFor(j){
+    const key=keyOf(j),dow=Jalali.dow(j),iso=isoOf(j);
+    const weekly=(d.classes||[]).filter(c=>Number(c.dow)===dow&&(!c.startDate||iso>=c.startDate)&&(!c.endDate||iso<=c.endDate));
+    const extra=(d.extra||[]).filter(ex=>ex&&ex.key===key);
+    const s=(d.sessions||{})[key]||{},f=(d.fees||{})[key]||{};
+    const attCount=Object.values(s).filter(x=>x&&(x.p1||x.p2)).length;
+    const feeCount=Object.values(f).filter(x=>x&&x.paid).length;
+    let h='<b>'+Jalali.DN[dow]+'، '+Jalali.fmt(j)+'</b>';
+    if(weekly.length)h+='<p style="margin:7px 0">کلاس هفتگی: '+weekly.map(c=>Jalali.toFa(c.start||"")+" تا "+Jalali.toFa(c.end||"")).join("، ")+'</p>';
+    if(extra.length)h+='<p style="margin:7px 0">جلسه تاریخ‌دار: '+extra.map(x=>Jalali.toFa(x.start||"")+" تا "+Jalali.toFa(x.end||"")).join("، ")+'</p>';
+    if(!weekly.length&&!extra.length)h+='<p class="stat-line" style="margin:7px 0">برای این تاریخ کلاسی در برنامه ثبت نشده است.</p>';
+    h+='<p class="stat-line" style="margin:7px 0">ثبت‌های حضور: '+Jalali.toFa(attCount)+' · پرداخت‌های ثبت‌شده: '+Jalali.toFa(feeCount)+'</p>';
+    return h;
+  }
+  $("calClose").onclick=()=>o.remove();
+  $("calPrev").onclick=()=>{view.jm--;if(view.jm<1){view.jm=12;view.jy--;}draw();};
+  $("calNext").onclick=()=>{view.jm++;if(view.jm>12){view.jm=1;view.jy++;}draw();};
+  $("calAttend").onclick=()=>{const key=keyOf(selected);o.remove();if(typeof setSel==="function")setSel(key);go("attend");};
+  $("calExport").onclick=()=>{if(typeof exportICS==="function")exportICS();else toast("خروجی تقویم در دسترس نیست");};
+  $("calManage").onclick=()=>{o.remove();window._mctSettingsOpenGroup="calendar";go("settings");};
+  draw();
+};
 
 Pages.home=function(el){
   const d=Store.get(),nc=nextClass();
