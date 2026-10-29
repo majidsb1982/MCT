@@ -208,7 +208,7 @@ let h='<section class="home-android-head"><button type="button" class="home-menu
   h+='</div><button type="button" class="home-reminder" aria-label="یادآور درمانگر" onclick="showDoorChecklist()"><span class="home-reminder-icon">◷</span><span><b>یادآوری‌ها</b><small>یادآوری ورود، تماس و پیگیری جلسه</small></span><span class="home-reminder-arrow">‹</span></button>';
   el.innerHTML=h;
   window._cdTimer&&clearInterval(window._cdTimer);
-  if(nc&&nc.t>Date.now())window._cdTimer=setInterval(()=>{if(route==="home")Pages.home(el);},60000);
+  if(nc)window._cdTimer=setInterval(()=>{if(route==="home")Pages.home(el);},60000);
 };
 /* ---- دکمه‌های تماس (چند شماره) ---- */
 function callBtns(m){if(m.consentContact===false)return'<span style="margin-right:auto;font-size:.75em;color:var(--tx2)">بدون رضایت تماس</span>';
