@@ -72,17 +72,24 @@ test("theme switch persists after rerender", async ({ page }) => {
   expect(savedTheme).toBe(before ? "light" : "dark");
 });
 
-test("member can be created and remains in local storage", async ({ page }) => {
+test("member creation remains available after the first save and persists", async ({ page }) => {
   await page.goto("/");
-  const name = "آزمون خودکار اعضا";
+  const first = "آزمون خودکار اعضا";
+  const second = "عضو دوم آزمون";
   await page.locator('#nav button[aria-label="اعضا"]').click();
   await page.getByRole("button", { name: /افزودن عضو جدید/ }).click();
-  await page.locator("#fName").fill(name);
+  await page.locator("#fName").fill(first);
   await page.locator("#fSave").click();
-  await expect(page.locator("#mList")).toContainText(name);
+  await expect(page.locator("#mList")).toContainText(first);
+  await expect(page.getByRole("button", { name: /افزودن عضو جدید/ })).toBeVisible();
+  await page.getByRole("button", { name: /افزودن عضو جدید/ }).click();
+  await page.locator("#fName").fill(second);
+  await page.locator("#fSave").click();
+  await expect(page.locator("#mList")).toContainText(second);
   await page.reload();
   await page.locator('#nav button[aria-label="اعضا"]').click();
-  await expect(page.locator("#mList")).toContainText(name);
+  await expect(page.locator("#mList")).toContainText(first);
+  await expect(page.locator("#mList")).toContainText(second);
 });
 
 test("attendance status can be recorded and persists", async ({ page }) => {
