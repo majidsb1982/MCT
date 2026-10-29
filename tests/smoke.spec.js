@@ -990,3 +990,19 @@ test("next session skips a class that has already ended", async ({ page }) => {
   expect(result.start).toBe("18:00");
   expect(result.isFuture).toBe(true);
 });
+
+test("home countdown refreshes when an active class ends", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-29T18:30:00") });
+  await page.goto("/");
+  await page.evaluate(() => {
+    const now = new Date();
+    const d = Store.get();
+    d.classes = [{ dow: (now.getDay() + 1) % 7, start: "18:00", end: "19:00" }];
+    d.extra = [];
+    Store.save();
+    render();
+  });
+  await expect(page.locator("#app .home-countdown")).toContainText("کلاس در جریان است");
+  await page.clock.runFor(31 * 60 * 1000);
+  await expect(page.locator("#app .home-countdown")).not.toContainText("کلاس در جریان است");
+});
