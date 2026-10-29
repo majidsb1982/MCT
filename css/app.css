@@ -1016,3 +1016,54 @@ body.dark{background-color:var(--bg)!important;background-image:radial-gradient(
 
 /* PWA install control */
 .install-btn[hidden]{display:none!important}
+
+/* v118 — mobile-first interaction polish */
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{
+  outline:3px solid color-mix(in srgb,var(--p2) 88%,white 12%);
+  outline-offset:2px;
+}
+button,a,.btn,.chip,.settings-shortcut,.home-shortcut,.hub-tile{
+  -webkit-touch-callout:none;
+}
+.btn,.chip,.home-menu,.hbtn{
+  touch-action:manipulation;
+}
+.btn:active,.chip:active,.home-menu:active,.hbtn:active{
+  transform:translateY(1px) scale(.985);
+}
+@media(max-width:767px){
+  html{scroll-padding-top:72px;scroll-padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+  body{font-size:max(15px,var(--fs,15px));padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+  #app.page{padding-left:12px;padding-right:12px}
+  #hdr{padding-top:env(safe-area-inset-top)}
+  .card{border-radius:18px;box-shadow:0 4px 15px rgba(24,48,90,.055)}
+  .btn{min-height:44px}
+  .btn.sm{min-height:40px}
+  .chip{min-height:42px}
+  input,select,textarea{font-size:16px;scroll-margin-bottom:24px}
+  textarea{line-height:1.7}
+  nav{padding:6px 8px max(8px,env(safe-area-inset-bottom));gap:4px}
+  nav button{flex:1 1 0;min-width:0;min-height:48px;padding:6px 3px;border-radius:14px;font-size:.68em}
+  nav button svg{width:21px;height:21px}
+  nav button.on{box-shadow:0 3px 10px color-mix(in srgb,var(--p) 24%,transparent)}
+  .overlay{align-items:flex-end;padding:10px 10px max(10px,env(safe-area-inset-bottom))}
+  .overlay .modal{width:100%;max-width:620px;max-height:88dvh;max-height:88vh;overflow:auto;overscroll-behavior:contain;border-radius:22px 22px 16px 16px;padding:18px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -8px 35px rgba(15,35,70,.16)}
+  .modal h3{line-height:1.5}
+  .home-next-card{border-radius:22px;box-shadow:0 8px 22px color-mix(in srgb,var(--p) 20%,transparent)}
+  .home-shortcut,.settings-shortcut{box-shadow:0 4px 14px rgba(24,48,90,.06)}
+  .home-shortcut:active,.settings-shortcut:active,.hub-tile:active{transform:scale(.985)}
+  .hw-audio-actions{align-items:stretch}
+  .hw-audio-actions .btn{min-height:44px}
+}
+@media(max-width:380px){
+  #app.page{padding-left:9px;padding-right:9px}
+  .overlay{padding-left:7px;padding-right:7px}
+  .overlay .modal{padding:16px 13px calc(16px + env(safe-area-inset-bottom))}
+  nav button{font-size:.63em}
+}
+@media(min-width:768px){
+  .overlay .modal{max-height:min(88vh,900px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .btn:active,.chip:active,.home-menu:active,.hbtn:active,.home-shortcut:active,.settings-shortcut:active,.hub-tile:active{transform:none}
+}
