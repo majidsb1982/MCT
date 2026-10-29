@@ -361,7 +361,7 @@ o.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{sel={jy:y,jm:m,jd:+b.da
 
 /* ============ جلسات: هفتگی + خاص ============ */
 function sessionEndAt(day,start,end){
-  const parse=v=>String(v||"").match(/^([01]\\d|2[0-3]):([0-5]\\d)$/);
+  const parse=v=>String(v||"").match(/^([01]\d|2[0-3]):([0-5]\d)$/);
   const sp=parse(start);if(!sp)return null;
   const startAt=new Date(day);startAt.setHours(+sp[1],+sp[2],0,0);
   const ep=parse(end);
@@ -377,12 +377,12 @@ const iso=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+Strin
 for(const c of d.classes){if(c.dow!==dw)continue;
 if(c.startDate&&iso<c.startDate)continue;
 if(c.endDate&&iso>c.endDate)continue;
-const t=new Date(dt),parts=String(c.start||"").match(/^([01]\\d|2[0-3]):([0-5]\\d)$/);if(!parts)continue;
+const t=new Date(dt),parts=String(c.start||"").match(/^([01]\d|2[0-3]):([0-5]\d)$/);if(!parts)continue;
 t.setHours(+parts[1],+parts[2],0,0);
 const endAt=sessionEndAt(dt,c.start,c.end);
 if(endAt&&endAt>now&&(!best||t<best.t))best={t,c,date:Jalali.toJ(dt.getFullYear(),dt.getMonth()+1,dt.getDate())};}}
 for(const ex of d.extra||[]){const j=Jalali.fromKey(ex.key);const g=Jalali.toG(j.jy,j.jm,j.jd);
-const start=ex.start||"19:00",day=new Date(g.gy,g.gm-1,g.gd),parts=String(start).match(/^([01]\\d|2[0-3]):([0-5]\\d)$/);if(!parts)continue;
+const start=ex.start||"19:00",day=new Date(g.gy,g.gm-1,g.gd),parts=String(start).match(/^([01]\d|2[0-3]):([0-5]\d)$/);if(!parts)continue;
 const t=new Date(day);t.setHours(+parts[1],+parts[2],0,0);
 const endAt=sessionEndAt(day,start,ex.end);
 if(endAt&&endAt>now&&(!best||t<best.t))best={t,c:{dow:Jalali.dow(j),start,end:ex.end,date:j,extra:true},date:j};}
