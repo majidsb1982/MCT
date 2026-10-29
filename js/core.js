@@ -222,9 +222,16 @@ function pruneSessions(keep,confirmed){
   const d=Store.get();
   const keys=Object.keys(d.sessions||{}).sort().reverse();
   const configured=Number(d.settings&&d.settings.maxSessions);
-  const requested=keep==null?configured: Number(keep);
+  const requested=keep==null?configured:Number(keep);
   const max=Number.isFinite(requested)?Math.max(0,Math.floor(requested)):40;
   const removedKeys=keys.slice(max);
+  if(!removedKeys.length){try{toast("جلسه قدیمی برای پاکسازی وجود ندارد");}catch(e){}return 0;}
+  const feeCount=removedKeys.filter(key=>d.fees&&Object.prototype.hasOwnProperty.call(d.fees,key)).length;
+  if(confirmed!==true){
+    const message="پاکسازی برگشت‌ناپذیر است. "+removedKeys.length+" جلسه قدیمی و اطلاعات حضور آن‌ها"+
+      (feeCount?" به‌همراه شهریه "+feeCount+" جلسه":"")+" حذف می‌شود. قبل از ادامه از اطلاعات نسخه پشتیبان بگیرید. ادامه می‌دهید؟";
+    if(typeof window.confirm!=="function"||!window.confirm(message))return 0;
+  }
   const oldSessions={},oldFees={};
   removedKeys.forEach(key=>{
     oldSessions[key]=d.sessions[key];
@@ -232,7 +239,6 @@ function pruneSessions(keep,confirmed){
   });
   removedKeys.forEach(key=>{delete d.sessions[key];});
   // Fees share session keys: only remove fees belonging to sessions actually pruned.
-  // Do not prune fees by their independent count; fee-only records may still be valid.
   removedKeys.forEach(key=>{if(d.fees&&Object.prototype.hasOwnProperty.call(d.fees,key))delete d.fees[key];});
   let saved=false;
   try{saved=Store.save()!==false;}catch(e){saved=false;}
@@ -246,6 +252,7 @@ function pruneSessions(keep,confirmed){
     try{toast("⚠️ پاک‌سازی جلسات ذخیره نشد؛ اطلاعات جلسات و شهریه‌ها حفظ شد");}catch(e){}
     return 0;
   }
+  try{toast("پاکسازی انجام شد؛ "+removedKeys.length+" جلسه قدیمی حذف شد");}catch(e){}
   return removedKeys.length;
 }
 
