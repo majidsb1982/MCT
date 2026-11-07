@@ -1067,3 +1067,10 @@ button,a,.btn,.chip,.settings-shortcut,.home-shortcut,.hub-tile{
 @media(prefers-reduced-motion:reduce){
   .btn:active,.chip:active,.home-menu:active,.hbtn:active,.home-shortcut:active,.settings-shortcut:active,.hub-tile:active{transform:none}
 }
+
+/* ============ PWA 2026: رندر بهینه لیست‌های بلند + گذار نرم بین صفحات ============ */
+/* لیست اعضا در حضور: بلوک‌های خارج از دید رندر نمی‌شوند — اسکرول روان با اعضای زیاد */
+.mblk{content-visibility:auto;contain-intrinsic-size:auto 92px;}
+@media (prefers-reduced-motion: no-preference){
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.16s;animation-timing-function:ease-out;}
+}

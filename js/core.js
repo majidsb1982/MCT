@@ -3,8 +3,6 @@
  */
 "use strict";
 
-"use strict";
-
 /* ============ تقویم شمسی (jalaali) ============ */
 const Jalali=(()=>{const br=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
 const div=(a,b)=>~~(a/b),mod=(a,b)=>a-~~(a/b)*b;
@@ -278,6 +276,18 @@ async function hashPin(pin,saltHex,iter){
     return [...new Uint8Array(bits)].map(b=>b.toString(16).padStart(2,"0")).join("");
   }catch(e){return null;}
 }
+/* کدگذاری UTF-8 امن به base64 — جایگزین مدرن escape/unescape منسوخ؛ برای متن فارسی و حجیم امن است */
+const utf8B64=s=>{const b=new TextEncoder().encode(String(s));let bin="";const CH=0x8000;for(let i=0;i<b.length;i+=CH)bin+=String.fromCharCode.apply(null,b.subarray(i,i+CH));return btoa(bin);};
+const b64Utf8=s=>{const bin=atob(String(s).replace(/\s/g,""));const b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);return new TextDecoder().decode(b);};
+/* Badging API — شمارنده کارهای معلق روی آیکون اپ نصب‌شده (کروم اندروید/دسکتاپ)؛ در مرورگرهای دیگر بدون عملیات */
+function updateAppBadge(){
+  try{
+    if(!navigator.setAppBadge&&!navigator.clearAppBadge)return;
+    let n=0;
+    try{const b=(typeof navBadges==="function")?navBadges():null;if(b)n=(b.attend||0)+(b.fees||0);}catch(e){}
+    if(n>0)navigator.setAppBadge(n);else navigator.clearAppBadge();
+  }catch(e){}
+}
 const ICONS={
 home:'<svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>',
 check:'<svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>',
@@ -298,7 +308,29 @@ document.getElementById("undoBtn").onclick=()=>{fn();t.classList.remove("show");
 function copyTxt(t){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast("✅ کپی شد")).catch(()=>_cp(t));else _cp(t);}
 function _cp(t){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("✅ کپی شد");}catch(e){toast("کپی ناموفق");}a.remove();}
 function shareTxt(t){if(navigator.share)navigator.share({text:t}).catch(()=>{});else copyTxt(t);}
-function modal(h){const o=document.createElement("div");o.className="overlay";o.innerHTML='<div class="modal">'+h+"</div>";o.addEventListener("click",e=>{if(e.target===o)o.remove();});document.body.appendChild(o);return o;}
+function modal(h){
+  const o=document.createElement("div");o.className="overlay";
+  o.innerHTML='<div class="modal" role="dialog" aria-modal="true">'+h+"</div>";
+  o.addEventListener("click",e=>{if(e.target===o)o.remove();});
+  /* دسترس‌پذیری: Escape می‌بندد، فوکوس داخل مودال می‌ماند و در بستن به عنصر قبلی برمی‌گردد */
+  const prevFocus=document.activeElement;
+  o.addEventListener("keydown",e=>{if(e.key==="Escape"){e.stopPropagation();o.remove();}});
+  const trap=e=>{
+    if(e.key!=="Tab")return;
+    if(!o.isConnected){document.removeEventListener("keydown",trap,true);return;}
+    const f=[...o.querySelectorAll("button,input,select,textarea,a[href],[tabindex]:not([tabindex='-1'])")].filter(x=>!x.disabled&&x.offsetParent!==null);
+    if(!f.length)return;
+    const first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&(document.activeElement===first||!o.contains(document.activeElement))){last.focus();e.preventDefault();}
+    else if(!e.shiftKey&&(document.activeElement===last||!o.contains(document.activeElement))){first.focus();e.preventDefault();}
+  };
+  document.addEventListener("keydown",trap,true);
+  const mo=new MutationObserver(()=>{if(!o.isConnected){document.removeEventListener("keydown",trap,true);try{prevFocus&&prevFocus.focus&&prevFocus.focus();}catch(e){}mo.disconnect();}});
+  mo.observe(document.body,{childList:true});
+  document.body.appendChild(o);
+  const fa=o.querySelector("input,select,textarea,button");try{fa&&fa.focus();}catch(e){}
+  return o;
+}
 function confirm2(m,cb){const o=modal('<h3 style="font-weight:800">'+esc(m)+'</h3><div class="row" style="margin-top:14px"><button class="btn d" style="flex:1" id="cy">بله</button><button class="btn ghost" style="flex:1" id="cn">انصراف</button></div>');$("#cy",o).onclick=()=>{o.remove();cb();};$("#cn",o).onclick=()=>o.remove();}
 const avatar=m=>{
   const ph=safeMedia(m.photo,"image");

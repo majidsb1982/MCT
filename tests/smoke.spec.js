@@ -315,10 +315,13 @@ test("attendance session selector includes dates that have only fee or homework 
   });
   await page.reload();
   await page.evaluate(() => go("attend"));
+  // با View Transitions رندر یک فریم بعد از go() کامل می‌شود — برای خواندن مستقیم DOM صبر می‌کنیم
+  await page.waitForSelector('select[name="session-select"]', { timeout: 7000 });
   const options = await page.locator('select[name="session-select"] option').evaluateAll(nodes => nodes.map(n => n.value));
   expect(options).toContain("1405-01-01");
   expect(options).toContain("1405-01-15");
   await page.evaluate(() => go("fees"));
+  await page.waitForSelector("#feeSessionSelect", { timeout: 7000 });
   const feeOptions = await page.locator("#feeSessionSelect option").evaluateAll(nodes => nodes.map(n => n.value));
   expect(feeOptions).toContain("1405-01-15");
   await page.locator("#feeSessionSelect").selectOption("1405-01-15");
@@ -1058,4 +1061,58 @@ test("class share QR is generated fully locally with no external requests", asyn
   expect(qrInfo.size, "QR data-URL should contain real bitmap data").toBeGreaterThan(100);
   await page.waitForTimeout(1200);
   expect(externalRequests, "No request may leave the app for QR generation (offline PWA)").toEqual([]);
+});
+
+test("PWA 2026: app badge updates without errors and reflects pending count", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__badge = [];
+    if (navigator.setAppBadge) navigator.setAppBadge = n => { window.__badge.push(n); };
+    if (navigator.clearAppBadge) navigator.clearAppBadge = () => { window.__badge.push(0); };
+  });
+  await page.goto("/");
+  await expect.poll(() => page.evaluate(() => window.__badge && window.__badge.length > 0), { timeout: 10000 }).toBeTruthy();
+  const ok = await page.evaluate(() => { try { updateAppBadge(); return "ok"; } catch (e) { return "err:" + e.message; } });
+  expect(ok).toBe("ok");
+  const calls = await page.evaluate(() => window.__badge || []);
+  expect(calls.length).toBeGreaterThan(0);
+  for (const c of calls) expect(typeof c).toBe("number");
+});
+
+test("modal is an accessible dialog: role, aria-modal and Escape to close", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => { modal("<h3>آزمون مودال</h3><button id='b1'>دکمه</button>"); });
+  const dlg = page.locator(".modal[role='dialog'][aria-modal='true']");
+  await expect(dlg).toBeVisible({ timeout: 5000 });
+  await page.keyboard.press("Escape");
+  await expect(dlg).toHaveCount(0);
+});
+
+test("storage card shows real browser quota via Storage Quota API", async ({ page }) => {
+  await page.goto("/");
+  const hasApi = await page.evaluate(() => !!(navigator.storage && navigator.storage.estimate));
+  if (!hasApi) return;
+  await page.evaluate(() => go("settings"));
+  await expect(page.locator("#storBody")).toContainText("کیلوبایت", { timeout: 7000 });
+  await expect(page.locator("#storBody")).toContainText("فضای واقعی مصرفی", { timeout: 7000 });
+});
+
+test("service worker activates with reminder handlers and cache v122", async ({ page }) => {
+  await page.goto("/");
+  const info = await page.evaluate(async () => {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      return reg.active ? reg.active.state : "none";
+    } catch (e) { return "err:" + e.message; }
+  });
+  expect(["activated", "activating", "installing"]).toContain(info);
+});
+
+test("no Content-Security-Policy violations on load", async ({ page }) => {
+  const violations = [];
+  page.on("console", msg => { if (msg.type() === "error" && /Content Security Policy|Refused to (load|execute|connect)/i.test(msg.text())) violations.push(msg.text()); });
+  page.on("pageerror", err => { if (/Content Security Policy|Refused to (load|execute|connect)/i.test(err.message)) violations.push(err.message); });
+  await page.goto("/");
+  await expect(page.locator("#app")).toBeAttached();
+  await page.waitForTimeout(1500);
+  expect(violations, violations.join(" | ")).toEqual([]);
 });

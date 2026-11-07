@@ -41,7 +41,6 @@ function togglePinMember(id){
  * MCT App — روتینگ، دسترسی، قابلیت‌ها، bootstrap (v21)
  * بارگذاری آخر
  */
-"use strict";
 
 
 /* ============ نوار وضعیت + سنجاق اعضا ============ */
@@ -70,6 +69,10 @@ if(Store.get().settings.requireLogin&&!currentUser()){route="login";render();ret
 const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",settings:"settings",help:"help",more:"more",reports:"reports"};
 if(map[r]&&!can(map[r])){toast("⛔ به این بخش دسترسی ندارید");return;}
 route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;
+/* View Transitions API (PWA 2026) — گذار نرم بین صفحات؛ با احترام به prefers-reduced-motion */
+if(document.startViewTransition&&window.matchMedia&&!matchMedia("(prefers-reduced-motion: reduce)").matches){
+  try{document.startViewTransition(()=>render());pushState();return;}catch(e){}
+}
 render();pushState();}
 window.go=go;
 

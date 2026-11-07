@@ -26,10 +26,26 @@
       "purpose": "any"
     },
     {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/wide-home.png",
+      "sizes": "1365x900",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "صفحه خانه — کلاس بعدی، میان‌برها و یادآوری‌ها"
+    },
+    {
+      "src": "screenshots/narrow-home.png",
+      "sizes": "412x915",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "نسخه موبایل — حضور و ناوبری سریع"
     }
   ]
 }

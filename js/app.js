@@ -1105,27 +1105,6 @@ function riskChip(id){
   if(r>=0.3)return'<span class="assignee-chip risk-mid">نیاز توجه</span> ';
   return"";
 }
-function memberTimeline(id){
-  const d=Store.get();
-  const m=d.members.find(x=>x.id===id);
-  if(!m)return;
-  const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,10);
-  const lbl={present:"حاضر",delay:"تأخیر",absent:"بدون حضور",problem:"مشکل"};
-  let h='<div class="timeline">';
-  keys.forEach(k=>{
-    const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
-    h+='<div class="tl-item"><b>'+Jalali.fmt(Jalali.fromKey(k))+'</b> — '+(st?lbl[st]||st:"ثبت نشده")+'</div>';
-  });
-  h+='</div>';
-  const risk=absenceRisk(id);
-  modal('<h3 style="font-weight:800">📅 روند '+esc(m.name)+'</h3>'+
-    (risk>=0.3?'<p class="stat-line">نرخ عدم‌ثبت مؤثر اخیر: '+Jalali.toFa(Math.round(risk*100))+'٪</p>':'')+
-    h+'<button class="btn ghost" style="width:100%" onclick="this.closest(\'.modal-bg,dialog,[class*=modal]\')?.remove?.()">بستن</button>');
-  // simpler close: find modal root
-  setTimeout(()=>{
-    const root=document.querySelector(".modal, .overlay, [id^=m]");
-  },0);
-}
 function teamBoardHTML(kind){
   kind=kind||"attend";
   const d=Store.get();
@@ -1344,7 +1323,7 @@ function compactSyncExport(){
     period:d.period,
     at:Date.now()
   };
-  const text=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const text=utf8B64(JSON.stringify(payload));
   const o=modal('<h3 style="font-weight:800">🔗 همگام‌سازی فشرده</h3><p class="role-hint">این کد را برای همکار بفرستید تا وضعیت جلسه و تقسیم کار را وارد کند.</p>'+
     '<textarea rows="6" id="syncOut" readonly>'+text+'</textarea>'+
     '<div class="row" style="margin-top:8px;gap:6px"><button class="btn p" style="flex:1" id="syC">📋 کپی</button><button class="btn ghost" id="syI">وارد کردن کد</button></div>');
@@ -1356,7 +1335,7 @@ function compactSyncExport(){
     $("#syGo",o2).onclick=()=>{
       let d=null,snapshot=null,committed=false;
       try{
-        const raw=decodeURIComponent(escape(atob($("#syncIn",o2).value.trim())));
+        const raw=b64Utf8($("#syncIn",o2).value.trim());
         const p=JSON.parse(raw);
         if(!p||typeof p!=="object"||Array.isArray(p))throw new Error("invalid payload");
         if((p.sessions||p.fees)&&(!validSessionKey(p.key)))throw new Error("invalid session key");
@@ -1863,6 +1842,14 @@ async function enableNotifs(){
   if(p!=="granted"){toast("اجازه اعلان داده نشد");return;}
   const d=Store.get();d.settings.notif=true;Store.save();
   scheduleClassNotif();
+  /* ثبت periodicSync (بهترین‌تلاش) — فقط روی اپ نصب‌شده کروم پشتیبانی می‌شود؛ در غیر این‌صورت روش فعلی کار می‌کند */
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(reg=>{
+        if(reg.periodicSync)reg.periodicSync.register("mct-reminder",{minInterval:6*60*60*1000}).catch(()=>{});
+      }).catch(()=>{});
+    }
+  }catch(e){}
   toast("✅ اعلان کلاس فعال شد");
 }
 function scheduleClassNotif(){
@@ -1871,13 +1858,35 @@ function scheduleClassNotif(){
   const nc=nextClass();if(!nc||!nc.t)return;
   const ms=nc.t-Date.now()-15*60e3; // 15 min before
   if(ms<0||ms>864e5*2)return;
+  _mctPostReminderSnapshot(nc);
   clearTimeout(window._notifT);
   window._notifT=setTimeout(()=>{
     try{
-      new Notification(d.settings.className||"کلاس",{body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||""),icon:"icon.svg",tag:"mct-class"});
+      /* وقتی تب پنهان است اعلان از مسیر Service Worker می‌آید — حتی اگر رندر متوقف شده باشد */
+      if(document.hidden&&navigator.serviceWorker&&navigator.serviceWorker.controller){
+        navigator.serviceWorker.controller.postMessage({type:"mct-show-reminder",title:d.settings.className||"کلاس",body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||"")});
+      }else{
+        new Notification(d.settings.className||"کلاس",{body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||""),icon:"icon-192.svg",lang:"fa",dir:"rtl",tag:"mct-class"});
+      }
       if(navigator.vibrate)navigator.vibrate([80,40,80]);
     }catch(e){}
   },ms);
+}
+/* اسنپ‌شات یادآوری برای Service Worker — مبنای periodicSync وقتی اپ بسته است (PWA 2026) */
+function _mctPostReminderSnapshot(nc){
+  try{
+    if(!navigator.serviceWorker)return;
+    const msg={
+      type:"mct-reminder-snapshot",
+      dueISO:new Date(nc.t-15*60e3).toISOString(),
+      windowISO:new Date(nc.t-15*60e3+30*60e3).toISOString(),
+      title:(Store.get().settings.className||"کلاس"),
+      body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||""),
+      tag:"mct-class"
+    };
+    if(navigator.serviceWorker.controller){navigator.serviceWorker.controller.postMessage(msg);return;}
+    navigator.serviceWorker.ready.then(reg=>{if(reg.active)reg.active.postMessage(msg);}).catch(()=>{});
+  }catch(e){}
 }
 
 /* ============ v6: نقشه حرارتی حضور ============ */
@@ -2094,6 +2103,7 @@ let fab=document.getElementById("fabAi");
 if(route==="entry"){if(fab)fab.remove();}
 else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="تقویم و مناسبت‌ها";fab.setAttribute("aria-label","تقویم و مناسبت‌ها");fab.innerHTML="✨";fab.onclick=()=>window.openCalendarSettings?.();document.querySelector("#hdr .hwrap")?.appendChild(fab);}
 try{scheduleClassNotif();}catch(e){}
+try{updateAppBadge();}catch(e){}
 document.getElementById("hdr").style.display=route==="entry"?"none":"";
 document.getElementById("nav").style.display=route==="entry"?"none":"";
 const bb=document.getElementById("backBtn");if(bb)bb.style.display=(route!=="home"&&route!=="login")?"":"none";
@@ -2122,6 +2132,7 @@ window.setClassName=setClassName;window.addGroup=addGroup;window.delGroup=delGro
 if(Store.get().settings.requireLogin&&!currentUser())route="login";
 render();
 try{scheduleClassNotif();}catch(e){}
+try{updateAppBadge();}catch(e){}
 
 /* Service worker registration is centralized in index.html. */
 window.addEventListener("online",()=>{toast("🟢 آنلاین شدید");render();});

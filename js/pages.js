@@ -7,7 +7,6 @@
  * MCT App — صفحات، روتینگ، قابلیت‌ها (v20)
  * App — بعد از core.js
  */
-"use strict";
 const Pages={};let route="home";
 function saveStoreSafe(){try{return Store.save()!==false;}catch(e){return false;}}
 const UI={callOnly:false,doneTab:false,filter:"",repFull:false,feeTab:0};
@@ -563,6 +562,13 @@ sb.innerHTML='<p class="stat-line" role="status">اطلاعات فضای ذخی�
 }else{
 sb.innerHTML='<p class="stat-line">حجم داده: <b>'+Jalali.toFa(si.kb)+'</b> کیلوبایت ('+si.mb+' MB) — برآورد از ظرفیت معمول مرورگر</p><div class="progress"><i style="width:'+Math.min(100,si.pct)+'%"></i></div><p class="stat-line">جلسات: '+Jalali.toFa(si.sessions)+' | اعضا: '+Jalali.toFa(si.members)+'</p><button class="btn sm ghost" style="margin-top:8px" id="pruneBtn">🧹 پاکسازی جلسات قدیمی</button>';
 const pb=document.getElementById("pruneBtn");if(pb)pb.onclick=()=>pruneSessions();
+/* سهمیه واقعی از خود مرورگر (Storage Quota API) — جایگزین برآورد ثابت ۵MB (PWA 2026) */
+if(navigator.storage&&navigator.storage.estimate){navigator.storage.estimate().then(es=>{
+  if(!sb.isConnected)return;
+  const u=es.usage||0,q=es.quota||0;
+  const pct=q?Math.min(100,Math.round(u/q*100)):0;
+  sb.insertAdjacentHTML("beforeend",'<p class="stat-line">فضای واقعی مصرفی اپ (شامل کش آفلاین): <b>'+Jalali.toFa(Math.round(u/1024))+'</b> کیلوبایت از سهمیه حدود <b>'+Jalali.toFa(Math.round(q/1048576))+'</b> مگابایت ('+Jalali.toFa(pct)+'٪)</p>');
+}).catch(()=>{});}
 }}
 
 };
