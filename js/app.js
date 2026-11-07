@@ -1088,7 +1088,7 @@ function performUndo(){
 function absenceRisk(id){
   const d=Store.get();
   const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,8);
-  if(keys.length<3)return0;
+  if(keys.length<3)return 0;
   let abs=0,total=0;
   keys.forEach(k=>{
     const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
@@ -1096,7 +1096,7 @@ function absenceRisk(id){
     total++;
     if(st==="absent"||st==="problem")abs++;
   });
-  if(total<3)return0;
+  if(total<3)return 0;
   return abs/total;
 }
 function riskChip(id){
@@ -1238,7 +1238,7 @@ function batchSetAtt(st){
     d.sessions[key]=d.sessions[key]||{};
     const prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
     const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
-    cur.p1=st;cur.time=Date.now();cur.by=(currentUser()||{}).name||"";
+    cur.p1=st;cur.time=nowHHMM();cur.by=(currentUser()||{}).name||"";
     pushUndo({type:"att",key,mid,prev,label:"دسته‌ای"});
   });
   Store.save();
@@ -1329,7 +1329,7 @@ function callCoach(m){
   return"";
 }
 function stampAtt(cur){
-  cur.time=Date.now();
+  cur.time=nowHHMM();
   cur.by=(currentUser()||{}).name||"";
   return cur;
 }
@@ -1459,7 +1459,7 @@ function workflowStripHTML(){
 
 function currentUser(){
   const d=Store.get();
-  if(!d.users||!d.users.length)return{id:"u-admin",name:"مدیر",role:"admin",pin:"0000"};
+  if(!d.users||!d.users.length)return{id:"u-admin",name:"مدیر",role:"admin"};
   if(d.currentUserId){const u=d.users.find(x=>x.id===d.currentUserId);if(u)return u;}
   // if login not required, default first admin or first user
   if(!d.settings.requireLogin)return d.users.find(x=>x.role==="admin")||d.users[0];
@@ -1485,11 +1485,25 @@ function logoutUser(){
   if(d.settings.requireLogin){route="login";render();}
   else toast("از حساب خارج شدید");
 }
-function loginUser(userId,pin){
+async function loginUser(userId,pin){
   const d=Store.get();
   const u=d.users.find(x=>x.id===userId);
   if(!u){toast("کاربر یافت نشد");return false;}
-  if(String(u.pin||"")!==String(pin||"")){toast("⚠️ رمز نادرست");return false;}
+  // تأیید هش PBKDF2؛ اگر داده قدیمی متنی بود، پس از ورود موفق به هش مهاجرت می‌شود
+  let ok=false;
+  if(u.pinHash&&u.pinHash.h&&u.pinHash.s){
+    if(self.crypto&&self.crypto.subtle){
+      const h=await hashPin(pin,u.pinHash.s,u.pinHash.i);
+      ok=!!h&&h===u.pinHash.h;
+    }else ok=false;
+  }else{
+    ok=String(u.pin||"")===String(pin||"");
+    if(ok){
+      const s=randSalt();const h=await hashPin(pin,s,PIN_ITER);
+      if(h){delete u.pin;u.pinHash={h:h,s:s,i:PIN_ITER};}
+    }
+  }
+  if(!ok){toast("⚠️ رمز نادرست");return false;}
   const previous=d.currentUserId;
   d.currentUserId=u.id;
   let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
@@ -1579,10 +1593,12 @@ function Pages_login(el){
         if(pin.length>=4)return;
         pin+=k;draw();
         if(pin.length===4){
-          if(!loginUser(sel,pin)){pin="";
-            const card=el.querySelector(".login-card");if(card){card.classList.add("err-shake");setTimeout(()=>card.classList.remove("err-shake"),400);}
-            draw();
-          }
+          loginUser(sel,pin).then(ok=>{
+            if(!ok){pin="";
+              const card=el.querySelector(".login-card");if(card){card.classList.add("err-shake");setTimeout(()=>card.classList.remove("err-shake"),400);}
+              draw();
+            }
+          });
         }
       };
     });
@@ -1591,24 +1607,36 @@ function Pages_login(el){
 }
 Pages.login=Pages_login;
 
-function saveUserForm(id){
-  if(!requirePerm("settings","فقط مدیر می‌تواند کاربر تعریف کند"))return;
+async function saveUserForm(id){
+  if(!requirePerm("settings","فقط مدیر می‌تواند کاربر تعریف کند"))return false;
   const d=Store.get();
   const name=($("#uName")&&$("#uName").value||"").trim();
   const pin=($("#uPin")&&$("#uPin").value||"").trim();
   const role=$("#uRole")?$("#uRole").value:"follow";
-  if(!name){toast("نام کاربر را وارد کنید");return;}
-  if(!/^\d{4}$/.test(pin)){toast("رمز باید ۴ رقم باشد");return;}
+  if(!name){toast("نام کاربر را وارد کنید");return false;}
+  if(pin&&!/^\d{4}$/.test(pin)){toast("رمز باید ۴ رقم باشد");return false;}
   const previousUsers=d.users.map(u=>Object.assign({},u));
+  // رمز هرگز متنی ذخیره نمی‌شود — PBKDF2 با salt تصادفی
+  let rec=null;
   if(id){
-    const u=d.users.find(x=>x.id===id);if(!u)return;
-    u.name=name;u.pin=pin;u.role=role;
+    const u=d.users.find(x=>x.id===id);if(!u)return false;
+    rec=u;rec.name=name;rec.role=role;
   }else{
-    d.users.push({id:Store.uid(),name,pin,role});
+    rec={id:Store.uid(),name:name,role:role};
+    d.users.push(rec);
+  }
+  if(pin){
+    const s=randSalt();const h=await hashPin(pin,s,PIN_ITER);
+    if(h){delete rec.pin;rec.pinHash={h:h,s:s,i:PIN_ITER};}
+    else{delete rec.pinHash;rec.pin=pin;} // مرورگر بدون WebCrypto (فقط هم‌مبدأ)
+  }else if(rec.pin){ // مهاجرت خاموش: رمز متنی قدیمی همین‌جا هش می‌شود
+    const old=rec.pin;const s=randSalt();const h=await hashPin(old,s,PIN_ITER);
+    if(h){delete rec.pin;rec.pinHash={h:h,s:s,i:PIN_ITER};}
   }
   let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
-  if(!saved){d.users=previousUsers;toast("⚠️ اطلاعات کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+  if(!saved){d.users=previousUsers;toast("⚠️ اطلاعات کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return false;}
   render();toast("✅ کاربر ذخیره شد");
+  return true;
 }
 function delUser(id){
   if(!requirePerm("settings"))return;
@@ -1628,13 +1656,13 @@ function userForm(id){
   const d=Store.get();const u=id?d.users.find(x=>x.id===id):null;
   const o=modal('<h3 style="font-weight:800">'+(u?"✏️ ویرایش کاربر":"＋ کاربر جدید")+'</h3>'+
     '<label>نام</label><input id="uName" value="'+esc(u?u.name:"")+'">'+
-    '<label>رمز ۴ رقمی</label><input id="uPin" inputmode="numeric" maxlength="4" dir="ltr" value="'+esc(u?u.pin:"0000")+'">'+
+    '<label>رمز ۴ رقمی</label><input id="uPin" inputmode="numeric" maxlength="4" dir="ltr" placeholder="'+(u?"برای تغییر، رمز جدید را وارد کنید":"0000")+'">'+
     '<label>نقش / سطح دسترسی</label><select id="uRole">'+
     Object.keys(ROLE_LABEL).map(r=>'<option value="'+r+'" '+(u&&u.role===r?"selected":"")+'>'+ROLE_LABEL[r]+'</option>').join("")+'</select>'+
     '<div class="safe-tip">مدیر: همه چیز · حامی: بدون شهریه و حذف · پیگیر: ثبت حضور/شهریه · مشاهده‌گر: فقط خواندن</div>'+
     '<div class="row" style="margin-top:12px"><button class="btn p" style="flex:1" id="uSave">💾 ذخیره</button><button class="btn ghost" id="uCl">انصراف</button></div>');
   $("#uCl",o).onclick=()=>o.remove();
-  $("#uSave",o).onclick=()=>{saveUserForm(id);o.remove();};
+  $("#uSave",o).onclick=async()=>{if(await saveUserForm(id))o.remove();};
 }
 
 /* گزارش امن برای حامی‌ها — بدون یادداشت محرمانه و بدون جزئیات حساس */
@@ -1886,7 +1914,7 @@ function exportICS(){
       const[eh,emi]=(c.end||"21:00").split(":").map(Number);
       const start=new Date(dt);start.setHours(h,mi,0,0);
       const end=new Date(dt);end.setHours(eh,emi,0,0);
-      const fmt=x=>x.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+      const fmt=x=>{const p=n=>String(n).padStart(2,"0");return x.getFullYear()+p(x.getMonth()+1)+p(x.getDate())+"T"+p(x.getHours())+p(x.getMinutes())+"00";};
       lines.push("BEGIN:VEVENT","UID:mct-"+fmt(start)+"@mct","DTSTAMP:"+fmt(new Date()),"DTSTART:"+fmt(start),"DTEND:"+fmt(end),"SUMMARY:"+name,"DESCRIPTION:جلسه کلاس — My-Class-Track","END:VEVENT");
     }
   }
@@ -1912,11 +1940,16 @@ function shareClassCode(){
   const o=modal('<h3 style="font-weight:800">📤 اشتراک کلاس</h3><p class="stat-line">کد یا لینک را برای همکار بفرستید</p><div style="text-align:center" id="qrWrap"><div class="skeleton" style="width:160px;height:160px;margin:8px auto"></div></div><textarea id="shareCode" rows="4" readonly style="margin-top:8px;font-size:.85em">'+esc(text)+'</textarea><div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" id="shCopy">📋 کپی</button><button class="btn ghost" style="flex:1" id="shShare">📤 ارسال</button></div>');
   $("#shCopy",o).onclick=()=>copyTxt(text);
   $("#shShare",o).onclick=()=>shareTxt(text);
-  // QR image when online
-  const qrUrl="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data="+encodeURIComponent(text.slice(0,300));
-  const img=new Image();img.alt="QR";img.className="qr-box";img.onload=()=>{const w=$("#qrWrap",o);if(w)w.innerHTML="";if(w)w.appendChild(img);};
-  img.onerror=()=>{const w=$("#qrWrap",o);if(w)w.innerHTML='<p class="stat-line">QR در حالت آفلاین در دسترس نیست — از کپی متن استفاده کنید</p>';};
-  img.src=qrUrl;
+  // QR — تولید کاملاً محلی و آفلاین؛ هیچ داده‌ای به سرور خارجی ارسال نمی‌شود
+  try{
+    if(typeof qrcode==="function"&&qrcode.stringToBytesFuncs&&qrcode.stringToBytesFuncs["UTF-8"])qrcode.stringToBytes=qrcode.stringToBytesFuncs["UTF-8"];
+    const qr=qrcode(0,"M");qr.addData(text.slice(0,300));qr.make();
+    const w=$("#qrWrap",o);
+    if(w)w.innerHTML='<img class="qr-box" alt="QR" src="'+qr.createDataURL(4,8)+'">';
+  }catch(e){
+    const w=$("#qrWrap",o);
+    if(w)w.innerHTML='<p class="stat-line">QR ساخته نشد — از کپی متن استفاده کنید</p>';
+  }
 }
 
 /* ============ v6: بینش کامل (مودال) ============ */
@@ -1941,7 +1974,7 @@ function printAttendReport(key){
   for(const m of d.members){
     const c=s[m.id]||{};
     const p1=ST.lbl[c.p1||"none"], p2=ST.lbl[c.p2||"none"];
-    rows+="<tr><td>"+esc(m.name)+"</td><td>"+p1+(c.time?" ("+Jalali.toFa(c.time)+")":"")+"</td><td>"+p2+(c.time2?" ("+Jalali.toFa(c.time2)+")":"")+"</td><td>"+esc(c.note2||c.note||"")+"</td></tr>";
+    rows+="<tr><td>"+esc(m.name)+"</td><td>"+p1+(c.time?" ("+Jalali.toFa(fmtAttTime(c.time))+")":"")+"</td><td>"+p2+(c.time2?" ("+Jalali.toFa(fmtAttTime(c.time2))+")":"")+"</td><td>"+esc(c.note2||c.note||"")+"</td></tr>";
   }
   const html=`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${esc(title)}</title>
   <style>

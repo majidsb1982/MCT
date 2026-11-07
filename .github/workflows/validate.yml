@@ -67,7 +67,7 @@ jobs:
             .filter(ref => !/^(?:[a-z]+:|#|\/\/|data:)/i.test(ref));
           const shellRefs = [...sw.matchAll(/["'](\.\/?[^"']+)["']/g)]
             .map(match => match[1])
-            .filter(ref => /^(?:\.\/)?(?:index\.html|css\/|js\/|manifest\.webmanifest|icon\.svg|docs\/)/.test(ref));
+            .filter(ref => /^(?:\.\/)?(?:index\.html|css\/|js\/|fonts\/|manifest\.webmanifest|icon\.svg|docs\/)/.test(ref));
           const missing = [...new Set([...htmlRefs, ...shellRefs])]
             .map(ref => ref.split(/[?#]/)[0])
             .filter(ref => ref && !fs.existsSync(path.resolve(ref)));

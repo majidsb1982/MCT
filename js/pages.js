@@ -232,15 +232,15 @@ h+='<div class="row" style="gap:4px;margin-bottom:8px">';
 STK.forEach((k,i)=>{const hint=(ph==="p2"&&k==="present"&&st!==k)?" hint1":"";
 h+='<button class="st-btn'+(st===k?" on"+(i+1):hint)+'" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-s="'+k+'">'+STL[i]+"</button>";});
 h+="</div>";
-if(st==="delay")h+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+(cur[tF]||"")+'" style="margin-bottom:6px">';
+if(st==="delay")h+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+fmtAttTime(cur[tF])+'" style="margin-bottom:6px">';
 if(st&&st!=="present")h+='<input name="note-'+m.id+'" aria-label="یادداشت برای '+esc(m.name)+'" class="ex-input" placeholder="یادداشت (اختیاری)" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+nF+'" value="'+esc(cur[nF]||"")+'" style="margin-bottom:6px">';
 if(st&&st!=="present")h+='<div class="row" style="margin:-2px 0 8px;gap:6px"><button class="btn sm ghost" data-mic="1" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" aria-label="ضبط یادداشت صوتی">🎙 صدا</button>'+audBtn(cur[aF],"پخش یادداشت صوتی")+"</div>";
 return h;}
 const block=(m,ph,cur,key)=>'<div class="mblk" data-mid="'+m.id+'">'+memberRow(m,ph,cur,key)+"</div>";
 function doneRow(m,key,cur,ph){const st=cur[ph];const t=ph==="p1"?cur.time:cur.time2;const nF=ph==="p1"?"note":"note2",tF=ph==="p1"?"time":"time2";let extra="";
-if(st==="delay")extra+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+(cur[tF]||"")+'" style="margin:6px 0">';
+if(st==="delay")extra+='<input type="time" name="delay-time-'+m.id+'" aria-label="ساعت تأخیر '+esc(m.name)+'" class="ex-input" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+tF+'" value="'+fmtAttTime(cur[tF])+'" style="margin:6px 0">';
 if(st&&st!=="present")extra+='<input name="note-'+m.id+'" aria-label="یادداشت برای '+esc(m.name)+'" class="ex-input" placeholder="دلیل یا یادداشت (اختیاری)" data-key="'+key+'" data-mid="'+m.id+'" data-ph="'+ph+'" data-f="'+nF+'" value="'+esc(cur[nF]||"")+'" style="margin:6px 0">';
-return'<div class="mblk" data-mid="'+m.id+'"><div class="mem done">'+avatar(m)+"<b>"+esc(m.name)+'</b><span class="badge '+(ST.cls[st]||"b-m")+'" style="margin-right:auto">'+ST.lbl[st||"none"]+(t?" — "+Jalali.toFa(t):"")+'</span><button class="btn sm ghost" data-restore="1" data-mid="'+m.id+'" data-key="'+key+'" data-ph="'+ph+'" aria-label="بازگرداندن '+esc(m.name)+'">↩️ بازگردانی</button></div>'+extra+'</div>';}
+return'<div class="mblk" data-mid="'+m.id+'"><div class="mem done">'+avatar(m)+"<b>"+esc(m.name)+'</b><span class="badge '+(ST.cls[st]||"b-m")+'" style="margin-right:auto">'+ST.lbl[st||"none"]+(t?" — "+Jalali.toFa(fmtAttTime(t)):"")+'</span><button class="btn sm ghost" data-restore="1" data-mid="'+m.id+'" data-key="'+key+'" data-ph="'+ph+'" aria-label="بازگرداندن '+esc(m.name)+'">↩️ بازگردانی</button></div>'+extra+'</div>';}
 function restoreAtt(key,mid,ph){const d=Store.get(),cur=(d.sessions[key]||{})[mid];if(!cur)return;
 const previous=JSON.parse(JSON.stringify(cur));
 cur[ph]=null;
@@ -576,7 +576,7 @@ let memberSortMode="name";
 function renderMembers(q){q=(q||"").trim();const d=Store.get();
 let list=d.members.filter(m=>!q||m.name.includes(q));
 const pins=d.pinnedMembers||[];
-const familyName=m=>{const p=String(m.name||"").trim().split(/\\s+/);return p.length>1?p[p.length-1]:p[0]||"";};
+const familyName=m=>{const p=String(m.name||"").trim().split(/\s+/);return p.length>1?p[p.length-1]:p[0]||"";};
 const birthKey=m=>m.birth?String(m.birth.jy).padStart(4,"0")+"-"+String(m.birth.jm).padStart(2,"0")+"-"+String(m.birth.jd).padStart(2,"0"):"9999-99-99";
 const phoneKey=m=>(m.phones||[]).filter(Boolean)[0]||"~~~~~~~~";
 const cmp=(a,b)=>memberSortMode==="family"?familyName(a).localeCompare(familyName(b),"fa")||a.name.localeCompare(b.name,"fa"):memberSortMode==="birth"?birthKey(a).localeCompare(birthKey(b)):memberSortMode==="phone"?phoneKey(a).localeCompare(phoneKey(b)):a.name.localeCompare(b.name,"fa");
@@ -610,10 +610,10 @@ function validPhone(value){
 }
 function memberForm(id){const d=Store.get(),m=id?d.members.find(x=>x.id===id):null;
 const o=modal("<h3 style='font-weight:800'>"+(m?"✏️ ویرایش عضو":"＋ عضو جدید")+"</h3>"+
-'<div class="ph-pick">'+(m&&m.photo?'<img id="phPrev" src="'+m.photo+'" alt="عکس عضو">':'<div class="ph-empty" id="phPrev">👤</div>')+
+'<div class="ph-pick">'+(m&&safeMedia(m.photo,"image")?'<img id="phPrev" src="'+safeMedia(m.photo,"image")+'" alt="عکس عضو">':'<div class="ph-empty" id="phPrev">👤</div>')+
 '<div style="flex:1"><input type="file" id="phFile" class="sr" accept="image/*" onchange="pickPhoto(this)">'+
 '<div class="row"><button class="btn sm ghost" onclick="document.getElementById(\'phFile\').click()">📷 عکس</button>'+
-((m&&m.photo)?'<button class="btn sm ghost" onclick="delPhoto()">🗑 حذف عکس</button>':"")+"</div></div></div>"+
+((m&&safeMedia(m.photo,"image"))?'<button class="btn sm ghost" onclick="delPhoto()">🗑 حذف عکس</button>':"")+"</div></div></div>"+
 "<label>نام *</label><input id='fName' name='m-name' autocomplete='off' value='"+esc(m?m.name:"")+"'>"+
 "<label>شماره‌های تماس (تا ۳ شماره)</label><div id='phList'></div>"+
 "<button type='button' class='btn sm ghost' id='addPh' style='margin:4px 0'>＋ شماره دیگر</button>"+
@@ -657,7 +657,7 @@ img.onload=()=>{const c=document.createElement("canvas"),s=160;c.width=s;c.heigh
 const x=c.getContext("2d"),mn=Math.min(img.width,img.height);
 x.drawImage(img,(img.width-mn)/2,(img.height-mn)/2,mn,mn,0,0,s,s);
 o._photo=c.toDataURL("image/jpeg",.72);
- $("#phPrev",o).outerHTML='<img id="phPrev" src="'+o._photo+'" alt="عکس عضو">';};
+ $("#phPrev",o).outerHTML='<img id="phPrev" src="'+safeMedia(o._photo,"image")+'" alt="عکس عضو">';};
 img.src=r.result;};
 r.readAsDataURL(f);inp.value="";};
 window.delPhoto=()=>{o._photo=null;$("#phPrev",o).outerHTML='<div class="ph-empty" id="phPrev">👤</div>';};
@@ -737,7 +737,7 @@ if(!key){toast("⚠️ اول کلاس را در تنظیمات ثبت کنید"
 d._lastSession=key;d.sessions[key]=d.sessions[key]||{};
 const _prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
 const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
-const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2";cur[tF]=Date.now();cur.by=(currentUser()||{}).name||"";
+const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2";cur[tF]=nowHHMM();cur.by=(currentUser()||{}).name||"";
 const was=cur[ph],undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
 if(cur[ph]===st){cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[ph==="p1"?"a1":"a2"];}
 else cur[ph]=st;
@@ -763,7 +763,7 @@ const s=d.sessions[key]||{},g={present:[],delay:[],absent:[],problem:[],none:[]}
 for(const m of d.members){const st=ph===2?((s[m.id]||{}).p2||(s[m.id]||{}).p1):(s[m.id]||{}).p1;
 (g[st||"none"]||g.none).push(m);}
 const fm=m=>{const ex=s[m.id]||{};let t=m.name;
-if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(ex.time2||ex.time)+")";
+if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(fmtAttTime(ex.time2||ex.time))+")";
 else if(ex.note)t+=" ("+ex.note+")";return t;};
 const nc=nextClass(),sessionDate=key?Jalali.fromKey(key):null,icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",none:"—"};
 let out="📋 گزارش حضور — "+(sessionDate?Jalali.fmt(sessionDate):"جلسه تنظیم نشده")+" — "+(ph===1?"نوبت ۱ (تماس‌های قبلی)":"نوبت ۲ (ثبت ورود)")+"\n";
@@ -954,7 +954,7 @@ rows.push([m.name,(m.phones||[]).join(" / "),st.paid?"پرداخت شد":"پرد
 else if(kind==="attend"){const s=d.sessions[key]||{};
 rows=[["نام","تلفن‌ها","تماس قبلی","ساعت","یادداشت","ثبت ورود","ساعت","یادداشت"]];
 for(const m of d.members){const c=s[m.id]||{};
-rows.push([m.name,(m.phones||[]).join(" / "),c.p1?ST.lbl[c.p1]:"ثبت‌نشده",c.time||"",c.note||"",c.p2?ST.lbl[c.p2]:"ثبت‌نشده",c.time2||"",c.note2||""]);}}
+rows.push([m.name,(m.phones||[]).join(" / "),c.p1?ST.lbl[c.p1]:"ثبت‌نشده",fmtAttTime(c.time),c.note||"",c.p2?ST.lbl[c.p2]:"ثبت‌نشده",fmtAttTime(c.time2),c.note2||""]);}}
 else rows=[["نام","تلفن‌ها","تولد","نقش‌ها","گروه","یادداشت عمومی","نیازها"],...d.members.map(m=>[m.name,(m.phones||[]).join(" / "),m.birth?Jalali.fmt(m.birth):"",(m.roles||[]).join("|"),m.group||"عمومی",m.note||"",(m.needs||[]).join("|")])];
 dlCSV(rows,kind+"-"+key+".csv");}
 function exportMembersCSV(){exportCSV("members","members");}

@@ -142,14 +142,28 @@ test("user form saves a new role and four-digit PIN", async ({ page }) => {
   await page.locator("#uSave").click();
   await expect.poll(() => page.evaluate(() => {
     const d = Store.get();
-    return (d.users || []).some(u => u.name === "کاربر آزمون" && u.pin === "2468" && u.role === "view");
+    return (d.users || []).some(u => u.name === "کاربر آزمون" && u.role === "view"
+      && u.pinHash && /^[0-9a-f]{64}$/.test(u.pinHash.h) && /^[0-9a-f]{32}$/.test(u.pinHash.s)
+      && !("pin" in u));
   })).toBeTruthy();
+  // ورود با همان رمز باید موفق باشد (تأیید هش PBKDF2 در مسیر واقعی لاگین)
+  await page.evaluate(() => { const d = Store.get(); d.settings.requireLogin = true; d.currentUserId = null; Store.save(); });
+  await page.reload();
+  await page.locator("#pinPad").waitFor({ state: "visible", timeout: 10000 });
+  await page.locator("#loginUser").evaluate((sel) => {
+    const opt = [...sel.options].find(o => o.textContent.includes("کاربر آزمون"));
+    if (opt) { sel.value = opt.value; sel.dispatchEvent(new Event("change")); }
+  });
+  for (const k of ["2", "4", "6", "8"]) await page.locator('#pinPad button[data-k="' + k + '"]').click();
+  await expect.poll(() => page.evaluate(() => !!Store.get().currentUserId), { timeout: 15000 }).toBeTruthy();
 });
 
 
 
 test("session pruning removes only fees tied to pruned sessions", async ({ page }) => {
   await page.goto("/");
+  // pruneSessions اکنون پیش از حذف برگشت‌ناپذیر، تأیید می‌گیرد — دیالوگ را می‌پذیریم
+  page.on("dialog", dialog => dialog.accept());
   await page.evaluate(() => {
     Store.save();
     const d = Store.get();
@@ -569,12 +583,14 @@ test("class date picker displays and stores a Jalali date", async ({ page }) => 
 });
 
 
-test("home calendar shortcut opens the calendar settings panel, not the settings hub", async ({ page }) => {
+test("home calendar shortcut opens the calendar popup, not the settings hub", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /تقویم و مناسبت‌ها/ }).first().click();
-  await expect(page.locator("#settingsHome")).toBeHidden({ timeout: 5000 });
-  await expect(page.locator("#settingsPanelTitle")).toHaveText("برنامه و تقویم");
-  await expect(page.locator("#settingsPanelHead")).toBeVisible();
+  // رفتار فعلی: پاپ‌آپ مستقل تقویم و جلسات (نه هاب تنظیمات)
+  await expect(page.locator(".calendar-popup")).toBeVisible({ timeout: 5000 });
+  await expect(page.locator(".calendar-popup h2")).toContainText("تقویم و جلسات");
+  await page.locator("#calClose").click();
+  await expect(page.locator(".calendar-popup")).toHaveCount(0);
 });
 
 test("home countdown uses explicit Persian day, hour and minute units", async ({ page }) => {
@@ -587,11 +603,13 @@ test("home countdown uses explicit Persian day, hour and minute units", async ({
   expect(text).not.toMatch(/(?:^| و )۰ ساعت/);
 });
 
-test("header calendar shortcut uses the same calendar destination as the home tile", async ({ page }) => {
+test("header calendar shortcut opens the same calendar popup as the home tile", async ({ page }) => {
   await page.goto("/");
   await page.locator("#fabAi").click();
-  await expect(page.locator("#settingsHome")).toBeHidden({ timeout: 5000 });
-  await expect(page.locator("#settingsPanelTitle")).toHaveText("برنامه و تقویم");
+  await expect(page.locator(".calendar-popup")).toBeVisible({ timeout: 5000 });
+  await expect(page.locator(".calendar-popup h2")).toContainText("تقویم و جلسات");
+  await page.locator("#calClose").click();
+  await expect(page.locator(".calendar-popup")).toHaveCount(0);
 });
 
 test("pending badges count both attendance rounds and stay consistent across navigation", async ({ page }) => {
@@ -1012,4 +1030,32 @@ test("home countdown refreshes when an active class ends", async ({ page }) => {
   await expect(page.locator("#app .home-countdown")).toContainText("کلاس در جریان است");
   await page.clock.runFor(31 * 60 * 1000);
   await expect(page.locator("#app .home-countdown")).not.toContainText("کلاس در جریان است");
+});
+
+test("class share QR is generated fully locally with no external requests", async ({ page }) => {
+  const externalRequests = [];
+  page.on("request", request => {
+    if (!/^https?:\/\/127\.0\.0\.1(:4173)?\//.test(request.url())) externalRequests.push(request.url());
+  });
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.members = d.members || [];
+    if (!d.members.length) {
+      d.members.push({ id: "qr-seed", name: "عضو آزمون QR", phones: [], roles: [], group: "عمومی", needs: [] });
+      Store.save();
+    }
+  });
+  await page.evaluate(() => shareClassCode());
+  const modalTitle = page.locator(".modal h3", { hasText: "اشتراک کلاس" });
+  await expect(modalTitle).toBeVisible();
+  await expect(page.locator("#qrWrap img.qr-box")).toBeVisible({ timeout: 7000 });
+  const qrInfo = await page.locator("#qrWrap img.qr-box").evaluate(img => ({
+    isDataUrl: img.src.startsWith("data:image/"),
+    size: img.src.length
+  }));
+  expect(qrInfo.isDataUrl, "QR must be an inline data-URL, not a remote image").toBe(true);
+  expect(qrInfo.size, "QR data-URL should contain real bitmap data").toBeGreaterThan(100);
+  await page.waitForTimeout(1200);
+  expect(externalRequests, "No request may leave the app for QR generation (offline PWA)").toEqual([]);
 });

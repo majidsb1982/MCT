@@ -259,6 +259,25 @@ function pruneSessions(keep,confirmed){
 /* ============ ابزارها ============ */
 const $=(s,el=document)=>el.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* ساعت محلی به‌صورت "HH:MM" — فیلد time/time2 رکورد حضور باید رشته ساعت باشد نه timestamp */
+const nowHHMM=()=>{const x=new Date();return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");};
+/* نمایش فیلد ساعت — اگر داده قدیمی timestamp ۱۳ رقمی بود، به ساعت محلی تبدیل می‌شود (مهاجرت نرم) */
+const fmtAttTime=v=>{if(v==null||v==="")return"";const s=String(v);if(/^\d{12,14}$/.test(s)){const x=new Date(+s);return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");}return s;};
+/* امن‌سازی رسانه — فقط data-URL واقعیِ image/audio با محتوای base64 مجاز است (ضد XSS از مسیر import/همگام‌سازی) */
+const safeMedia=(u,kind)=>{if(typeof u!=="string"||!u||u.length>6e6)return"";return new RegExp("^data:"+kind+"\\/[a-z0-9.+-]+(?:;[a-z0-9=.,+_-]+)*;base64,[A-Za-z0-9+/=]+$").test(u)?u:"";};
+/* رمزنگاری PIN — PBKDF2-SHA256 با salt تصادفی؛ هرگز PIN متنی ذخیره نمی‌شود */
+const PIN_ITER=60000;
+const randSalt=()=>{const a=new Uint8Array(16);(self.crypto||window.crypto).getRandomValues(a);return [...a].map(b=>b.toString(16).padStart(2,"0")).join("");};
+async function hashPin(pin,saltHex,iter){
+  try{
+    if(!self.crypto||!self.crypto.subtle)return null;
+    const enc=new TextEncoder();
+    const key=await self.crypto.subtle.importKey("raw",enc.encode(String(pin)),"PBKDF2",false,["deriveBits"]);
+    const salt=Uint8Array.from(String(saltHex).match(/../g).map(h=>parseInt(h,16)));
+    const bits=await self.crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:salt,iterations:iter||PIN_ITER},key,256);
+    return [...new Uint8Array(bits)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }catch(e){return null;}
+}
 const ICONS={
 home:'<svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>',
 check:'<svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>',
@@ -282,9 +301,10 @@ function shareTxt(t){if(navigator.share)navigator.share({text:t}).catch(()=>{});
 function modal(h){const o=document.createElement("div");o.className="overlay";o.innerHTML='<div class="modal">'+h+"</div>";o.addEventListener("click",e=>{if(e.target===o)o.remove();});document.body.appendChild(o);return o;}
 function confirm2(m,cb){const o=modal('<h3 style="font-weight:800">'+esc(m)+'</h3><div class="row" style="margin-top:14px"><button class="btn d" style="flex:1" id="cy">بله</button><button class="btn ghost" style="flex:1" id="cn">انصراف</button></div>');$("#cy",o).onclick=()=>{o.remove();cb();};$("#cn",o).onclick=()=>o.remove();}
 const avatar=m=>{
-  const showPhoto=m.photo&&m.consentPhoto!==false&&!(privacyOn()&&!m.consentPhoto);
-  if(showPhoto&&m.photo&&!(privacyOn()))return'<img class="avatar" src="'+m.photo+'" alt="">';
-  if(showPhoto&&m.photo&&privacyOn())return'<img class="avatar" src="'+m.photo+'" alt="" style="filter:blur(5px)">';
+  const ph=safeMedia(m.photo,"image");
+  const showPhoto=ph&&m.consentPhoto!==false&&!(privacyOn()&&!m.consentPhoto);
+  if(showPhoto&&!(privacyOn()))return'<img class="avatar" src="'+ph+'" alt="">';
+  if(showPhoto&&privacyOn())return'<img class="avatar" src="'+ph+'" alt="" style="filter:blur(5px)">';
   return'<div class="avatar">'+esc((m.name||"؟").trim().charAt(0))+"</div>";
 };
 function waLink(p){if(!p)return"#";
@@ -294,10 +314,10 @@ return"https://wa.me/"+d;}
 
 /* ============ ضبط و پخش صدا ============ */
 let _au=null;
-function playAud(src){try{if(!src)return;if(_au){_au.pause();}_au=new Audio(src);_au.play();}catch(e){toast("پخش ناموفق");}}
+function playAud(src){try{if(!src)return;src=safeMedia(src,"audio");if(!src)return;if(_au){_au.pause();}_au=new Audio(src);_au.play();}catch(e){toast("پخش ناموفق");}}
 const AUD={};let _ai=0;
 function audBtn(src,label){if(!src)return"";const k="a"+(++_ai);AUD[k]=src;
-return'<button class="btn sm ghost" data-aud="'+k+'" aria-label="'+(label||"پخش صدا")+'">▶️</button>';}
+return'<button class="btn sm ghost" data-aud="'+k+'" aria-label="'+esc(label||"پخش صدا")+'">▶️</button>';}
 function recordVoice(cb,cur){
 const o=modal('<h3 style="font-weight:800">🎙 ضبط صدا</h3><div style="text-align:center;padding:8px"><div class="rec-time" id="recT">۰:۰۰</div>'+
 '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn d" id="recGo" style="min-width:130px">● شروع ضبط</button>'+
