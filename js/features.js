@@ -66,7 +66,7 @@ function statusStripHTML(){
 function go(r){
 if(r==="login"){route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;render();return;}
 if(Store.get().settings.requireLogin&&!currentUser()){route="login";render();return;}
-const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",settings:"settings",help:"help",more:"more",reports:"reports"};
+const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",tasks:"tasks",settings:"settings",help:"help",more:"more",reports:"reports"};
 if(map[r]&&!can(map[r])){toast("⛔ به این بخش دسترسی ندارید");return;}
 route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;
 /* View Transitions API (PWA 2026) — گذار نرم بین صفحات؛ با احترام به prefers-reduced-motion */

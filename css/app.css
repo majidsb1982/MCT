@@ -61,8 +61,8 @@ nav button{background:none;border:none;color:var(--tx2);font-family:inherit;font
 nav button.on{color:#fff;background:var(--pg);box-shadow:0 3px 12px rgba(37,99,235,.3)}
 nav svg{width:20px;height:20px;fill:currentColor}
 .badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.72em;font-weight:800}
-.b-ok{background:#10b98118;color:#059669}.b-warn{background:#f59e0b18;color:#b45309}.b-bad{background:#ef444418;color:#dc2626}.b-prob{background:#f9731618;color:#c2410c}.b-p{background:var(--blue-t);color:var(--p)}.b-m{background:#64748b14;color:var(--tx2)}
-body.dark .b-ok{color:#34d399}body.dark .b-warn{color:#fbbf24}body.dark .b-bad{color:#f87171}body.dark .b-prob{color:#fb923c}body.dark .b-p{color:#93c5fd}
+.b-ok{background:#10b98118;color:#059669}.b-warn{background:#f59e0b18;color:#b45309}.b-bad{background:#ef444418;color:#dc2626}.b-prob{background:#f9731618;color:#c2410c}.b-on{background:#0ea5e918;color:#0369a1}.b-p{background:var(--blue-t);color:var(--p)}.b-m{background:#64748b14;color:var(--tx2)}
+body.dark .b-ok{color:#34d399}body.dark .b-warn{color:#fbbf24}body.dark .b-bad{color:#f87171}body.dark .b-prob{color:#fb923c}body.dark .b-on{color:#38bdf8}body.dark .b-p{color:#93c5fd}
 .toast{position:fixed;bottom:92px;right:50%;transform:translateX(50%);background:var(--sf);border:1px solid var(--ln);color:var(--tx);padding:11px 20px;border-radius:99px;box-shadow:var(--sh2);opacity:0;transition:.25s;pointer-events:none;z-index:99;max-width:92vw;font-size:.9em;font-weight:600;display:flex;gap:10px;align-items:center}
 .toast.show{opacity:1;pointer-events:auto}
 .toast button{border:none;background:var(--p);color:#fff;border-radius:99px;padding:5px 13px;font-family:inherit;font-weight:800;cursor:pointer;font-size:.9em}
@@ -79,6 +79,7 @@ body.dark .b-ok{color:#34d399}body.dark .b-warn{color:#fbbf24}body.dark .b-bad{c
 .st-btn.on2{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#3b2a00}
 .st-btn.on3{background:linear-gradient(135deg,#ef4444,#f87171);color:#fff}
 .st-btn.on4{background:linear-gradient(135deg,#f97316,#fb923c);color:#fff}
+.st-btn.on5{background:linear-gradient(135deg,#0ea5e9,#38bdf8);color:#fff}
 .entry-body .st-btn{min-height:54px;font-size:.95em}
 .entry-body .mem b{font-size:1.1em}
 .entry-body .avatar{width:46px;height:46px}
@@ -968,6 +969,15 @@ nav button{position:relative;flex:1;min-width:0;max-width:100px;font-size:.68em;
 nav button.on{border-radius:15px}
 nav button.on span{font-weight:900}
 @media(max-width:380px){.home-shortcut{min-height:108px;padding:10px 7px}.home-shortcut-icon{font-size:2em}.home-greeting{font-size:1.04em}.home-next-card{padding:15px}.home-reminder{padding:11px}}
+/* ۵ کاشی خانه در موبایل: فشرده‌تر + کاشی تقویم تمام‌عرض تا همه‌چیز بالای ناوبری جا شود */
+@media(max-width:520px){
+  .home-shortcut-grid{gap:8px}
+  .home-shortcut{min-height:100px;padding:10px 8px 9px;gap:4px}
+  .home-shortcut-icon{font-size:1.9em}
+  .home-shortcut-icon svg{width:30px;height:30px}
+  .home-shortcut-schedule{grid-column:1/-1;min-height:56px;flex-direction:row;justify-content:flex-start;padding:8px 14px;gap:12px}
+  .home-shortcut-schedule small{display:none}
+}
 @media(min-width:600px){.home-shortcut{min-height:150px}.home-shortcut-grid{gap:14px}}
 
 .home-menu{width:42px;height:42px;flex:0 0 42px;border:1px solid var(--ln);border-radius:14px;background:var(--sf);color:var(--tx);font-size:1.35em;cursor:pointer}

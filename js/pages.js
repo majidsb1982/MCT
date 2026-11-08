@@ -30,7 +30,7 @@ function navBadges(){
   }catch(e){return {attend:0,fees:0};}
 }
 function pageTitleFor(r){
-  const map={home:"خانه",attend:"حضور",fees:"شهریه",members:"اعضا",homework:"تکالیف",settings:"تنظیمات",help:"راهنما",more:"بخش‌ها",reports:"گزارش‌ها",login:"ورود",entry:"نوبت ۲"};
+  const map={home:"خانه",attend:"حضور",fees:"شهریه",members:"اعضا",homework:"تکالیف",tasks:"وظایف",settings:"تنظیمات",help:"راهنما",more:"بخش‌ها",reports:"گزارش‌ها",login:"ورود",entry:"نوبت ۲"};
   return map[r]||"MCT";
 }
 function buildNavHTML(){
@@ -51,6 +51,7 @@ Pages.more=function(el){
       ["📖","راهنما","راهنمای استفاده و توضیحات","go('help')"]
     ]},
     {title:"ابزارهای مدیریتی",items:[
+      ["🧩","تقسیم‌بندی وظایف","وظایف جلسه و مسئول هر کار","go('tasks')"],
       ["💾","پشتیبان‌گیری","ذخیره فایل نسخه پشتیبان","backup()"],
       ["🔄","انتقال اطلاعات بین دستگاه‌ها","ساخت یا ورود کد همگام‌سازی","compactSyncExport()"],
       ["📦","تحویل شیفت","خلاصه کارهای باقی‌مانده برای همکار","handoffPackage()"],
@@ -186,6 +187,7 @@ Pages.home=function(el){
   const unAttendance=pending.attend;
   const unP=pending.fees;
   const hw=typeof pendingHomeworkCount==="function"?pendingHomeworkCount():0;
+  const openTasks=typeof pendingTasksCount==="function"?pendingTasksCount():0;
   const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
 let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="بخش‌های بیشتر" title="بخش‌های بیشتر">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">پیگیری جلسات</div></div></section>';
   h+='<section class="home-next-card"><div class="home-next-label"><span class="home-live-dot"></span> تا جلسه بعدی</div>';
@@ -197,11 +199,12 @@ let h='<section class="home-android-head"><button type="button" class="home-menu
     ["attend","حضور","calendar",unAttendance,"ثبت وضعیت اعضا"],
     ["fees","شهریه","wallet",unP,"پیگیری پرداخت‌ها"],
     ["homework","تکالیف","tasks",hw,"تکالیف جلسه"],
+    ["tasks","وظایف","clip",openTasks,"تقسیم وظایف جلسه"],
     ["calendar","تقویم و مناسبت‌ها","schedule",0,"تقویم جلالی، مناسبت‌ها و کلاس‌ها"]
   ];
   tiles.forEach(t=>{
-    const badge=(t[0]==="attend"||t[0]==="fees")&&t[3]>0?'<span class="home-shortcut-badge" aria-label="'+Jalali.toFa(t[3])+' مورد نیازمند پیگیری">'+count(t[3])+'</span>':"";
-    const icons={calendar:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15l2 2 5-5"/></svg>',wallet:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/></svg>',tasks:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 5-4M8 17h8"/></svg>',schedule:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 13v4l3 1"/></svg>'};
+    const badge=(t[0]==="attend"||t[0]==="fees"||t[0]==="tasks")&&t[3]>0?'<span class="home-shortcut-badge" aria-label="'+Jalali.toFa(t[3])+' مورد نیازمند پیگیری">'+count(t[3])+'</span>':"";
+    const icons={calendar:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15l2 2 5-5"/></svg>',wallet:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 9h18M16 14h2"/></svg>',tasks:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M8 11l2 2 5-4M8 17h8"/></svg>',clip:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 12l2 2 4-4M9 17h6"/></svg>',schedule:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M12 13v4l3 1"/></svg>'};
     h+='<button type="button" class="home-shortcut home-shortcut-'+t[2]+'" onclick="'+(t[0]==="calendar"?"openCalendarSettings()":"go(\'"+t[0]+"\')")+'">'+badge+'<span class="home-shortcut-icon" aria-hidden="true">'+icons[t[2]]+'</span><b>'+t[1]+'</b><small>'+t[4]+'</small></button>';
   });
   h+='</div><button type="button" class="home-reminder" aria-label="یادآور درمانگر" onclick="showDoorChecklist()"><span class="home-reminder-icon">◷</span><span><b>یادآوری‌ها</b><small>یادآوری ورود، تماس و پیگیری جلسه</small></span><span class="home-reminder-arrow">‹</span></button>';
@@ -223,7 +226,7 @@ return h;}
 function memberRow(m,ph,cur,key){
 const st=cur[ph];
 const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2",aF=ph==="p1"?"a1":"a2";
-let h='<div class="mem'+(st==="present"?" done":"")+'">'+avatar(m)+"<b>"+esc(m.name)+"</b>"+callBtns(m);
+let h='<div class="mem'+(st==="present"||st==="online"?" done":"")+'">'+avatar(m)+"<b>"+esc(m.name)+"</b>"+callBtns(m);
 if(ph==="p2"){h+='<span class="badge '+(ST.cls[cur.p1]||"b-m")+'">تماس: '+ST.lbl[cur.p1||"none"]+"</span>";}
 else h+='<span class="badge '+(ST.cls[st]||"b-m")+'">'+ST.lbl[st||"none"]+"</span>";
 h+="</div>";
@@ -265,8 +268,8 @@ sel+="</select>";
 let h='<div class="card"><h3>📞 پیگیری تماس‌های قبل از جلسه</h3>'+'<div class="row" style="margin-bottom:8px">'+sel+"</div>";
 h+='<div class="progress"><i style="width:'+pct+'%"></i></div><p class="stat-line">ثبت‌شده: <b style="color:var(--p)">'+Jalali.toFa(done.length)+"</b> از "+Jalali.toFa(d.members.length)+'</p>'+
 '<div class="row" style="margin:10px 0 6px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">⏳ ثبت‌نشده ('+Jalali.toFa(need.length)+')</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">✓ ثبت‌شده ('+Jalali.toFa(done.length)+')</button></div>'+
-'<div class="row" style="margin-bottom:6px">'+filterBar("جستجوی نام در لیست")+
-'<button class="btn p sm" onclick="openEntry()">🚪 نوبت ۲ پشت در</button><button class="btn g sm" onclick="reportRoundToHami(1)">📤 گزارش به حامی</button><button class="btn ghost sm" onclick="showReport(1)" aria-label="گزارش">📨</button><button class="btn ghost sm" onclick="printAttendReport()" aria-label="چاپ گزارش">🖨</button><button class="btn ghost sm" onclick="exportCSV(\'attend\',\''+key+'\')" aria-label="خروج اکسل">📊</button></div></div>';
+'<div class="row" style="margin-bottom:6px;gap:6px;flex-wrap:wrap">'+filterBar("جستجوی نام در لیست")+sortSelectHTML("مرتب‌سازی لیست حضور")+'</div>'+
+'<button class="btn p sm" onclick="openEntry()">🚪 نوبت ۲ پشت در</button><button class="btn g sm" onclick="reportRoundToHami(1)">📤 گزارش به حامی</button><button class="btn ghost sm" onclick="showReport(1)" aria-label="گزارش">📨</button><button class="btn ghost sm" onclick="printAttendReport()" aria-label="چاپ گزارش">🖨</button><button class="btn ghost sm" onclick="exportCSV(\'attend\',\''+key+'\')" aria-label="خروج اکسل">📊</button></div>';
 const fl=UI.filter;
 if(UI.doneTab){
 const dl=fl?done.filter(m=>m.name.includes(fl)):done;
@@ -313,7 +316,7 @@ el.innerHTML='<div class="entry-head"><div class="row" style="justify-content:sp
 '<button class="chip" style="background:'+(UI.callOnly?"#fff":"rgba(255,255,255,.16)")+';color:'+(UI.callOnly?"#1d4ed8":"#fff")+'" onclick="toggleEntryFilter()">🎯 فقط ثبت‌نشده‌ها</button></div></div>'+
 '<div class="entry-body">'+
 '<div class="row" style="margin-bottom:8px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">⏳ ثبت‌نشده ('+Jalali.toFa(need.length)+')</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">✓ ثبت‌شده ('+Jalali.toFa(done.length)+')</button></div>'+
-filterBar("جستجوی نام");
+filterBar("جستجوی نام")+sortSelectHTML("مرتب‌سازی لیست");
 const fl=UI.filter;
 if(UI.doneTab){
 const dl=fl?done.filter(m=>m.name.includes(fl)):done;
@@ -363,7 +366,7 @@ let feeSel='<label for="feeSessionSelect">جلسهٔ مربوط به این شه
 let h=feeSel+'<div class="card fee-summary"><div class="row" style="justify-content:space-between;align-items:center"><div><b>💰 خلاصه شهریه جلسه</b><div class="stat-line">جلسه: '+(key?Jalali.fmt(Jalali.fromKey(key)):"جلسه تنظیم نشده")+' · مهلت: '+esc(feeDeadlineText)+'</div></div><b>'+(np?"⏳ "+Jalali.toFa(np)+" پرداخت‌نشده":"✅ تسویه کامل")+'</b></div><div class="progress"><i style="width:'+pct+'%"></i></div><button class="btn g" type="button" id="btnFeeHami" style="width:100%;margin-top:8px">📤 گزارش شهریه به حامی‌ها</button></div>'+
 '<div class="row" style="margin:6px 0 8px;flex-wrap:wrap"><button class="btn sm ghost" type="button" id="btnFeeXls">⬇️ خروجی اکسل</button><button class="btn sm ghost" type="button" onclick="feeReport()">📨 مشاهده گزارش</button><button class="btn sm ghost" type="button" onclick="window.print()">🖨️ چاپ / PDF</button></div>'+
 '<div class="row" style="margin:4px 0 10px"><button class="chip'+(UI.feeTab===0?" on":"")+'" style="flex:1" onclick="setFeeTab(0)">💰 پرداخت‌ها</button><button class="chip'+(UI.feeTab===1?" on":"")+'" style="flex:1" onclick="setFeeTab(1)">📞 پیگیری ('+Jalali.toFa(follow.length)+')</button><button class="chip'+(UI.feeTab===2?" on":"")+'" style="flex:1" onclick="setFeeTab(2)">✓ انجام‌شده ('+Jalali.toFa(contacted.length)+')</button></div>'+
-filterBar("جستجوی نام");
+filterBar("جستجوی نام")+sortSelectHTML("مرتب‌سازی لیست");
 const fl=UI.filter;
 const pick=arr=>fl?arr.filter(m=>m.name.includes(fl)):arr;
 if(UI.feeTab===0){
@@ -445,11 +448,92 @@ if(!t){toast("⚠️ متن خالی است");return;}
 const previous=hw.text;hw.text=t;if(!saveStoreSafe()){hw.text=previous;render();toast("⚠️ ویرایش ذخیره نشد؛ متن قبلی حفظ شد");return;}o.remove();render();toast("✅ ویرایش شد");};}
 window.hwEdit=hwEdit;
 
+/* ---- وظایف (تقسیم‌بندی کارهای جلسه بین اعضا) ---- */
+Pages.tasks=function(el){
+const d=Store.get();
+if(!d.members.length){el.innerHTML='<div class="card"><h3>🧩 تقسیم‌بندی وظایف</h3></div>'+emptyState("اول از تب «اعضا» اعضا را اضافه کن");return;}
+const key=sessionSel()||"";
+const all=d.tasks||[];
+const sessionTasks=all.filter(t=>t.key===key);
+const generalTasks=all.filter(t=>!t.key);
+const open=all.filter(t=>!t.done).length;
+let h='<div class="card"><h3>🧩 تقسیم‌بندی وظایف</h3>'+
+'<p class="stat-line">جلسه: <b>'+(key?Jalali.fmt(Jalali.fromKey(key)):"—")+'</b> · وظایف باز: <b>'+Jalali.toFa(open)+'</b> از '+Jalali.toFa(all.length)+'</p>'+
+'<label>عنوان وظیفه</label><input id="tkTitle" name="task-title" placeholder="مثلاً: خرید میان‌وعده / چیدمان صندلی‌ها" aria-label="عنوان وظیفه">'+
+'<label>مسئول (اختیاری — بعداً هم می‌توانید تقسیم کنید)</label><select id="tkWho" name="task-assignee" aria-label="مسئول وظیفه"><option value="">— بدون مسئول —</option>'+d.members.map(m=>'<option value="'+m.id+'">'+esc(m.name)+'</option>').join("")+'</select>'+
+'<div class="row" style="margin-top:10px;gap:6px;flex-wrap:wrap"><button class="btn p sm" onclick="addTask()">＋ افزودن وظیفه</button><button class="btn g sm" onclick="autoSplitSessionTasks()">⚖ تقسیم خودکار بین اعضا</button><button class="btn ghost sm" onclick="clearDoneTasks()">🧹 پاک‌کردن انجام‌شده‌ها</button></div></div>';
+const row=t=>{
+const mm=t.mid?d.members.find(x=>x.id===t.mid):null;
+return '<div class="mblk" data-tid="'+t.id+'"><div class="mem'+(t.done?" done":"")+'">'+
+'<input type="checkbox" name="task-done-'+t.id+'" '+(t.done?"checked":"")+' onchange="toggleTaskDone(\''+t.id+'\')" aria-label="انجام شد: '+esc(t.title)+'" style="width:auto;min-height:0;flex:none">'+
+'<b style="flex:1;'+(t.done?"text-decoration:line-through;opacity:.6":"")+'">'+esc(t.title)+'</b>'+
+(t.key?'<span class="mem-muted">📅 '+Jalali.toFa(Jalali.fmt(Jalali.fromKey(t.key)))+'</span>':'<span class="mem-muted">عمومی</span>')+
+'<select onchange="setTaskAssignee(\''+t.id+'\',this.value)" aria-label="مسئول وظیفه: '+esc(t.title)+'" style="min-width:110px"><option value="">— مسئول —</option>'+
+d.members.map(x=>'<option value="'+x.id+'"'+(t.mid===x.id?" selected":"")+'>'+esc(x.name)+'</option>').join("")+'</select>'+
+'<button class="btn sm ghost ico-btn" onclick="delTask(\''+t.id+'\')" aria-label="حذف وظیفه">🗑</button></div>'+
+(mm?'<div class="row" style="margin-top:4px;gap:4px">'+callBtns(mm)+'</div>':'')+'</div>';
+};
+h+='<div class="sec-label">وظایف این جلسه ('+Jalali.toFa(sessionTasks.length)+')</div><div class="card">'+(sessionTasks.length?sessionTasks.map(row).join(""):'<div class="empty">برای این جلسه وظیفه‌ای نیست</div>')+'</div>';
+h+='<div class="sec-label">وظایف عمومی ('+Jalali.toFa(generalTasks.length)+')</div><div class="card">'+(generalTasks.length?generalTasks.map(row).join(""):'<div class="empty">وظیفه عمومی ثبت نشده</div>')+'</div>';
+el.innerHTML=h;}
+function addTask(){
+if(!requirePerm("edit","اجازه افزودن وظیفه ندارید"))return;
+const d=Store.get();
+const box=document.getElementById("tkTitle");
+const title=((box&&box.value)||"").trim();
+if(!title){toast("⚠️ عنوان وظیفه را بنویسید");return;}
+const whoEl=document.getElementById("tkWho");
+const t={id:Store.uid(),title,mid:(whoEl&&whoEl.value)||"",key:sessionSel()||"",done:false,by:(currentUser()||{}).name||"",at:Date.now()};
+d.tasks=d.tasks||[];d.tasks.push(t);
+if(!saveStoreSafe()){d.tasks.pop();render();toast("⚠️ ذخیره وظیفه ناموفق بود");return;}
+render();toast("✅ وظیفه اضافه شد");}
+function delTask(id){if(!requirePerm("delete","اجازه حذف ندارید"))return;
+const d=Store.get();d.tasks=d.tasks||[];const i=d.tasks.findIndex(t=>t.id===id);if(i<0)return;
+const removed=d.tasks.splice(i,1)[0];
+if(!saveStoreSafe()){d.tasks.splice(i,0,removed);render();toast("⚠️ حذف وظیفه ذخیره نشد");return;}
+render();toast("🗑 وظیفه حذف شد");}
+function toggleTaskDone(id){const d=Store.get();d.tasks=d.tasks||[];
+const t=d.tasks.find(x=>x.id===id);if(!t)return;
+const prev=t.done;t.done=!t.done;
+if(!saveStoreSafe()){t.done=prev;render();toast("⚠️ ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}
+render();}
+function setTaskAssignee(id,mid){const d=Store.get();d.tasks=d.tasks||[];
+const t=d.tasks.find(x=>x.id===id);if(!t)return;
+const prev=t.mid;t.mid=mid||"";
+if(!saveStoreSafe()){t.mid=prev;render();toast("⚠️ ذخیره نشد؛ مسئول قبلی حفظ شد");return;}
+render();}
+function autoSplitSessionTasks(){
+if(!requirePerm("edit","اجازه تقسیم وظایف ندارید"))return;
+const d=Store.get();d.tasks=d.tasks||[];
+const key=sessionSel()||"";
+const open=d.tasks.filter(t=>t.key===key&&!t.done);
+if(!open.length){toast("⚠️ وظیفه بازی برای این جلسه نیست — اول وظیفه اضافه کنید");return;}
+const members=d.members.slice();
+if(!members.length)return;
+const snapshot=d.tasks.map(t=>({id:t.id,mid:t.mid}));
+let n=0;
+open.forEach(t=>{if(!t.mid){t.mid=members[n%members.length].id;n++;}});
+if(!n){toast("• همه وظایف این جلسه مسئول دارند");return;}
+if(!saveStoreSafe()){snapshot.forEach(s=>{const t=d.tasks.find(x=>x.id===s.id);if(t)t.mid=s.mid;});render();toast("⚠️ تقسیم ذخیره نشد");return;}
+try{logActivity("تقسیم خودکار وظایف جلسه");}catch(e){}
+render();toast("⚖ "+Jalali.toFa(n)+" وظیفه بین اعضا تقسیم شد");}
+function clearDoneTasks(){
+if(!requirePerm("delete","اجازه حذف ندارید"))return;
+const d=Store.get();d.tasks=d.tasks||[];
+const before=d.tasks.length;
+const kept=d.tasks.filter(t=>!t.done);
+if(kept.length===before){toast("• وظیفه انجام‌شده‌ای نیست");return;}
+const prev=d.tasks;d.tasks=kept;
+if(!saveStoreSafe()){d.tasks=prev;render();toast("⚠️ ذخیره نشد؛ لیست قبلی حفظ شد");return;}
+render();toast("🧹 وظایف انجام‌شده پاک شد");}
+function pendingTasksCount(){try{const d=Store.get();return (d.tasks||[]).filter(t=>!t.done).length;}catch(e){return 0;}}
+window.addTask=addTask;window.delTask=delTask;window.toggleTaskDone=toggleTaskDone;window.setTaskAssignee=setTaskAssignee;window.autoSplitSessionTasks=autoSplitSessionTasks;window.clearDoneTasks=clearDoneTasks;window.pendingTasksCount=pendingTasksCount;
+
 /* ---- اعضا ---- */
 Pages.members=function(el){
 el.innerHTML='<div class="card hero members-hero"><div class="members-hero-title"><h3>👥 اعضا</h3><button type="button" class="members-help-btn" onclick="showMembersHelp()" aria-label="راهنمای صفحه اعضا" title="راهنمای صفحه اعضا">?</button></div></div>'+
 '<div class="card"><div class="sec-label">جستجو و افزودن</div><div class="row"><input id="mSearch" name="member-search" aria-label="جستجوی نام عضو" placeholder="🔍 جستجوی نام…" oninput="renderMembers(this.value)" style="flex:1"><button class="btn p" onclick="memberForm()" aria-label="افزودن عضو جدید">＋</button></div>'+
-'<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="exportMembersCSV()">📊 خروجی کامل</button><button class="btn ghost sm" onclick="document.getElementById(\'mimp\').click()">⬆️ ورود</button><input type="file" id="mimp" class="sr" accept=".csv,text/csv" onchange="importMembersCSV(this)"><select id="memberSort" aria-label="مرتب‌سازی اعضا" onchange="memberSortMode=this.value;renderMembers(document.getElementById(\'mSearch\').value)" style="flex:1;min-width:130px"><option value="name">مرتب‌سازی: نام</option><option value="family">نام خانوادگی</option><option value="birth">تاریخ تولد</option><option value="phone">شماره تلفن</option></select></div>'+
+'<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="exportMembersCSV()">📊 خروجی کامل</button><button class="btn ghost sm" onclick="document.getElementById(\'mimp\').click()">⬆️ ورود</button><input type="file" id="mimp" class="sr" accept=".csv,text/csv" onchange="importMembersCSV(this)">'+sortSelectHTML("مرتب‌سازی اعضا","memberSortMode=this.value;renderMembers(document.getElementById('mSearch').value)")+'</div>'+
 '<div class="role-legend">'+
 '<span class="role-ico" title="پیگیری حضور">📞</span><span class="leg">حضور</span>'+
 '<span class="role-ico" title="شهریه">💰</span><span class="leg">شهریه</span>'+
@@ -579,14 +663,31 @@ function emptyState(m){return'<div class="card empty-state-card"><div class="emp
 function showMembersHelp(){const o=modal('<div class="members-help"><div class="members-help-head"><span class="members-help-mark">?</span><div><h3>راهنمای صفحه اعضا</h3><p>مدیریت سریع اعضای کلاس</p></div></div><ul><li>برای افزودن عضو، دکمه ＋ کنار جستجو را بزنید.</li><li>با جستجو می‌توانید عضو موردنظر را سریع پیدا کنید.</li><li>آیکون‌های کنار نام، نقش‌های عضو را نشان می‌دهند: حضور، شهریه، تکلیف و حامی.</li><li>برای اصلاح اطلاعات از دکمه ویرایش استفاده کنید.</li><li>ورود و خروجی اعضا برای انتقال یا نگهداری اطلاعات در دسترس است.</li></ul><button type="button" class="btn p" style="width:100%;margin-top:8px" id="membersHelpDone">متوجه شدم</button></div>');o.classList.add("members-help-overlay");const b=o.querySelector("#membersHelpDone");if(b)b.onclick=()=>o.remove();}
 window.showMembersHelp=showMembersHelp;
 let memberSortMode="name";
+/* مرتب‌سازی مشترک برای همه لیست‌ها (اعضا، حضور، شهریه، نوبت ۲) */
+function familyName(m){if(m.lname)return m.lname;const p=String(m.name||"").trim().split(/\s+/);return p.length>1?p[p.length-1]:p[0]||"";}
+function firstNameOf(m){if(m.fname)return m.fname;const p=String(m.name||"").trim().split(/\s+/);return p[0]||"";}
+function birthSortKey(m,monthOnly){const b=m.birth;if(!b)return"9999-99-99";const y=String(b.jy).padStart(4,"0"),mo=String(b.jm).padStart(2,"0"),da=String(b.jd).padStart(2,"0");return monthOnly?mo+"-"+da:y+"-"+mo+"-"+da;}
+function phoneKey(m){return (m.phones||[]).filter(Boolean)[0]||"~~~~~~~~";}
+function sortMemberList(list){
+  const arr=list.slice();const fa=(a,b)=>String(a).localeCompare(String(b),"fa");
+  if(memberSortMode==="family")arr.sort((a,b)=>familyName(a).localeCompare(familyName(b),"fa")||fa(a.name,b.name));
+  else if(memberSortMode==="birthY"||memberSortMode==="birth")arr.sort((a,b)=>birthSortKey(a).localeCompare(birthSortKey(b))||fa(a.name,b.name));
+  else if(memberSortMode==="birthM")arr.sort((a,b)=>birthSortKey(a,true).localeCompare(birthSortKey(b,true))||birthSortKey(a).localeCompare(birthSortKey(b))||fa(a.name,b.name));
+  else if(memberSortMode==="phone")arr.sort((a,b)=>phoneKey(a).localeCompare(phoneKey(b)));
+  else arr.sort((a,b)=>fa(a.name,b.name));
+  return arr;
+}
+function setSortMode(v){memberSortMode=v;render();}
+function sortSelectHTML(aria,onch){
+  const opts=[["smart","هوشمند (اول ثبت‌نشده‌ها)"],["name","نام"],["family","نام خانوادگی"],["birthY","سال تولد"],["birthM","ماه تولد"],["phone","شماره تلفن"]];
+  return '<select id="memberSort" aria-label="'+(aria||"مرتب‌سازی لیست")+'" onchange="'+(onch||"setSortMode(this.value)")+'" style="flex:1;min-width:130px">'+opts.map(o=>'<option value="'+o[0]+'"'+(memberSortMode===o[0]?" selected":"")+">مرتب‌سازی: "+o[1]+'</option>').join("")+'</select>';
+}
+window.setSortMode=setSortMode;
 function renderMembers(q){q=(q||"").trim();const d=Store.get();
 let list=d.members.filter(m=>!q||m.name.includes(q));
 const pins=d.pinnedMembers||[];
-const familyName=m=>{const p=String(m.name||"").trim().split(/\s+/);return p.length>1?p[p.length-1]:p[0]||"";};
-const birthKey=m=>m.birth?String(m.birth.jy).padStart(4,"0")+"-"+String(m.birth.jm).padStart(2,"0")+"-"+String(m.birth.jd).padStart(2,"0"):"9999-99-99";
-const phoneKey=m=>(m.phones||[]).filter(Boolean)[0]||"~~~~~~~~";
-const cmp=(a,b)=>memberSortMode==="family"?familyName(a).localeCompare(familyName(b),"fa")||a.name.localeCompare(b.name,"fa"):memberSortMode==="birth"?birthKey(a).localeCompare(birthKey(b)):memberSortMode==="phone"?phoneKey(a).localeCompare(phoneKey(b)):a.name.localeCompare(b.name,"fa");
-list=list.slice().sort((a,b)=>((pins.indexOf(b.id)>=0?1:0)-(pins.indexOf(a.id)>=0?1:0))||cmp(a,b));
+list=sortMemberList(list);
+list=list.slice().sort((a,b)=>((pins.indexOf(b.id)>=0?1:0)-(pins.indexOf(a.id)>=0?1:0))||0);
  $("#mList").innerHTML=list.length?('<div class="card">'+list.map(m=>{
 const rl=roleIconsHTML(m.roles)+(m.group&&m.group!=="عمومی"?'<span class="role-ico" title="گروه: '+esc(m.group)+'">🏷</span>':"");
 const p0=(m.phones||[]).filter(Boolean)[0];
@@ -620,7 +721,8 @@ const o=modal("<h3 style='font-weight:800'>"+(m?"✏️ ویرایش عضو":"�
 '<div style="flex:1"><input type="file" id="phFile" class="sr" accept="image/*" onchange="pickPhoto(this)">'+
 '<div class="row"><button class="btn sm ghost" onclick="document.getElementById(\'phFile\').click()">📷 عکس</button>'+
 ((m&&safeMedia(m.photo,"image"))?'<button class="btn sm ghost" onclick="delPhoto()">🗑 حذف عکس</button>':"")+"</div></div></div>"+
-"<label>نام *</label><input id='fName' name='m-name' autocomplete='off' value='"+esc(m?m.name:"")+"'>"+
+"<label>نام *</label><input id='fName' name='m-first' autocomplete='off' value='"+esc(m?(m.fname||firstNameOf(m)):"")+"'>"+
+"<label>نام خانوادگی</label><input id='fLName' name='m-last' autocomplete='off' value='"+esc(m?(m.lname||familyName(m)):"")+"'>"+
 "<label>شماره‌های تماس (تا ۳ شماره)</label><div id='phList'></div>"+
 "<button type='button' class='btn sm ghost' id='addPh' style='margin:4px 0'>＋ شماره دیگر</button>"+
 "<label>تاریخ تولد (شمسی)</label><input id='fBirth' name='m-birth' readonly placeholder='انتخاب کنید' value='"+(m&&m.birth?Jalali.fmt(m.birth):"")+"' onclick='pickBirth()' style='cursor:pointer'>"+
@@ -675,9 +777,10 @@ updV();
  $("#vRec",o).onclick=()=>recordVoice(res=>{o._voice=res;updV();},o._voice);
  $("#fCancel",o).onclick=()=>o.remove();
  $("#fSave",o).onclick=()=>{
-const name=$("#fName",o).value.trim();
+const fname=$("#fName",o).value.trim(),lname=$("#fLName",o).value.trim();
+const name=(fname+" "+lname).trim();
 const phs=phones.map(x=>x.trim()).filter(Boolean);
-if(!name){toast("⚠️ نام را وارد کنید");return;}
+if(!fname){toast("⚠️ نام را وارد کنید");return;}
 if(!m&&d.members.some(x=>x.name===name)){toast("⚠️ عضوی با همین نام از قبل ثبت شده");return;}
 for(const p of phs){if(!validPhone(p)){toast("⚠️ شماره «"+p+"» معتبر نیست");return;}}
 const canonicalPhones=phs.map(canonicalPhone);
@@ -692,7 +795,7 @@ const grp=($("#fGroup",o)&&$("#fGroup",o).value)||"عمومی";
 const needs=[...o.querySelectorAll(".fNeed:checked")].map(c=>c.value);
 const privEl=$("#fPrivNote",o);const careEl=$("#fCare",o);const suppEl=$("#fSupp",o);
 const consC=$("#fConsC",o);const consP=$("#fConsP",o);
-const obj={name,phones:phs,birth,roles,note:$("#fNote",o).value.trim(),
+const obj={name,fname,lname,phones:phs,birth,roles,note:$("#fNote",o).value.trim(),
 privateNote:privEl?privEl.value.trim():"",
 needs,careFlag:careEl?careEl.checked:false,
 supporterId:suppEl&&suppEl.value?suppEl.value:null,
@@ -765,15 +868,15 @@ celebrate("🎉 همه اعضا حاضرند — کلاس کامل است!");}
 
 /* ---- گزارش‌ها ---- */
 function reportText(ph,full){const d=Store.get(),key=d._lastSession||sessionSel();if(!key)return"";
-const s=d.sessions[key]||{},g={present:[],delay:[],absent:[],problem:[],none:[]};
+const s=d.sessions[key]||{},g={present:[],delay:[],absent:[],problem:[],online:[],none:[]};
 for(const m of d.members){const st=ph===2?((s[m.id]||{}).p2||(s[m.id]||{}).p1):(s[m.id]||{}).p1;
 (g[st||"none"]||g.none).push(m);}
 const fm=m=>{const ex=s[m.id]||{};let t=m.name;
 if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(fmtAttTime(ex.time2||ex.time))+")";
 else if(ex.note)t+=" ("+ex.note+")";return t;};
-const nc=nextClass(),sessionDate=key?Jalali.fromKey(key):null,icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",none:"—"};
+const nc=nextClass(),sessionDate=key?Jalali.fromKey(key):null,icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",online:"💻",none:"—"};
 let out="📋 گزارش حضور — "+(sessionDate?Jalali.fmt(sessionDate):"جلسه تنظیم نشده")+" — "+(ph===1?"نوبت ۱ (تماس‌های قبلی)":"نوبت ۲ (ثبت ورود)")+"\n";
-const keys=full?["present","delay","absent","problem","none"]:["delay","absent","problem"];
+const keys=full?["present","delay","online","absent","problem","none"]:["delay","absent","problem"];
 for(const k of keys)
 if(g[k].length)out+=icon[k]+" "+ST.lbl[k]+": "+g[k].map(fm).join("، ")+"\n";
 if(!full){const un=g.none.length;if(un)out+="❔ ثبت‌نشده: "+Jalali.toFa(un)+" نفر\n";}

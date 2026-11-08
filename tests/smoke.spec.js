@@ -26,7 +26,7 @@ test("desktop and mobile layouts fit the viewport without horizontal overflow", 
   await expect(page.locator("#hdr")).toBeVisible();
   await expect(page.locator("#app .home-android-head")).toBeVisible();
   await expect(page.locator("#app .home-next-card")).toBeVisible();
-  await expect(page.locator("#app .home-shortcut")).toHaveCount(4);
+  await expect(page.locator("#app .home-shortcut")).toHaveCount(5);
   await expect(page.locator("#nav button[aria-label='جستجو']")).toHaveCount(0);
   await expect(page.locator("#nav button[aria-label='تنظیمات']")).toBeVisible();
   await expect(page.locator("#app .home-reminder")).toBeVisible();
@@ -220,7 +220,7 @@ test("member list offers name, family name, birth date and phone sorting", async
   await page.locator("#memberSort").selectOption("family");
   let names = await page.locator("#mList .mem-name b").allTextContents();
   expect(names[0]).toBe("رضا احمدی");
-  await page.locator("#memberSort").selectOption("birth");
+  await page.locator("#memberSort").selectOption("birthY");
   names = await page.locator("#mList .mem-name b").allTextContents();
   expect(names[0]).toBe("رضا احمدی");
   await page.locator("#memberSort").selectOption("phone");
@@ -615,7 +615,7 @@ test("header calendar shortcut opens the same calendar popup as the home tile", 
   await expect(page.locator(".calendar-popup")).toHaveCount(0);
 });
 
-test("pending badges count both attendance rounds and stay consistent across navigation", async ({ page }) => {
+test("pending badges follow the active round and decrease as members are marked", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => {
     const d = Store.get();
@@ -627,7 +627,7 @@ test("pending badges count both attendance rounds and stay consistent across nav
     d._lastSession = "1405-01-08";
     d.sessions = {
       "1405-01-08": {
-        "badge-a": { p1: "present" },
+        "badge-a": {},
         "badge-b": { p1: "absent", p2: "present" }
       }
     };
@@ -642,6 +642,7 @@ test("pending badges count both attendance rounds and stay consistent across nav
   });
   await page.reload();
 
+  // Round 1 (default): a member with no p1 is pending even if another round is complete
   const initial = await page.evaluate(() => ({ pending: myPendingCount(), nav: navBadges() }));
   expect(initial.pending).toEqual({ attend: 1, fee: 1 });
   expect(initial.nav).toEqual({ attend: 1, fees: 1 });
@@ -650,7 +651,7 @@ test("pending badges count both attendance rounds and stay consistent across nav
 
   await page.evaluate(() => {
     const d = Store.get();
-    d.sessions["1405-01-08"]["badge-a"].p2 = "present";
+    d.sessions["1405-01-08"]["badge-a"].p1 = "present";
     d.fees["1405-01-08"]["badge-b"].paid = true;
     Store.save();
   });
@@ -660,6 +661,33 @@ test("pending badges count both attendance rounds and stay consistent across nav
   expect(completed.nav).toEqual({ attend: 0, fees: 0 });
   await expect(page.locator('#nav button[aria-label="حضور"] .nav-badge')).toHaveCount(0);
   await expect(page.locator('#nav button[aria-label="شهریه"] .nav-badge')).toHaveCount(0);
+
+  // Round 2 (door entry): pending switches to p2
+  await page.evaluate(() => { route = "entry"; });
+  const entry = await page.evaluate(() => myPendingCount());
+  expect(entry.attend).toBe(1); // badge-a has p1 but no p2 yet
+  await page.evaluate(() => { route = "home"; });
+});
+
+test("marking a member present through the UI decreases the red badge immediately", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [
+      { id: "dec-a", name: "عضو اول کاهش", phones: [], roles: [], group: "عمومی" },
+      { id: "dec-b", name: "عضو دوم کاهش", phones: [], roles: [], group: "عمومی" }
+    ];
+    d.sessions = {};
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  await expect(page.locator('#nav button[aria-label="حضور"] .nav-badge')).toHaveText("۲");
+  await page.locator("#app .mblk").filter({ hasText: "عضو اول کاهش" }).locator('.st-btn[data-s="present"]').click();
+  await expect(page.locator('#nav button[aria-label="حضور"] .nav-badge')).toHaveText("۱");
+  await page.locator("#app .mblk").filter({ hasText: "عضو دوم کاهش" }).locator('.st-btn[data-s="present"]').click();
+  await expect(page.locator('#nav button[aria-label="حضور"] .nav-badge')).toHaveCount(0);
 });
 
 test("home navigation is the first right-to-left item and calendar shortcut is clearly named", async ({ page }) => {
@@ -1096,7 +1124,7 @@ test("storage card shows real browser quota via Storage Quota API", async ({ pag
   await expect(page.locator("#storBody")).toContainText("فضای واقعی مصرفی", { timeout: 7000 });
 });
 
-test("service worker activates with reminder handlers and cache v122", async ({ page }) => {
+test("service worker activates with reminder handlers and cache v123", async ({ page }) => {
   await page.goto("/");
   const info = await page.evaluate(async () => {
     try {
@@ -1115,4 +1143,86 @@ test("no Content-Security-Policy violations on load", async ({ page }) => {
   await expect(page.locator("#app")).toBeAttached();
   await page.waitForTimeout(1500);
   expect(violations, violations.join(" | ")).toEqual([]);
+});
+
+test("online attendance can be marked and appears in reports without needing a call", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [
+      { id: "on-a", name: "عضو آنلاین", phones: [], roles: [], group: "عمومی" },
+      { id: "on-b", name: "عضو حاضر", phones: [], roles: [], group: "عمومی" }
+    ];
+    d.sessions = {};
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  await page.locator("#app .mblk").filter({ hasText: "عضو آنلاین" }).locator('.st-btn[data-s="online"]').click();
+  await expect.poll(async () => page.evaluate(() => {
+    const d = Store.get();
+    const key = d._lastSession || Object.keys(d.sessions)[0];
+    return ((d.sessions[key] || {})["on-a"] || {}).p1;
+  })).toBe("online");
+  // an online member is registered — the badge only counts the remaining member
+  await expect(page.locator('#nav button[aria-label="حضور"] .nav-badge')).toHaveText("۱");
+  const report = await page.evaluate(() => reportText(1, true));
+  expect(report).toContain("آنلاین");
+});
+
+test("member form stores first and last name separately", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('#nav button[aria-label="اعضا"]').click();
+  await page.getByRole("button", { name: /افزودن عضو جدید/ }).click();
+  await page.locator("#fName").fill("سارا");
+  await page.locator("#fLName").fill("محمدی");
+  await page.locator("#fSave").click();
+  await expect.poll(() => page.evaluate(() => {
+    const m = Store.get().members[0];
+    return m ? m.fname + "|" + m.lname + "|" + m.name : "";
+  })).toBe("سارا|محمدی|سارا محمدی");
+});
+
+test("session tasks can be added, auto-split and completed", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [
+      { id: "tk-a", name: "عضو الف وظایف", phones: [], roles: [], group: "عمومی" },
+      { id: "tk-b", name: "عضو ب وظایف", phones: [], roles: [], group: "عمومی" }
+    ];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator("#app .home-shortcut-clip").click();
+  await expect(page.locator("#app")).toContainText("تقسیم‌بندی وظایف");
+  await page.locator("#tkTitle").fill("خرید میان‌وعده");
+  await page.getByRole("button", { name: /افزودن وظیفه/ }).click();
+  await expect.poll(() => page.evaluate(() => (Store.get().tasks || []).length)).toBe(1);
+  await page.getByRole("button", { name: /تقسیم خودکار بین اعضا/ }).click();
+  await expect.poll(() => page.evaluate(() => Boolean((Store.get().tasks || [])[0] && (Store.get().tasks[0] || {}).mid))).toBeTruthy();
+  await page.locator("#app .mblk input[type=checkbox]").first().check();
+  await expect.poll(() => page.evaluate(() => Boolean((Store.get().tasks || [])[0] && (Store.get().tasks[0] || {}).done))).toBeTruthy();
+});
+
+test("attendance list offers the shared sorting control", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [
+      { id: "srt-a", name: "علی زارعی", phones: [], roles: [], group: "عمومی" },
+      { id: "srt-b", name: "رضا احمدی", phones: [], roles: [], group: "عمومی" }
+    ];
+    d.sessions = {};
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  await expect(page.locator("#app #memberSort")).toBeVisible();
+  await page.locator("#app #memberSort").selectOption("family");
+  const first = await page.locator("#app .mblk b").first().textContent();
+  expect(first).toBe("رضا احمدی");
 });

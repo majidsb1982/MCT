@@ -1,5 +1,5 @@
-const C="mct-v122";
-const A=["./","./index.html","./css/fonts.css?v=122","./fonts/Vazirmatn-var.woff2","./css/app.css?v=122","./js/vendor/qrcode.js?v=122","./js/core.js?v=122","./js/pages.js?v=122","./js/features.js?v=122","./js/app.js?v=122","./manifest.webmanifest","./icon.svg","./icon-192.svg","./icon-512.svg","./icons/maskable-512.png"];
+const C="mct-v123";
+const A=["./","./index.html","./css/fonts.css?v=123","./fonts/Vazirmatn-var.woff2","./css/app.css?v=123","./js/vendor/qrcode.js?v=123","./js/core.js?v=123","./js/pages.js?v=123","./js/features.js?v=123","./js/app.js?v=123","./manifest.webmanifest","./icon.svg","./icon-192.svg","./icon-512.svg","./icons/maskable-512.png"];
 self.addEventListener("install",event=>{
   event.waitUntil(caches.open(C).then(cache=>cache.addAll(A)).then(()=>self.skipWaiting()));
 });

@@ -6,10 +6,10 @@
 const ROLE_LABEL={admin:"مدیر",support:"حامی",follow:"پیگیر",view:"مشاهده‌گر"};
 
 const ROLE_PERMS={
-  admin:  {home:1,attend:1,fees:1,members:1,homework:1,settings:1,help:1,more:1,reports:1,privateNotes:1,delete:1,backup:1,report:1,shareSupport:1,edit:1},
-  support:{home:1,attend:1,fees:0,members:1,homework:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:0},
-  follow: {home:1,attend:1,fees:1,members:1,homework:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:1},
-  view:   {home:1,attend:1,fees:0,members:1,homework:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:0,edit:0}
+  admin:  {home:1,attend:1,fees:1,members:1,homework:1,tasks:1,settings:1,help:1,more:1,reports:1,privateNotes:1,delete:1,backup:1,report:1,shareSupport:1,edit:1},
+  support:{home:1,attend:1,fees:0,members:1,homework:1,tasks:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:0},
+  follow: {home:1,attend:1,fees:1,members:1,homework:1,tasks:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:1},
+  view:   {home:1,attend:1,fees:0,members:1,homework:1,tasks:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:0,edit:0}
 };
 
 /* ============ v9: گردش‌کار گروه درمانی ============ */
@@ -80,7 +80,7 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
   const d=Store.get();const key=sessionSel()||curKey();
   if(!key){toast("جلسه مشخص نیست");return;}
   const s=d.sessions[key]||{};
-  const g={present:[],delay:[],absent:[],problem:[],none:[]};
+  const g={present:[],delay:[],absent:[],problem:[],online:[],none:[]};
   for(const m of d.members){
     const st=ph===2?(s[m.id]||{}).p2:(s[m.id]||{}).p1;
     (g[st||"none"]||g.none).push(m);
@@ -112,6 +112,7 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
   block("تأخیر",g.delay,"⏰");
   block("بدون حضور",g.absent,"📭");
   block("مشکل / نیاز هماهنگی",g.problem,"💬");
+  block("آنلاین",g.online,"💻");
   block("هنوز ثبت‌نشده",g.none,"—");
   lines.push("— گزارش مربوط به همین جلسه است؛ یادداشت‌ها ممکن است اطلاعات شخصی داشته باشند، پیش از ارسال بازبینی کنید. —");
   const txt=lines.join("\n");
@@ -259,7 +260,7 @@ function sessionCompareHTML(){
     let p=0,a=0,n=d.members.length||1;
     d.members.forEach(m=>{
       const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
-      if(st==="present"||st==="delay")p++;
+      if(st==="present"||st==="delay"||st==="online")p++;
       else if(st==="absent"||st==="problem")a++;
     });
     return{key,pct:Math.round(p/n*100),p,a};
@@ -528,12 +529,12 @@ function buildStoryCard(kind){
     lines=["پرداخت‌شده: "+paid, "باقی‌مانده: "+un, "کل اعضا: "+d.members.length];
   }else{
     const s=key?(d.sessions[key]||{}):{};
-    let p=0,del=0,ab=0,pr=0;
+    let p=0,del=0,ab=0,pr=0,on=0;
     d.members.forEach(m=>{
       const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
-      if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;
+      if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;else if(st==="online")on++;
     });
-    lines=["حاضر: "+p,"تأخیر: "+del,"بدون حضور: "+ab,"نیاز هماهنگی: "+pr];
+    lines=["حاضر: "+p,"تأخیر: "+del,"آنلاین: "+on,"بدون حضور: "+ab,"نیاز هماهنگی: "+pr];
   }
   ctx.font="bold 64px Tahoma,sans-serif";
   ctx.fillStyle="#fff";
@@ -586,13 +587,13 @@ function humanHamiSummary(){
   const d=Store.get();const key=sessionSel()||curKey();
   if(!key){toast("جلسه نیست");return;}
   const s=d.sessions[key]||{};
-  let p=0,del=0,ab=0,pr=0,none=0;
+  let p=0,del=0,ab=0,pr=0,on=0,none=0;
   d.members.forEach(m=>{
     const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
-    if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;else none++;
+    if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;else if(st==="online")on++;else none++;
   });
   const total=d.members.length||1;
-  const pct=Math.round((p+del)/total*100);
+  const pct=Math.round((p+del+on)/total*100);
   let tone="وضعیت کلی خوب است.";
   if(pct<60)tone="نیاز به پیگیری حمایتگرانه داریم.";
   else if(pct<80)tone="وضعیت قابل قبول است؛ چند نفر را نرم پیگیری کنیم.";
@@ -780,10 +781,15 @@ function myPendingCount(){
   const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
+  // Badge tracks the round the user is actually working in (door entry counts p2, everything else p1)
+  const ph=(route==="entry")?"p2":"p1";
   let a=0,fee=0;
   d.members.forEach(m=>{
     const attendance=s[m.id]||{};
-    if(isMine("attend",m.id)&&(!attendance.p1||!attendance.p2))a++;
+    if(isMine("attend",m.id)){
+      if(ph==="p2"){if(!attendance.p2)a++;}
+      else if(!attendance.p1)a++;
+    }
     if(isMine("fee",m.id)&&!(f[m.id]&&f[m.id].paid))fee++;
   });
   return{attend:a,fee:fee};
@@ -826,6 +832,8 @@ function togglePin(id){
 
 function smartSortMembers(list, kind){
   const d=Store.get();
+  // Explicit user-chosen sort wins over the smart ordering (shared across all lists).
+  if(typeof memberSortMode!=="undefined"&&memberSortMode!=="smart")return sortMemberList(list);
   if(!d.settings.smartSort)return list;
   const key=sessionSel()||curKey();
   const s=key?(kind==="fee"?(d.fees[key]||{}):(d.sessions[key]||{})):{};
@@ -1177,7 +1185,7 @@ function showMemberTimeline(id){
   const m=d.members.find(x=>x.id===id);
   if(!m)return;
   const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,12);
-  const lbl={present:"✅ حاضر",delay:"⏰ تأخیر",absent:"📭 بدون حضور",problem:"💬 مشکل"};
+  const lbl={present:"✅ حاضر",delay:"⏰ تأخیر",absent:"📭 بدون حضور",problem:"💬 مشکل",online:"💻 آنلاین"};
   let h='<div class="timeline">';
   if(!keys.length)h+='<div class="tl-item">هنوز جلسه‌ای نیست</div>';
   keys.forEach(k=>{
@@ -1268,6 +1276,7 @@ function batchBarHTML(){
     '<button class="btn sm p" type="button" onclick="batchSetAtt(\'present\')">حاضر</button>'+
     '<button class="btn sm ghost" type="button" onclick="batchSetAtt(\'delay\')">تأخیر</button>'+
     '<button class="btn sm ghost" type="button" onclick="batchSetAtt(\'absent\')">غایب</button>'+
+    '<button class="btn sm ghost" type="button" onclick="batchSetAtt(\'online\')">آنلاین</button>'+
     '<button class="btn sm ghost" type="button" onclick="openBatchPicker()">☑ انتخاب</button> <button class="btn sm ghost" type="button" onclick="clearBatch()">لغو</button></div>';
 }
 function heatmapHTML(){
@@ -1278,7 +1287,7 @@ function heatmapHTML(){
   keys.forEach(k=>{
     const s=d.sessions[k]||{};
     let p=0,t=d.members.length||1;
-    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay")p++;});
+    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay"||st==="online")p++;});
     const pct=p/t;
     let cls="h0";
     if(pct>=0.9)cls="h3";else if(pct>=0.75)cls="h2";else if(pct>=0.5)cls="h1";else if(pct>=0.3)cls="h4";else cls="h5";
@@ -1900,7 +1909,7 @@ function attendHeatmap(){
   for(let i=0;i<firstDow;i++)h+='<div class="c" style="opacity:.25"></div>';
   keys.forEach(k=>{
     const s=d.sessions[k]||{};let p=0,t=d.members.length||1;
-    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay")p++;});
+    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay"||st==="online")p++;});
     const pct=p/t*100;let lv=pct>=90?"lv4":pct>=70?"lv3":pct>=40?"lv2":pct>0?"lv1":"";
     const j=Jalali.fromKey(k);
     h+='<div class="c '+lv+'" title="'+Jalali.fmt(j)+' — '+Math.round(pct)+'٪" onclick="setSel(\''+k+'\');go(\'attend\')"></div>';

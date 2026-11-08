@@ -35,7 +35,7 @@ return{toJ,toG,mLen,today,fmt,toFa,toKey,fromKey,dow,MN,DN};})();
 
 /* ============ لایه داده (نسخه ۱۹) ============ */
 const Store=(()=>{const KEY="mct:data";
-const DEF={v:24,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],
+const DEF={v:25,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],tasks:[],
 groups:["عمومی"],
 users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}],
 currentUserId:null,
@@ -125,6 +125,7 @@ if(data.v<21){data.v=21;}
 if(data.v<22){data.v=22;}
 if(data.v<23){data.pinnedMembers=data.pinnedMembers||[];data.v=23;}
 if(data.v<24){data.pinnedMembers=data.pinnedMembers||data.pinned||[];data.v=24;}
+if(data.v<25){data.tasks=data.tasks||[];data.v=25;}
 data.settings=Object.assign({},DEF.settings,data.settings||{});
 data.groups=data.groups||["عمومی"];}
 const save=()=>{
@@ -146,7 +147,7 @@ importObj(input){
  try{o=JSON.parse(JSON.stringify(input));}catch(e){throw new Error("محتوای فایل قابل پردازش نیست");}
  const isObj=v=>!!v&&typeof v==="object"&&!Array.isArray(v);
  o=Object.assign({},JSON.parse(JSON.stringify(DEF)),o);
- const arrayKeys=["members","classes","extra","homework","groups","users","pinned","pinnedMembers","activityLog","undoStack"];
+ const arrayKeys=["members","classes","extra","homework","tasks","groups","users","pinned","pinnedMembers","activityLog","undoStack"];
  for(const k of arrayKeys)if(o[k]!=null&&!Array.isArray(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
  for(const k of ["sessions","fees","doorChecks","sessionNotes","assignments","period"])if(o[k]!=null&&!isObj(o[k]))throw new Error("ساختار بخش «"+k+"» معتبر نیست");
  if((o.homework||[]).some((item,index)=>!isObj(item)||(item.id!=null&&typeof item.id!=="string")||(item.text!=null&&typeof item.text!=="string")||(item.key!=null&&(typeof item.key!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(item.key)))))throw new Error("ساختار تکلیف شماره «"+( (o.homework||[]).findIndex((item)=>!isObj(item)||(item.id!=null&&typeof item.id!=="string")||(item.text!=null&&typeof item.text!=="string")||(item.key!=null&&(typeof item.key!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(item.key))))+1)+"» معتبر نیست");
@@ -176,10 +177,11 @@ importObj(input){
    if(!Array.isArray(m.roles))m.roles=[];
    if(m.streak==null)m.streak=0;
  });
- o.v=24;
+ o.v=25;
  o.classes=Array.isArray(o.classes)?o.classes:JSON.parse(JSON.stringify(DEF.classes));
  o.extra=Array.isArray(o.extra)?o.extra:[];
  o.homework=Array.isArray(o.homework)?o.homework:[];
+ o.tasks=Array.isArray(o.tasks)?o.tasks:[];
  o.groups=Array.isArray(o.groups)&&o.groups.length?o.groups:["عمومی"];
  o.sessions=isObj(o.sessions)?o.sessions:{};
  o.fees=isObj(o.fees)?o.fees:{};
@@ -440,8 +442,8 @@ const endAt=sessionEndAt(day,start,ex.end);
 if(endAt&&endAt>now&&(!best||t<best.t))best={t,c:{dow:Jalali.dow(j),start,end:ex.end,date:j,extra:true},date:j};}
 return best;}
 function curKey(){const nc=nextClass();return nc?Jalali.toKey(nc.date):null;}
-const STK=["present","delay","absent","problem"],STL=["حاضر","تأخیر","غایب","مشکل"];
-const ST={lbl:{present:"حاضر",delay:"تأخیر",absent:"غایب",problem:"مشکل",none:"ثبت‌نشده"},cls:{present:"b-ok",delay:"b-warn",absent:"b-bad",problem:"b-prob",none:"b-m"}};
+const STK=["present","delay","absent","problem","online"],STL=["حاضر","تأخیر","غایب","مشکل","آنلاین"];
+const ST={lbl:{present:"حاضر",delay:"تأخیر",absent:"غایب",problem:"مشکل",online:"آنلاین",none:"ثبت‌نشده"},cls:{present:"b-ok",delay:"b-warn",absent:"b-bad",problem:"b-prob",online:"b-on",none:"b-m"}};
 const ROLES=[["attend","پیگیری حضور"],["fee","شهریه"],["hw","تکالیف"],["support","حامی (عضو قدیمی)"]];
 const ROLE_ICONS={attend:"📞",fee:"💰",hw:"📋",support:"🤝"};
 const ROLE_SHORT={attend:"حضور",fee:"شهریه",hw:"تکلیف",support:"حامی"};
@@ -456,7 +458,7 @@ function roleIconsHTML(roles){
 function validSessionKey(k){if(typeof k!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(k))return false;const p=k.split("-").map(Number);return p[0]>=1&&p[1]>=1&&p[1]<=12&&p[2]>=1&&p[2]<=Jalali.mLen(p[0],p[1]);}
 function sessionSel(){const d=Store.get(),k=d._lastSession;if(validSessionKey(k)){const known=k===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},k)||Object.prototype.hasOwnProperty.call(d.fees||{},k)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===k));if(known)return k;}return curKey();}
 function curFeeKey(){return sessionSel()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
-const needsCall=st=>st!=="present";
+const needsCall=st=>st!=="present"&&st!=="online";
 function absCount(id){const s=Store.get().sessions;let a=0;
 for(const k in s){const st=(s[k][id]||{}).p2||(s[k][id]||{}).p1;if(st==="absent")a++;}return a;}
 
