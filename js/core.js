@@ -457,10 +457,10 @@ function roleIconsHTML(roles){
 }
 
 function validSessionKey(k){if(typeof k!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(k))return false;const p=k.split("-").map(Number);return p[0]>=1&&p[1]>=1&&p[1]<=12&&p[2]>=1&&p[2]<=Jalali.mLen(p[0],p[1]);}
-function sessionSel(){const d=Store.get(),k=d._lastSession;if(validSessionKey(k)){const known=k===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},k)||Object.prototype.hasOwnProperty.call(d.fees||{},k)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===k));if(known)return k;}return curKey();}
+function sessionSel(){const d=Store.get();const storedKey=d._lastSession;if(storedKey&&validSessionKey(storedKey)){const known=storedKey===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},storedKey)||Object.prototype.hasOwnProperty.call(d.fees||{},storedKey)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===storedKey));if(known)return storedKey;}const ck=curKey();return ck||null;}
 function curFeeKey(){return sessionSel()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
 const needsCall=st=>st!=="present"&&st!=="online";
-function absCount(id){const s=Store.get().sessions;let a=0;
-for(const k in s){const st=(s[k][id]||{}).p2||(s[k][id]||{}).p1;if(st==="absent")a++;}return a;}
+function absCount(id){const s=Store.get().sessions||{};let a=0;
+for(const k in s){const memberSessions=s[k]||{};const sessionData=memberSessions[id]||{};const st=sessionData.p2||sessionData.p1;if(st==="absent")a++;}return a;}
 
 /* ============ وضعیت UI ============ */

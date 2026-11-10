@@ -78,7 +78,7 @@ window.go=go;
 
 /* ============ رویدادهای مشترک ============ */
 document.getElementById("app").addEventListener("click",e=>{
-const ap=e.target.closest("[data-aud]");if(ap){playAud(AUD[ap.dataset.aud]);return;}
+const ap=e.target.closest("[data-aud]");if(ap){const audKey=ap.dataset.aud;if(AUD[audKey]){playAud(AUD[audKey]);}else{toast("⚠️ صدا یافت نشد");}return;}
 const mi=e.target.closest("[data-mic]");
 if(mi){const key=mi.dataset.key,mid=mi.dataset.mid,ph=mi.dataset.ph;
 const d=Store.get();const cur=(d.sessions[key]||{})[mid]||{};

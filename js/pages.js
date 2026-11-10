@@ -15,9 +15,13 @@ function resetUI(){UI.callOnly=false;UI.doneTab=false;UI.filter="";UI.feeTab=0;w
 function filterBar(placeholder){
 return'<div class="row" style="margin-bottom:8px"><input name="list-filter" aria-label="'+placeholder+'" placeholder="🔍 '+placeholder+'" value="'+esc(UI.filter)+'" oninput="listFilter(this.value)" style="flex:1"></div>';}
 function listFilter(v){UI.filter=v;
-document.querySelectorAll(".mblk").forEach(b=>{
+const items=document.querySelectorAll(".mblk,.member-block,.attend-item");
+items.forEach(b=>{
 const n=b.querySelector("b");
-b.style.display=(!v||(n&&n.textContent.includes(v)))?"":"none";});}
+if(!n)return;
+const display=(!v||n.textContent.includes(v))?"":"none";
+b.style.display=display;
+});}
 window.listFilter=listFilter;
 
 /* ---- خانه ---- */
@@ -542,7 +546,7 @@ el.innerHTML='<div class="card hero members-hero"><div class="members-hero-title
 '</div></div><div class="sec-label">فهرست اعضا</div><div id="mList"></div>';
 renderMembers("");
 /* Persistent add action stays available after saving each member. */
-const addBar=document.createElement("div");addBar.className="members-add-bar";addBar.innerHTML='<button type="button" class="btn p" onclick="memberForm()">＋ ثبت عضو جدید</button>';el.appendChild(addBar);
+if(!document.getElementById("mct-add-member-bar")){const addBar=document.createElement("div");addBar.id="mct-add-member-bar";addBar.className="members-add-bar";addBar.innerHTML='<button type="button" class="btn p" onclick="memberForm()">＋ ثبت عضو جدید</button>';el.appendChild(addBar);}
 };
 
 /* ---- تنظیمات ---- */
