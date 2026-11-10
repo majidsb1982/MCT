@@ -33,6 +33,8 @@ const dow=j=>{const g=toG(j.jy,j.jm,j.jd);return(new Date(g.gy,g.gm-1,g.gd).getD
 const toJ=(gy,gm,gd)=>d2j(g2d(gy,gm,gd));
 return{toJ,toG,mLen,today,fmt,toFa,toKey,fromKey,dow,MN,DN};})();
 function fmtClock(ts){if(!ts)return"";try{const d=new Date(ts);return Jalali.toFa(d.getHours())+":"+Jalali.toFa(String(d.getMinutes()).padStart(2,"0"));}catch(e){return"";}}
+let _toastT=null;
+function toastUx(msg,type,ms){const existing=document.querySelector(".toast.show");if(existing){existing.classList.remove("show");setTimeout(()=>existing.remove(),300);}const t=document.createElement("div");t.className="toast show"+(type?" "+type:"");t.textContent=msg;document.body.appendChild(t);if(_toastT)clearTimeout(_toastT);_toastT=setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms);return t;}
 
 /* ============ لایه داده (نسخه ۱۹) ============ */
 const Store=(()=>{const KEY="mct:data";
