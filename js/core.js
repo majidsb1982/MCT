@@ -35,6 +35,24 @@ return{toJ,toG,mLen,today,fmt,toFa,toKey,fromKey,dow,MN,DN};})();
 function fmtClock(ts){if(!ts)return"";try{const d=new Date(ts);return Jalali.toFa(d.getHours())+":"+Jalali.toFa(String(d.getMinutes()).padStart(2,"0"));}catch(e){return"";}}
 let _toastT=null;
 function toastUx(msg,type,ms){const existing=document.querySelector(".toast.show");if(existing){existing.classList.remove("show");setTimeout(()=>existing.remove(),300);}const t=document.createElement("div");t.className="toast show"+(type?" "+type:"");t.textContent=msg;document.body.appendChild(t);if(_toastT)clearTimeout(_toastT);_toastT=setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms);return t;}
+// Debounce utility for search/filter
+function debounce(fn,wait){let t;return function(...a){if(t)clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),wait);};}
+// Offline/online indicator
+(function initOfflineIndicator(){
+  const bar=document.createElement("div");bar.id="offlineBar";bar.className="offline-indicator";
+  bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها در دستگاه ذخیره می‌شوند":"🔴 آفلاین — کار می‌کنید، داده‌ها When online دوباره همkinsync خواهند شد";
+  document.body.appendChild(bar);
+  window.addEventListener("online",()=>{bar.className="offline-indicator show online";bar.textContent="🟢 آنلاین — synchronization در حال انجام…";setTimeout(()=>bar.classList.remove("show"),3000);});
+  window.addEventListener("offline",()=>{bar.className="offline-indicator show";bar.textContent="🔴 آفلاین — برنامه ادامه می‌دهد، داده‌ها Placeholder می‌شوند";});
+  if(!navigator.onLine){bar.classList.add("show");}
+})();
+// Keyboard shortcuts
+window.addEventListener("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==="k"){e.preventDefault();if(typeof openCommandPalette==="function")openCommandPalette();}
+  if((e.ctrlKey||e.metaKey)&&e.key==="b"){e.preventDefault();if(typeof backup==="function")backup();}
+  if((e.ctrlKey||e.metaKey)&&e.key==="/"){e.preventDefault();const s=document.querySelector('input[name="list-filter"]');if(s){s.focus();s.select();}}
+  if(e.key==="Escape"){const ov=document.querySelector(".overlay");if(ov)ov.remove();}
+},true);
 
 /* ============ لایه داده (نسخه ۱۹) ============ */
 const Store=(()=>{const KEY="mct:data";

@@ -13,7 +13,7 @@ const UI={callOnly:false,doneTab:false,filter:"",repFull:false,feeTab:0};
 function resetUI(){UI.callOnly=false;UI.doneTab=false;UI.filter="";UI.feeTab=0;window._hwA=null;}
 
 function filterBar(placeholder){
-return'<div class="row" style="margin-bottom:8px"><input name="list-filter" aria-label="'+placeholder+'" placeholder="🔍 '+placeholder+'" value="'+esc(UI.filter)+'" oninput="listFilter(this.value)" style="flex:1"></div>';}
+return'<div class="row" style="margin-bottom:8px"><input name="list-filter" aria-label="'+placeholder+'" placeholder="🔍 '+placeholder+'" value="'+esc(UI.filter)+'" oninput="debouncedListFilter(this.value)" style="flex:1"></div>';}
 function listFilter(v){UI.filter=v;
 const items=document.querySelectorAll(".mblk,.member-block,.attend-item");
 items.forEach(b=>{
@@ -193,7 +193,9 @@ Pages.home=function(el){
   const hw=typeof pendingHomeworkCount==="function"?pendingHomeworkCount():0;
   const openTasks=typeof pendingTasksCount==="function"?pendingTasksCount():0;
   const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
+// Stats cards — dashboard overview
 let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="بخش‌های بیشتر" title="بخش‌های بیشتر">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">پیگیری جلسات</div></div></section>';
+h+='<div class="stat-grid"><div class="stat-card primary"><span class="stat-value">'+count(unAttendance)+'</span><span class="stat-label">حضور ثبت‌نشده</span></div><div class="stat-card success"><span class="stat-value">'+count(unP)+'</span><span class="stat-label">شهریه پرداخت‌نشده</span></div><div class="stat-card warn"><span class="stat-value">'+count(hw)+'</span><span class="stat-label">تکالیف در انتظار</span></div><div class="stat-card bad"><span class="stat-value">'+count(openTasks)+'</span><span class="stat-label">وظایف انجام‌نشده</span></div></div>';
   h+='<section class="home-next-card"><div class="home-next-label"><span class="home-live-dot"></span> تا جلسه بعدی</div>';
   if(nc){
     h+='<div class="home-next-name">'+esc(d.settings.className||"جلسه گروه درمانی")+'</div><div class="home-next-date">'+esc(Jalali.DN[nc.c.dow])+' '+esc(Jalali.fmt(nc.date))+' · '+Jalali.toFa(nc.c.start)+(nc.c.end?" تا "+Jalali.toFa(nc.c.end):"")+'</div><div class="home-countdown">'+esc(cd)+'</div>';
@@ -1138,6 +1140,10 @@ for(let i=0;i<n;i++){const o=AC.createOscillator(),g=AC.createGain();
 o.connect(g);g.connect(AC.destination);o.frequency.value=880;o.type="sine";
 const t=AC.currentTime+i*.45;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.5,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+.35);
 o.start(t);o.stop(t+.4);}}catch(e){}}
+
+// Debounced list filter for search performance
+const debouncedListFilter=debounce(listFilter,300);
+window.debouncedListFilter=debouncedListFilter;
 
 /* ============ ناوبری ============ */
 function pushState(){if(route!=="home")history.pushState({route:route},"");}

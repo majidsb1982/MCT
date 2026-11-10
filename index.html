@@ -28,6 +28,7 @@
 <div id="bootError" hidden role="alert" style="margin:16px;padding:16px;border:1px solid #dc2626;border-radius:14px;background:#fff;color:#7f1d1d;direction:rtl;line-height:1.8"><b>برنامه کامل بارگذاری نشد</b><p id="bootErrorText"></p></div>
 <script>(function(){function show(message){var box=document.getElementById("bootError"),text=document.getElementById("bootErrorText");if(box&&text){box.hidden=false;text.textContent=message;}}window.addEventListener("error",function(event){if(event.message)show("خطای اجرا: "+event.message);else if(event.target&&event.target.src)show("فایل بارگذاری نشد: "+event.target.src);},true);window.addEventListener("unhandledrejection",function(event){show("خطای برنامه: "+String(event.reason||"نامشخص"));});window.addEventListener("load",function(){setTimeout(function(){var app=document.getElementById("app");if(app&&!app.children.length)show("محتوای برنامه ساخته نشد؛ صفحه را دوباره بارگذاری کنید.");},4000);});})();</script>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="offlineBar" class="offline-indicator"></div>
 <nav id="nav" aria-label="ناوبری اصلی"></nav>
 <script src="js/vendor/qrcode.js?v=123"></script>
 <script src="js/core.js?v=123"></script>
