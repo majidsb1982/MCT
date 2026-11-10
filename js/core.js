@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MCT Core — تقویم شمسی، ذخیره، UI پایه
  */
 "use strict";
@@ -37,17 +37,28 @@ let _toastT=null;
 function toastUx(msg,type,ms){const existing=document.querySelector(".toast.show");if(existing){existing.classList.remove("show");setTimeout(()=>existing.remove(),300);}const t=document.createElement("div");t.className="toast show"+(type?" "+type:"");t.textContent=msg;document.body.appendChild(t);if(_toastT)clearTimeout(_toastT);_toastT=setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms);return t;}
 // Debounce utility for search/filter
 function debounce(fn,wait){let t;return function(...a){if(t)clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),wait);};}
+// ============ Lifecycle Management ============
+const MCT_LIFECYCLE={listeners:[],blobs:[],timers:[],abortControllers:[]};
+function on(event,handler,options){window.addEventListener(event,handler,options);MCT_LIFECYCLE.listeners.push({target:window,event,handler,options});}
+function onEl(el,event,handler,options){el.addEventListener(event,handler,options);MCT_LIFECYCLE.listeners.push({target:el,event,handler,options});}
+function trackBlob(url){if(url)MCT_LIFECYCLE.blobs.push(url);}
+function untrackBlob(url){const i=MCT_LIFECYCLE.blobs.indexOf(url);if(i>=0){MCT_LIFECYCLE.blobs.splice(i,1);URL.revokeObjectURL(url);}}
+function trackTimer(id){MCT_LIFECYCLE.timers.push(id);}
+function clearAllTimers(){MCT_LIFECYCLE.timers.forEach(clearTimeout);MCT_LIFECYCLE.timers=[];}
+function cleanupAll(){MCT_LIFECYCLE.listeners.forEach(l=>{try{l.target.removeEventListener(l.event,l.handler,l.options);}catch(e){}});MCT_LIFECYCLE.listeners=[];MCT_LIFECYCLE.blobs.forEach(u=>{try{URL.revokeObjectURL(u);}catch(e){}});MCT_LIFECYCLE.blobs=[];clearAllTimers();MCT_LIFECYCLE.abortControllers.forEach(c=>c.abort());MCT_LIFECYCLE.abortControllers=[];}
+window.addEventListener("beforeunload",cleanupAll);
+window.addEventListener("pagehide",cleanupAll);
 // Offline/online indicator
 (function initOfflineIndicator(){
   const bar=document.createElement("div");bar.id="offlineBar";bar.className="offline-indicator";
   bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها در دستگاه ذخیره می‌شوند":"🔴 آفلاین — کار می‌کنید، داده‌ها When online دوباره همkinsync خواهند شد";
   document.body.appendChild(bar);
-  window.addEventListener("online",()=>{bar.className="offline-indicator show online";bar.textContent="🟢 آنلاین — synchronization در حال انجام…";setTimeout(()=>bar.classList.remove("show"),3000);});
-  window.addEventListener("offline",()=>{bar.className="offline-indicator show";bar.textContent="🔴 آفلاین — برنامه ادامه می‌دهد، داده‌ها Placeholder می‌شوند";});
+  on("online",()=>{bar.className="offline-indicator show online";bar.textContent="🟢 آنلاین — synchronization در حال انجام…";setTimeout(()=>bar.classList.remove("show"),3000);});
+  on("offline",()=>{bar.className="offline-indicator show";bar.textContent="🔴 آفلاین — برنامه ادامه می‌دهد، داده‌ها Placeholder می‌شوند";});
   if(!navigator.onLine){bar.classList.add("show");}
 })();
 // Keyboard shortcuts
-window.addEventListener("keydown",e=>{
+on("keydown",e=>{
   if((e.ctrlKey||e.metaKey)&&e.key==="k"){e.preventDefault();if(typeof openCommandPalette==="function")openCommandPalette();}
   if((e.ctrlKey||e.metaKey)&&e.key==="b"){e.preventDefault();if(typeof backup==="function")backup();}
   if((e.ctrlKey||e.metaKey)&&e.key==="/"){e.preventDefault();const s=document.querySelector('input[name="list-filter"]');if(s){s.focus();s.select();}}
@@ -150,15 +161,21 @@ if(data.v<25){data.tasks=data.tasks||[];data.v=25;}
 data.settings=Object.assign({},DEF.settings,data.settings||{});
 data.groups=data.groups||["عمومی"];}
 const save=()=>{
- try{
-   const raw=JSON.stringify(data);
-   localStorage.setItem(KEY,raw);
-   return true;
- }catch(e){
-   console.warn(e);
-   try{toast("⚠️ ذخیره‌سازی انجام نشد؛ فضای ذخیره یا دسترسی مرورگر را بررسی کنید");}catch(_){}
-   return false;
- }
+  try{
+    const raw=JSON.stringify(data);
+    const tempKey=KEY+":temp";
+    localStorage.setItem(tempKey,raw);
+    const verify=localStorage.getItem(tempKey);
+    if(verify!==raw)throw new Error("Verify failed");
+    localStorage.removeItem(KEY);
+    localStorage.setItem(KEY,raw);
+    localStorage.removeItem(tempKey);
+    return true;
+  }catch(e){
+    console.error("MCT: Save failed",e);
+    try{toastUx("⚠️ ذخیره‌سازی انجام نشد؛ فضای ذخیره یا دسترسی مرورگر را بررسی کنید","error");}catch(_){}
+    return false;
+  }
 };
 load();
 return{get:()=>data,save,reset(){const previous=data;data=JSON.parse(JSON.stringify(DEF));let saved=false;try{saved=save()!==false;}catch(e){saved=false;}if(!saved){data=previous;return false;}return true;},
@@ -484,3 +501,4 @@ function absCount(id){const s=Store.get().sessions||{};let a=0;
 for(const k in s){const memberSessions=s[k]||{};const sessionData=memberSessions[id]||{};const st=sessionData.p2||sessionData.p1;if(st==="absent")a++;}return a;}
 
 /* ============ وضعیت UI ============ */
+
