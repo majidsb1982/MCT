@@ -6,10 +6,10 @@
 const ROLE_LABEL={admin:"مدیر",support:"حامی",follow:"پیگیر",view:"مشاهده‌گر"};
 
 const ROLE_PERMS={
-  admin:  {home:1,attend:1,fees:1,members:1,homework:1,settings:1,help:1,more:1,reports:1,privateNotes:1,delete:1,backup:1,report:1,shareSupport:1,edit:1},
-  support:{home:1,attend:1,fees:0,members:1,homework:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:0},
-  follow: {home:1,attend:1,fees:1,members:1,homework:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:1},
-  view:   {home:1,attend:1,fees:0,members:1,homework:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:0,edit:0}
+  admin:  {home:1,attend:1,fees:1,members:1,homework:1,tasks:1,settings:1,help:1,more:1,reports:1,privateNotes:1,delete:1,backup:1,report:1,shareSupport:1,edit:1},
+  support:{home:1,attend:1,fees:0,members:1,homework:1,tasks:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:0},
+  follow: {home:1,attend:1,fees:1,members:1,homework:1,tasks:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:1,edit:1},
+  view:   {home:1,attend:1,fees:0,members:1,homework:1,tasks:1,settings:0,help:1,more:1,reports:1,privateNotes:0,delete:0,backup:0,report:1,shareSupport:0,edit:0}
 };
 
 /* ============ v9: گردش‌کار گروه درمانی ============ */
@@ -54,14 +54,23 @@ function periodForm(){
   $("#perCl",o).onclick=()=>o.remove();
   $("#perSave",o).onclick=()=>{
     const pick=id=>[...o.querySelectorAll("#"+id+" option:checked")].map(x=>x.value);
+    const hadPeriod=Object.prototype.hasOwnProperty.call(d,"period");
+    const previousPeriod=hadPeriod?JSON.parse(JSON.stringify(d.period)):null;
+    const previousRoles=d.members.map(m=>({id:m.id,had:Object.prototype.hasOwnProperty.call(m,"roles"),value:Array.isArray(m.roles)?m.roles.slice():m.roles}));
     d.period={title:($("#perTitle",o).value||"دوره جاری").trim(),attendIds:pick("perAtt"),feeIds:pick("perFee"),hwIds:pick("perHw"),note:($("#perNote",o).value||"").trim()};
-    // sync member roles lightly
+    // Keep historical roles; add the current workflow assignments.
     d.members.forEach(m=>{
-      m.roles=m.roles||[];
-      const set=(role,ids)=>{const on=ids.includes(m.id);if(on&&!m.roles.includes(role))m.roles.push(role);};
+      m.roles=Array.isArray(m.roles)?m.roles:[];
+      const set=(role,ids)=>{if(ids.includes(m.id)&&!m.roles.includes(role))m.roles.push(role);};
       set("attend",d.period.attendIds);set("fee",d.period.feeIds);set("hw",d.period.hwIds);
     });
-    Store.save();o.remove();render();toast("✅ دوره ذخیره شد");
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      if(hadPeriod)d.period=previousPeriod;else delete d.period;
+      d.members.forEach(m=>{const old=previousRoles.find(x=>x.id===m.id);if(!old)return;if(old.had)m.roles=old.value;else delete m.roles;});
+      toast("⚠️ دوره ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;
+    }
+    o.remove();render();toast("✅ دوره ذخیره شد");
   };
 }
 
@@ -71,9 +80,9 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
   const d=Store.get();const key=sessionSel()||curKey();
   if(!key){toast("جلسه مشخص نیست");return;}
   const s=d.sessions[key]||{};
-  const g={present:[],delay:[],absent:[],problem:[],none:[]};
+  const g={present:[],delay:[],absent:[],problem:[],online:[],none:[]};
   for(const m of d.members){
-    const st=ph===2?((s[m.id]||{}).p2||(s[m.id]||{}).p1):(s[m.id]||{}).p1;
+    const st=ph===2?(s[m.id]||{}).p2:(s[m.id]||{}).p1;
     (g[st||"none"]||g.none).push(m);
   }
   const roundName=ph===1?"نوبت ۱ — تماس قبلی (روز/ساعت‌های قبل)":"نوبت ۲ — پشت در کلاس";
@@ -89,9 +98,12 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
     arr.forEach(m=>{
       const ex=s[m.id]||{};
       let t="• "+m.name;
-      if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(ex.time2||ex.time)+")";
-      if(ph===1&&ex.note)t+=" — "+ex.note;
-      if(ph===2&&ex.note2)t+=" — "+ex.note2;
+      const status=ph===2?ex.p2:ex.p1;
+      const time=ph===2?ex.time2:ex.time;
+      const note=ph===2?(ex.note2||""):(ex.note||"");
+      if(status==="delay"&&time)t+=" (ساعت "+Jalali.toFa(time)+")";
+      // Only share a note for a non-present status; notes may contain personal information.
+      if(status&&status!=="present"&&note)t+=" — "+note;
       lines.push(t);
     });
     lines.push("");
@@ -100,8 +112,9 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
   block("تأخیر",g.delay,"⏰");
   block("بدون حضور",g.absent,"📭");
   block("مشکل / نیاز هماهنگی",g.problem,"💬");
+  block("آنلاین",g.online,"💻");
   block("هنوز ثبت‌نشده",g.none,"—");
-  lines.push("— برای حامی‌ها (اعضای قدیمی پشتیبان) — بدون یادداشت محرمانه —");
+  lines.push("— گزارش مربوط به همین جلسه است؛ یادداشت‌ها ممکن است اطلاعات شخصی داشته باشند، پیش از ارسال بازبینی کنید. —");
   const txt=lines.join("\n");
   const o=modal('<h3 style="font-weight:800">📤 گزارش '+esc(roundName)+'</h3>'+
     '<p class="role-hint">این متن برای حامی‌هاست: پشتیبان مسئولان جدید و رابط با درمانگر.</p>'+
@@ -112,23 +125,36 @@ function reportRoundToHami(ph){try{logActivity("گزارش نوبت "+ph+" به 
 }
 
 /* چک‌لیست در کلاس برای اعلام به درمانگر */
-function doorKey(){const k=curKey()||sessionSel();return k||Jalali.toKey(Jalali.today());}
+function doorKey(){const k=sessionSel()||curKey();return k||Jalali.toKey(Jalali.today());}
 function doorState(){
   const d=Store.get();const k=doorKey();
   d.doorChecks=d.doorChecks||{};
   if(!d.doorChecks[k])d.doorChecks[k]={};
   return d.doorChecks[k];
 }
-function toggleDoorCheck(min){
-  const d=Store.get();const st=doorState();
-  st[String(min)]=!st[String(min)];
-  Store.save();
-  if(route==="entry")renderEntry();
-  else render();
-  if(st[String(min)]){
-    const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
-    toast(msg);
+function changeDoorCheck(min){
+  const d=Store.get(),key=doorKey(),field=String(min);
+  const hadBucket=Object.prototype.hasOwnProperty.call(d.doorChecks||{},key);
+  const hadValue=hadBucket&&Object.prototype.hasOwnProperty.call(d.doorChecks[key],field);
+  const previous=hadValue?d.doorChecks[key][field]:undefined;
+  d.doorChecks=d.doorChecks||{};
+  d.doorChecks[key]=d.doorChecks[key]||{};
+  d.doorChecks[key][field]=!d.doorChecks[key][field];
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(hadValue)d.doorChecks[key][field]=previous;else delete d.doorChecks[key][field];
+    if(!hadBucket&&d.doorChecks[key]&&!Object.keys(d.doorChecks[key]).length)delete d.doorChecks[key];
+    toast("⚠️ یادآوری ذخیره نشد؛ وضعیت قبلی حفظ شد");return null;
   }
+  return !!d.doorChecks[key][field];
+}
+function toggleDoorCheck(min){
+  const checked=changeDoorCheck(min);
+  if(checked===null)return;
+  if(route==="entry")renderEntry();else render();
+  if(!checked)return;
+  const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
+  toast(msg);
 }
 function doorChecklistHTML(){
   const st=doorState();
@@ -138,11 +164,30 @@ function doorChecklistHTML(){
   items.forEach(([min,act])=>{
     const done=!!st[String(min)];
     h+='<div class="door-item'+(done?" done":"")+'"><span class="min">'+Jalali.toFa(min)+"'</span><span class=\"act\">"+act+'</span>';
-    h+='<button class="btn sm '+(done?"ghost":"p")+'" onclick="toggleDoorCheck('+min+')">'+(done?"✓":"ثبت")+'</button></div>';
+    h+='<button type="button" class="btn sm '+(done?"ghost":"p")+'" data-door-check="'+min+'">'+(done?"✓":"ثبت")+'</button></div>';
   });
   h+='</div></div>';
   return h;
 }
+function bindDoorChecklist(container){
+  if(!container)return;
+  container.querySelectorAll("[data-door-check]").forEach(btn=>{
+    btn.onclick=()=>{
+      const min=Number(btn.getAttribute("data-door-check"));
+      const checked=changeDoorCheck(min);
+      container.innerHTML=doorChecklistHTML();bindDoorChecklist(container);
+      if(checked===null||!checked)return;
+      const msg=min===3?"🚪 وقت باز کردن در کلاس":"📣 به درمانگر بگویید: "+min+" دقیقه تا شروع";
+      toast(msg);
+    };
+  });
+}
+function showDoorChecklist(){
+  const o=modal('<div id="doorChecklistDialog"></div><button type="button" class="btn ghost" id="doorChecklistClose" style="width:100%;margin-top:8px">بستن</button>');
+  const host=o.querySelector("#doorChecklistDialog");host.innerHTML=doorChecklistHTML();bindDoorChecklist(host);
+  const close=o.querySelector("#doorChecklistClose");if(close)close.onclick=()=>o.remove();
+}
+window.showDoorChecklist=showDoorChecklist;
 
 /* مهلت شهریه: یک روز قبل از کلاس */
 function feeDeadlineInfo(){
@@ -159,15 +204,16 @@ function feeDeadlineInfo(){
 }
 function reportFeesToHami(){
   if(!requirePerm("shareSupport"))return;
-  const info=feeDeadlineInfo();
   const d=Store.get();
+  const info=feeDeadlineInfo();
+  const key=curFeeKey();
   const lines=[];
   lines.push("💰 گزارش شهریه برای حامی‌ها");
   lines.push(d.settings.className||"کلاس");
-  if(info.key)lines.push("جلسه: "+Jalali.fmt(Jalali.fromKey(info.key)));
-  lines.push(info.text);
+  if(key)lines.push("جلسه: "+Jalali.fmt(Jalali.fromKey(key)));
+  lines.push(info.key===key?info.text:"وضعیت پرداخت مربوط به جلسه انتخاب‌شده است.");
   lines.push("");
-  const f=info.key?(d.fees[info.key]||{}):{};
+  const f=key?(d.fees[key]||{}):{};
   const paid=[],unpaid=[];
   d.members.forEach(m=>{(f[m.id]&&f[m.id].paid?paid:unpaid).push(m);});
   if(paid.length){lines.push("✅ واریز شده ("+Jalali.toFa(paid.length)+"):");paid.forEach(m=>lines.push("• "+m.name));lines.push("");}
@@ -214,7 +260,7 @@ function sessionCompareHTML(){
     let p=0,a=0,n=d.members.length||1;
     d.members.forEach(m=>{
       const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
-      if(st==="present"||st==="delay")p++;
+      if(st==="present"||st==="delay"||st==="online")p++;
       else if(st==="absent"||st==="problem")a++;
     });
     return{key,pct:Math.round(p/n*100),p,a};
@@ -322,9 +368,16 @@ function editTemplates(){
   };
 }
 function toggleAutoTheme(){
-  const d=Store.get();
-  d.settings.autoTheme=!d.settings.autoTheme;
-  Store.save();
+  const d=Store.get(),previous=!!d.settings.autoTheme,previousTheme=d.settings.theme;
+  d.settings.autoTheme=!previous;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    d.settings.autoTheme=previous;
+    if(previousTheme===undefined)delete d.settings.theme;else d.settings.theme=previousTheme;
+    applyTheme();
+    toast("⚠️ تنظیم تم خودکار ذخیره نشد؛ تنظیم قبلی حفظ شد");
+    return;
+  }
   applyAutoTheme();
   toast(d.settings.autoTheme?"تم خودکار روشن شد":"تم خودکار خاموش شد");
   render();
@@ -378,7 +431,7 @@ function streakBadge(id){
 function smartNextActionHTML(){
   const d=Store.get();
   const nc=nextClass();
-  const key=curKey()||sessionSel();
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
   const un1=d.members.filter(m=>!(s[m.id]||{}).p1).length;
@@ -476,12 +529,12 @@ function buildStoryCard(kind){
     lines=["پرداخت‌شده: "+paid, "باقی‌مانده: "+un, "کل اعضا: "+d.members.length];
   }else{
     const s=key?(d.sessions[key]||{}):{};
-    let p=0,del=0,ab=0,pr=0;
+    let p=0,del=0,ab=0,pr=0,on=0;
     d.members.forEach(m=>{
       const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
-      if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;
+      if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;else if(st==="online")on++;
     });
-    lines=["حاضر: "+p,"تأخیر: "+del,"بدون حضور: "+ab,"نیاز هماهنگی: "+pr];
+    lines=["حاضر: "+p,"تأخیر: "+del,"آنلاین: "+on,"بدون حضور: "+ab,"نیاز هماهنگی: "+pr];
   }
   ctx.font="bold 64px Tahoma,sans-serif";
   ctx.fillStyle="#fff";
@@ -534,13 +587,13 @@ function humanHamiSummary(){
   const d=Store.get();const key=sessionSel()||curKey();
   if(!key){toast("جلسه نیست");return;}
   const s=d.sessions[key]||{};
-  let p=0,del=0,ab=0,pr=0,none=0;
+  let p=0,del=0,ab=0,pr=0,on=0,none=0;
   d.members.forEach(m=>{
     const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
-    if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;else none++;
+    if(st==="present")p++;else if(st==="delay")del++;else if(st==="absent")ab++;else if(st==="problem")pr++;else if(st==="online")on++;else none++;
   });
   const total=d.members.length||1;
-  const pct=Math.round((p+del)/total*100);
+  const pct=Math.round((p+del+on)/total*100);
   let tone="وضعیت کلی خوب است.";
   if(pct<60)tone="نیاز به پیگیری حمایتگرانه داریم.";
   else if(pct<80)tone="وضعیت قابل قبول است؛ چند نفر را نرم پیگیری کنیم.";
@@ -629,10 +682,13 @@ function assigneeName(kind, memberId){
 function periodLeadIds(kind){
   const d=Store.get();
   const p=d.period||{};
-  let leadIds=kind==="fee"?(p.feeIds||[]).slice():(p.attendIds||[]).slice();
+  const configured=kind==="fee"?(p.feeIds||[]):(p.attendIds||[]);
+  const validIds=new Set(d.members.map(m=>m.id));
+  // Ignore deleted/stale IDs and duplicates so tasks are never assigned to a missing member.
+  let leadIds=[...new Set(configured)].filter(id=>validIds.has(id));
   if(!leadIds.length){
     const role=kind==="fee"?"fee":"attend";
-    leadIds=d.members.filter(m=>(m.roles||[]).includes(role)).map(m=>m.id);
+    leadIds=[...new Set(d.members.filter(m=>(m.roles||[]).includes(role)).map(m=>m.id))];
   }
   return leadIds;
 }
@@ -671,8 +727,13 @@ function workloadHTML(kind){
     const assigned=d.members.filter(m=>map[m.id]===lid);
     let done=0;
     assigned.forEach(m=>{
-      if(kind==="fee"){if(bag[m.id]&&bag[m.id].paid)done++;}
-      else{const st=(bag[m.id]||{}).p1||(bag[m.id]||{}).p2;if(st)done++;}
+      if(kind==="fee"){
+        if(bag[m.id]&&bag[m.id].paid)done++;
+      }else{
+        // A member is complete only after both attendance rounds are recorded.
+        const attendance=bag[m.id]||{};
+        if(attendance.p1&&attendance.p2)done++;
+      }
     });
     const pct=assigned.length?Math.round(done/assigned.length*100):0;
     h+='<div class="wl-row"><span><b>'+esc(name)+'</b> · '+Jalali.toFa(assigned.length)+' نفر</span><div class="progress-mini"><i style="width:'+pct+'%"></i></div><span>'+Jalali.toFa(done)+'/'+Jalali.toFa(assigned.length)+'</span></div>';
@@ -716,12 +777,19 @@ function assigneeChip(kind, mid){
 }
 function myPendingCount(){
   const d=Store.get();
-  const key=curKey()||sessionSel();
+  // Follow the explicitly selected session first; only fall back to the next scheduled class.
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
+  // Badge tracks the round the user is actually working in (door entry counts p2, everything else p1)
+  const ph=(route==="entry")?"p2":"p1";
   let a=0,fee=0;
   d.members.forEach(m=>{
-    if(isMine("attend",m.id)&&!(s[m.id]||{}).p1)a++;
+    const attendance=s[m.id]||{};
+    if(isMine("attend",m.id)){
+      if(ph==="p2"){if(!attendance.p2)a++;}
+      else if(!attendance.p1)a++;
+    }
     if(isMine("fee",m.id)&&!(f[m.id]&&f[m.id].paid))fee++;
   });
   return{attend:a,fee:fee};
@@ -748,15 +816,24 @@ function wireHomeSplit(){
 
 /* ============ v15: پیشرفته ============ */
 function togglePin(id){
-  const d=Store.get();
-  d.pinned=d.pinned||[];
+  const d=Store.get(),hadPinned=Array.isArray(d.pinned),previous=hadPinned?d.pinned.slice():[];
+  d.pinned=previous.slice();
   const i=d.pinned.indexOf(id);
   if(i>=0)d.pinned.splice(i,1);else d.pinned.push(id);
-  Store.save();render();
+  let saved=false;
+  try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(hadPinned)d.pinned=previous;else delete d.pinned;
+    toast("⚠️ تغییر ترتیب ذخیره نشد؛ وضعیت قبلی حفظ شد");
+    return;
+  }
+  render();
 }
 
 function smartSortMembers(list, kind){
   const d=Store.get();
+  // Explicit user-chosen sort wins over the smart ordering (shared across all lists).
+  if(typeof memberSortMode!=="undefined"&&memberSortMode!=="smart")return sortMemberList(list);
   if(!d.settings.smartSort)return list;
   const key=sessionSel()||curKey();
   const s=key?(kind==="fee"?(d.fees[key]||{}):(d.sessions[key]||{})):{};
@@ -789,6 +866,8 @@ function copyPrevSession(){
   const prev=keys.filter(k=>k<cur).pop();
   if(!prev){toast("جلسه قبلی برای کپی نیست");return;}
   confirm2("وضعیت حضور جلسه قبل روی این جلسه کپی شود؟ (فقط خانه‌های خالی پر می‌شوند)",()=>{
+    const hadTarget=Object.prototype.hasOwnProperty.call(d.sessions,cur);
+    const previousTarget=hadTarget?JSON.parse(JSON.stringify(d.sessions[cur])):null;
     d.sessions[cur]=d.sessions[cur]||{};
     let n=0;
     d.members.forEach(m=>{
@@ -797,7 +876,12 @@ function copyPrevSession(){
       const dst=d.sessions[cur][m.id]=d.sessions[cur][m.id]||{};
       if(!dst.p1&&src.p1){dst.p1=src.p1;n++;}
     });
-    Store.save();logActivity("کپی از جلسه قبل: "+n);toast("✅ "+Jalali.toFa(n)+" مورد از جلسه قبل");render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      if(hadTarget)d.sessions[cur]=previousTarget;else delete d.sessions[cur];
+      toast("⚠️ کپی حضور ذخیره نشد؛ اطلاعات جلسه حفظ شد");return;
+    }
+    logActivity("کپی از جلسه قبل: "+n);toast("✅ "+Jalali.toFa(n)+" مورد از جلسه قبل");render();
   });
 }
 function saveSessionNote(){
@@ -806,9 +890,12 @@ function saveSessionNote(){
   if(!key)return;
   const el=document.getElementById("sessNote");
   if(!el)return;
+  const hadNotes=Object.prototype.hasOwnProperty.call(d,"sessionNotes"),hadNote=hadNotes&&Object.prototype.hasOwnProperty.call(d.sessionNotes,key),previous=hadNote?d.sessionNotes[key]:undefined;
   d.sessionNotes=d.sessionNotes||{};
   d.sessionNotes[key]=el.value.trim();
-  Store.save();toast("یادداشت جلسه ذخیره شد");logActivity("یادداشت جلسه");
+  let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+  if(!saved){if(hadNote)d.sessionNotes[key]=previous;else delete d.sessionNotes[key];if(!hadNotes)delete d.sessionNotes;el.value=previous||"";toast("⚠️ یادداشت جلسه ذخیره نشد؛ متن قبلی حفظ شد");return;}
+  toast("یادداشت جلسه ذخیره شد");logActivity("یادداشت جلسه");
 }
 function sessionNoteHTML(){
   const d=Store.get();
@@ -841,10 +928,16 @@ function transferMyTasks(kind){
     const to=$("#trTo",o).value;
     const me=myAssigneeId();
     let n=0;
+    const previousMap=Object.assign({},map);
     d.members.forEach(m=>{
       if(map[m.id]===me){map[m.id]=to;n++;}
     });
-    Store.save();o.remove();toast("✅ "+Jalali.toFa(n)+" وظیفه منتقل شد");logActivity("انتقال وظایف");render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      Object.keys(map).forEach(k=>delete map[k]);Object.assign(map,previousMap);
+      toast("⚠️ انتقال وظایف ذخیره نشد؛ تقسیم قبلی حفظ شد");return;
+    }
+    o.remove();toast("✅ "+Jalali.toFa(n)+" وظیفه منتقل شد");logActivity("انتقال وظایف");render();
   };
 }
 function weeklyDigest(){
@@ -1003,7 +1096,7 @@ function performUndo(){
 function absenceRisk(id){
   const d=Store.get();
   const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,8);
-  if(keys.length<3)return0;
+  if(keys.length<3)return 0;
   let abs=0,total=0;
   keys.forEach(k=>{
     const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
@@ -1011,7 +1104,7 @@ function absenceRisk(id){
     total++;
     if(st==="absent"||st==="problem")abs++;
   });
-  if(total<3)return0;
+  if(total<3)return 0;
   return abs/total;
 }
 function riskChip(id){
@@ -1019,27 +1112,6 @@ function riskChip(id){
   if(r>=0.5)return'<span class="assignee-chip risk-hi">ریسک بالا</span> ';
   if(r>=0.3)return'<span class="assignee-chip risk-mid">نیاز توجه</span> ';
   return"";
-}
-function memberTimeline(id){
-  const d=Store.get();
-  const m=d.members.find(x=>x.id===id);
-  if(!m)return;
-  const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,10);
-  const lbl={present:"حاضر",delay:"تأخیر",absent:"بدون حضور",problem:"مشکل"};
-  let h='<div class="timeline">';
-  keys.forEach(k=>{
-    const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
-    h+='<div class="tl-item"><b>'+Jalali.fmt(Jalali.fromKey(k))+'</b> — '+(st?lbl[st]||st:"ثبت نشده")+'</div>';
-  });
-  h+='</div>';
-  const risk=absenceRisk(id);
-  modal('<h3 style="font-weight:800">📅 روند '+esc(m.name)+'</h3>'+
-    (risk>=0.3?'<p class="stat-line">نرخ عدم‌ثبت مؤثر اخیر: '+Jalali.toFa(Math.round(risk*100))+'٪</p>':'')+
-    h+'<button class="btn ghost" style="width:100%" onclick="this.closest(\'.modal-bg,dialog,[class*=modal]\')?.remove?.()">بستن</button>');
-  // simpler close: find modal root
-  setTimeout(()=>{
-    const root=document.querySelector(".modal, .overlay, [id^=m]");
-  },0);
 }
 function teamBoardHTML(kind){
   kind=kind||"attend";
@@ -1113,7 +1185,7 @@ function showMemberTimeline(id){
   const m=d.members.find(x=>x.id===id);
   if(!m)return;
   const keys=Object.keys(d.sessions||{}).sort().reverse().slice(0,12);
-  const lbl={present:"✅ حاضر",delay:"⏰ تأخیر",absent:"📭 بدون حضور",problem:"💬 مشکل"};
+  const lbl={present:"✅ حاضر",delay:"⏰ تأخیر",absent:"📭 بدون حضور",problem:"💬 مشکل",online:"💻 آنلاین"};
   let h='<div class="timeline">';
   if(!keys.length)h+='<div class="tl-item">هنوز جلسه‌ای نیست</div>';
   keys.forEach(k=>{
@@ -1153,7 +1225,7 @@ function batchSetAtt(st){
     d.sessions[key]=d.sessions[key]||{};
     const prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
     const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
-    cur.p1=st;cur.time=Date.now();cur.by=(currentUser()||{}).name||"";
+    cur.p1=st;cur.time=nowHHMM();cur.by=(currentUser()||{}).name||"";
     pushUndo({type:"att",key,mid,prev,label:"دسته‌ای"});
   });
   Store.save();
@@ -1204,6 +1276,7 @@ function batchBarHTML(){
     '<button class="btn sm p" type="button" onclick="batchSetAtt(\'present\')">حاضر</button>'+
     '<button class="btn sm ghost" type="button" onclick="batchSetAtt(\'delay\')">تأخیر</button>'+
     '<button class="btn sm ghost" type="button" onclick="batchSetAtt(\'absent\')">غایب</button>'+
+    '<button class="btn sm ghost" type="button" onclick="batchSetAtt(\'online\')">آنلاین</button>'+
     '<button class="btn sm ghost" type="button" onclick="openBatchPicker()">☑ انتخاب</button> <button class="btn sm ghost" type="button" onclick="clearBatch()">لغو</button></div>';
 }
 function heatmapHTML(){
@@ -1214,7 +1287,7 @@ function heatmapHTML(){
   keys.forEach(k=>{
     const s=d.sessions[k]||{};
     let p=0,t=d.members.length||1;
-    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay")p++;});
+    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay"||st==="online")p++;});
     const pct=p/t;
     let cls="h0";
     if(pct>=0.9)cls="h3";else if(pct>=0.75)cls="h2";else if(pct>=0.5)cls="h1";else if(pct>=0.3)cls="h4";else cls="h5";
@@ -1224,7 +1297,7 @@ function heatmapHTML(){
 }
 function kpiRowHTML(){
   const d=Store.get();
-  const key=curKey()||sessionSel();
+  const key=sessionSel()||curKey();
   const s=key?(d.sessions[key]||{}):{};
   const f=key?(d.fees[key]||{}):{};
   let openA=0,openF=0,done=0;
@@ -1244,7 +1317,7 @@ function callCoach(m){
   return"";
 }
 function stampAtt(cur){
-  cur.time=Date.now();
+  cur.time=nowHHMM();
   cur.by=(currentUser()||{}).name||"";
   return cur;
 }
@@ -1259,7 +1332,7 @@ function compactSyncExport(){
     period:d.period,
     at:Date.now()
   };
-  const text=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  const text=utf8B64(JSON.stringify(payload));
   const o=modal('<h3 style="font-weight:800">🔗 همگام‌سازی فشرده</h3><p class="role-hint">این کد را برای همکار بفرستید تا وضعیت جلسه و تقسیم کار را وارد کند.</p>'+
     '<textarea rows="6" id="syncOut" readonly>'+text+'</textarea>'+
     '<div class="row" style="margin-top:8px;gap:6px"><button class="btn p" style="flex:1" id="syC">📋 کپی</button><button class="btn ghost" id="syI">وارد کردن کد</button></div>');
@@ -1269,24 +1342,58 @@ function compactSyncExport(){
     const o2=modal('<h3 style="font-weight:800">وارد کردن همگام</h3><textarea rows="6" id="syncIn" placeholder="کد را بچسبانید"></textarea>'+
       '<button class="btn p" style="width:100%;margin-top:8px" id="syGo">ادغام</button>');
     $("#syGo",o2).onclick=()=>{
+      let d=null,snapshot=null,committed=false;
       try{
-        const raw=decodeURIComponent(escape(atob($("#syncIn",o2).value.trim())));
+        const raw=b64Utf8($("#syncIn",o2).value.trim());
         const p=JSON.parse(raw);
-        const d=Store.get();
+        if(!p||typeof p!=="object"||Array.isArray(p))throw new Error("invalid payload");
+        if((p.sessions||p.fees)&&(!validSessionKey(p.key)))throw new Error("invalid session key");
+        if(p.sessions&&(!p.sessions||typeof p.sessions!=="object"||Array.isArray(p.sessions)))throw new Error("invalid sessions");
+        if(p.fees&&(!p.fees||typeof p.fees!=="object"||Array.isArray(p.fees)))throw new Error("invalid fees");
+        if(p.assignments&&(typeof p.assignments!=="object"||Array.isArray(p.assignments)))throw new Error("invalid assignments");
+        if(p.assignments&&p.assignments.attend&&(typeof p.assignments.attend!=="object"||Array.isArray(p.assignments.attend)))throw new Error("invalid attendance assignments");
+        if(p.assignments&&p.assignments.fee&&(typeof p.assignments.fee!=="object"||Array.isArray(p.assignments.fee)))throw new Error("invalid fee assignments");
+        if(p.period&&(typeof p.period!=="object"||Array.isArray(p.period)))throw new Error("invalid period");
+        d=Store.get();
+        snapshot={
+          sessions:JSON.parse(JSON.stringify(d.sessions||{})),
+          fees:JSON.parse(JSON.stringify(d.fees||{})),
+          assignments:JSON.parse(JSON.stringify(d.assignments||{attend:{},fee:{}})),
+          hadPeriod:Object.prototype.hasOwnProperty.call(d,"period"),
+          period:d.period?JSON.parse(JSON.stringify(d.period)):null
+        };
         if(p.sessions&&p.key){
+          d.sessions=d.sessions||{};
           d.sessions[p.key]=Object.assign({},d.sessions[p.key]||{},p.sessions);
         }
         if(p.fees&&p.key){
+          d.fees=d.fees||{};
           d.fees[p.key]=Object.assign({},d.fees[p.key]||{},p.fees);
         }
         if(p.assignments){
           d.assignments=d.assignments||{attend:{},fee:{}};
-          d.assignments.attend=Object.assign({},d.assignments.attend,p.assignments.attend||{});
-          d.assignments.fee=Object.assign({},d.assignments.fee,p.assignments.fee||{});
+          d.assignments.attend=Object.assign({},d.assignments.attend||{},p.assignments.attend||{});
+          d.assignments.fee=Object.assign({},d.assignments.fee||{},p.assignments.fee||{});
         }
-        if(p.period)d.period=Object.assign({},d.period,p.period);
-        Store.save();o2.remove();toast("✅ همگام‌سازی انجام شد");logActivity("وارد کردن همگام فشرده");render();
-      }catch(e){toast("کد نامعتبر است");}
+        if(p.period)d.period=Object.assign({},d.period||{},p.period);
+        let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+        if(!saved){
+          d.sessions=snapshot.sessions;d.fees=snapshot.fees;d.assignments=snapshot.assignments;
+          if(snapshot.hadPeriod)d.period=snapshot.period;else delete d.period;
+          toast("⚠️ همگام‌سازی ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;
+        }
+        committed=true;
+        o2.remove();
+        try{logActivity("وارد کردن همگام فشرده");}catch(e){}
+        try{render();}catch(e){toast("همگام‌سازی ذخیره شد؛ برای نمایش تازه صفحه را باز کنید");return;}
+        toast("✅ همگام‌سازی انجام شد");
+      }catch(e){
+        if(!committed&&d&&snapshot){
+          d.sessions=snapshot.sessions;d.fees=snapshot.fees;d.assignments=snapshot.assignments;
+          if(snapshot.hadPeriod)d.period=snapshot.period;else delete d.period;
+        }
+        toast(committed?"همگام‌سازی ذخیره شد، اما نمایش صفحه نیاز به تازه‌سازی دارد":"کد نامعتبر است یا ساختار آن پشتیبانی نمی‌شود");
+      }
     };
   };
 }
@@ -1340,7 +1447,7 @@ function workflowStripHTML(){
 
 function currentUser(){
   const d=Store.get();
-  if(!d.users||!d.users.length)return{id:"u-admin",name:"مدیر",role:"admin",pin:"0000"};
+  if(!d.users||!d.users.length)return{id:"u-admin",name:"مدیر",role:"admin"};
   if(d.currentUserId){const u=d.users.find(x=>x.id===d.currentUserId);if(u)return u;}
   // if login not required, default first admin or first user
   if(!d.settings.requireLogin)return d.users.find(x=>x.role==="admin")||d.users[0];
@@ -1359,16 +1466,36 @@ function requirePerm(perm,msg){
   return false;
 }
 function logoutUser(){
-  const d=Store.get();d.currentUserId=null;Store.save();
+  const d=Store.get(),previous=d.currentUserId;
+  d.currentUserId=null;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.currentUserId=previous;toast("⚠️ خروج ذخیره نشد؛ وضعیت حساب تغییر نکرد");return;}
   if(d.settings.requireLogin){route="login";render();}
   else toast("از حساب خارج شدید");
 }
-function loginUser(userId,pin){
+async function loginUser(userId,pin){
   const d=Store.get();
   const u=d.users.find(x=>x.id===userId);
   if(!u){toast("کاربر یافت نشد");return false;}
-  if(String(u.pin||"")!==String(pin||"")){toast("⚠️ رمز نادرست");return false;}
-  d.currentUserId=u.id;Store.save();
+  // تأیید هش PBKDF2؛ اگر داده قدیمی متنی بود، پس از ورود موفق به هش مهاجرت می‌شود
+  let ok=false;
+  if(u.pinHash&&u.pinHash.h&&u.pinHash.s){
+    if(self.crypto&&self.crypto.subtle){
+      const h=await hashPin(pin,u.pinHash.s,u.pinHash.i);
+      ok=!!h&&h===u.pinHash.h;
+    }else ok=false;
+  }else{
+    ok=String(u.pin||"")===String(pin||"");
+    if(ok){
+      const s=randSalt();const h=await hashPin(pin,s,PIN_ITER);
+      if(h){delete u.pin;u.pinHash={h:h,s:s,i:PIN_ITER};}
+    }
+  }
+  if(!ok){toast("⚠️ رمز نادرست");return false;}
+  const previous=d.currentUserId;
+  d.currentUserId=u.id;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.currentUserId=previous;toast("⚠️ ورود ذخیره نشد؛ دوباره تلاش کنید");return false;}
   route="home";resetUI();render();
   toast("سلام "+u.name+" 👋");
   return true;
@@ -1454,10 +1581,12 @@ function Pages_login(el){
         if(pin.length>=4)return;
         pin+=k;draw();
         if(pin.length===4){
-          if(!loginUser(sel,pin)){pin="";
-            const card=el.querySelector(".login-card");if(card){card.classList.add("err-shake");setTimeout(()=>card.classList.remove("err-shake"),400);}
-            draw();
-          }
+          loginUser(sel,pin).then(ok=>{
+            if(!ok){pin="";
+              const card=el.querySelector(".login-card");if(card){card.classList.add("err-shake");setTimeout(()=>card.classList.remove("err-shake"),400);}
+              draw();
+            }
+          });
         }
       };
     });
@@ -1466,30 +1595,48 @@ function Pages_login(el){
 }
 Pages.login=Pages_login;
 
-function saveUserForm(id){
-  if(!requirePerm("settings","فقط مدیر می‌تواند کاربر تعریف کند"))return;
+async function saveUserForm(id){
+  if(!requirePerm("settings","فقط مدیر می‌تواند کاربر تعریف کند"))return false;
   const d=Store.get();
   const name=($("#uName")&&$("#uName").value||"").trim();
   const pin=($("#uPin")&&$("#uPin").value||"").trim();
   const role=$("#uRole")?$("#uRole").value:"follow";
-  if(!name){toast("نام کاربر را وارد کنید");return;}
-  if(!/^\d{4}$/.test(pin)){toast("رمز باید ۴ رقم باشد");return;}
+  if(!name){toast("نام کاربر را وارد کنید");return false;}
+  if(pin&&!/^\d{4}$/.test(pin)){toast("رمز باید ۴ رقم باشد");return false;}
+  const previousUsers=d.users.map(u=>Object.assign({},u));
+  // رمز هرگز متنی ذخیره نمی‌شود — PBKDF2 با salt تصادفی
+  let rec=null;
   if(id){
-    const u=d.users.find(x=>x.id===id);if(!u)return;
-    u.name=name;u.pin=pin;u.role=role;
+    const u=d.users.find(x=>x.id===id);if(!u)return false;
+    rec=u;rec.name=name;rec.role=role;
   }else{
-    d.users.push({id:Store.uid(),name,pin,role});
+    rec={id:Store.uid(),name:name,role:role};
+    d.users.push(rec);
   }
-  Store.save();render();toast("✅ کاربر ذخیره شد");
+  if(pin){
+    const s=randSalt();const h=await hashPin(pin,s,PIN_ITER);
+    if(h){delete rec.pin;rec.pinHash={h:h,s:s,i:PIN_ITER};}
+    else{delete rec.pinHash;rec.pin=pin;} // مرورگر بدون WebCrypto (فقط هم‌مبدأ)
+  }else if(rec.pin){ // مهاجرت خاموش: رمز متنی قدیمی همین‌جا هش می‌شود
+    const old=rec.pin;const s=randSalt();const h=await hashPin(old,s,PIN_ITER);
+    if(h){delete rec.pin;rec.pinHash={h:h,s:s,i:PIN_ITER};}
+  }
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.users=previousUsers;toast("⚠️ اطلاعات کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return false;}
+  render();toast("✅ کاربر ذخیره شد");
+  return true;
 }
 function delUser(id){
   if(!requirePerm("settings"))return;
   const d=Store.get();
   if(d.users.length<=1){toast("حداقل یک کاربر لازم است");return;}
   confirm2("این کاربر حذف شود؟",()=>{
+    const previousUsers=d.users.map(u=>Object.assign({},u)),previousCurrent=d.currentUserId;
     d.users=d.users.filter(x=>x.id!==id);
     if(d.currentUserId===id)d.currentUserId=d.users[0].id;
-    Store.save();render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){d.users=previousUsers;d.currentUserId=previousCurrent;toast("⚠️ حذف کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+    render();
   });
 }
 function userForm(id){
@@ -1497,13 +1644,13 @@ function userForm(id){
   const d=Store.get();const u=id?d.users.find(x=>x.id===id):null;
   const o=modal('<h3 style="font-weight:800">'+(u?"✏️ ویرایش کاربر":"＋ کاربر جدید")+'</h3>'+
     '<label>نام</label><input id="uName" value="'+esc(u?u.name:"")+'">'+
-    '<label>رمز ۴ رقمی</label><input id="uPin" inputmode="numeric" maxlength="4" dir="ltr" value="'+esc(u?u.pin:"0000")+'">'+
+    '<label>رمز ۴ رقمی</label><input id="uPin" inputmode="numeric" maxlength="4" dir="ltr" placeholder="'+(u?"برای تغییر، رمز جدید را وارد کنید":"0000")+'">'+
     '<label>نقش / سطح دسترسی</label><select id="uRole">'+
     Object.keys(ROLE_LABEL).map(r=>'<option value="'+r+'" '+(u&&u.role===r?"selected":"")+'>'+ROLE_LABEL[r]+'</option>').join("")+'</select>'+
     '<div class="safe-tip">مدیر: همه چیز · حامی: بدون شهریه و حذف · پیگیر: ثبت حضور/شهریه · مشاهده‌گر: فقط خواندن</div>'+
     '<div class="row" style="margin-top:12px"><button class="btn p" style="flex:1" id="uSave">💾 ذخیره</button><button class="btn ghost" id="uCl">انصراف</button></div>');
   $("#uCl",o).onclick=()=>o.remove();
-  $("#uSave",o).onclick=()=>{saveUserForm(id);o.remove();};
+  $("#uSave",o).onclick=async()=>{if(await saveUserForm(id))o.remove();};
 }
 
 /* گزارش امن برای حامی‌ها — بدون یادداشت محرمانه و بدون جزئیات حساس */
@@ -1704,6 +1851,14 @@ async function enableNotifs(){
   if(p!=="granted"){toast("اجازه اعلان داده نشد");return;}
   const d=Store.get();d.settings.notif=true;Store.save();
   scheduleClassNotif();
+  /* ثبت periodicSync (بهترین‌تلاش) — فقط روی اپ نصب‌شده کروم پشتیبانی می‌شود؛ در غیر این‌صورت روش فعلی کار می‌کند */
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(reg=>{
+        if(reg.periodicSync)reg.periodicSync.register("mct-reminder",{minInterval:6*60*60*1000}).catch(()=>{});
+      }).catch(()=>{});
+    }
+  }catch(e){}
   toast("✅ اعلان کلاس فعال شد");
 }
 function scheduleClassNotif(){
@@ -1712,13 +1867,35 @@ function scheduleClassNotif(){
   const nc=nextClass();if(!nc||!nc.t)return;
   const ms=nc.t-Date.now()-15*60e3; // 15 min before
   if(ms<0||ms>864e5*2)return;
+  _mctPostReminderSnapshot(nc);
   clearTimeout(window._notifT);
   window._notifT=setTimeout(()=>{
     try{
-      new Notification(d.settings.className||"کلاس",{body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||""),icon:"icon.svg",tag:"mct-class"});
+      /* وقتی تب پنهان است اعلان از مسیر Service Worker می‌آید — حتی اگر رندر متوقف شده باشد */
+      if(document.hidden&&navigator.serviceWorker&&navigator.serviceWorker.controller){
+        navigator.serviceWorker.controller.postMessage({type:"mct-show-reminder",title:d.settings.className||"کلاس",body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||"")});
+      }else{
+        new Notification(d.settings.className||"کلاس",{body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||""),icon:"icon-192.svg",lang:"fa",dir:"rtl",tag:"mct-class"});
+      }
       if(navigator.vibrate)navigator.vibrate([80,40,80]);
     }catch(e){}
   },ms);
+}
+/* اسنپ‌شات یادآوری برای Service Worker — مبنای periodicSync وقتی اپ بسته است (PWA 2026) */
+function _mctPostReminderSnapshot(nc){
+  try{
+    if(!navigator.serviceWorker)return;
+    const msg={
+      type:"mct-reminder-snapshot",
+      dueISO:new Date(nc.t-15*60e3).toISOString(),
+      windowISO:new Date(nc.t-15*60e3+30*60e3).toISOString(),
+      title:(Store.get().settings.className||"کلاس"),
+      body:"۱۵ دقیقه تا شروع کلاس — ساعت "+(nc.c.start||""),
+      tag:"mct-class"
+    };
+    if(navigator.serviceWorker.controller){navigator.serviceWorker.controller.postMessage(msg);return;}
+    navigator.serviceWorker.ready.then(reg=>{if(reg.active)reg.active.postMessage(msg);}).catch(()=>{});
+  }catch(e){}
 }
 
 /* ============ v6: نقشه حرارتی حضور ============ */
@@ -1732,7 +1909,7 @@ function attendHeatmap(){
   for(let i=0;i<firstDow;i++)h+='<div class="c" style="opacity:.25"></div>';
   keys.forEach(k=>{
     const s=d.sessions[k]||{};let p=0,t=d.members.length||1;
-    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay")p++;});
+    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay"||st==="online")p++;});
     const pct=p/t*100;let lv=pct>=90?"lv4":pct>=70?"lv3":pct>=40?"lv2":pct>0?"lv1":"";
     const j=Jalali.fromKey(k);
     h+='<div class="c '+lv+'" title="'+Jalali.fmt(j)+' — '+Math.round(pct)+'٪" onclick="setSel(\''+k+'\');go(\'attend\')"></div>';
@@ -1755,7 +1932,7 @@ function exportICS(){
       const[eh,emi]=(c.end||"21:00").split(":").map(Number);
       const start=new Date(dt);start.setHours(h,mi,0,0);
       const end=new Date(dt);end.setHours(eh,emi,0,0);
-      const fmt=x=>x.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+      const fmt=x=>{const p=n=>String(n).padStart(2,"0");return x.getFullYear()+p(x.getMonth()+1)+p(x.getDate())+"T"+p(x.getHours())+p(x.getMinutes())+"00";};
       lines.push("BEGIN:VEVENT","UID:mct-"+fmt(start)+"@mct","DTSTAMP:"+fmt(new Date()),"DTSTART:"+fmt(start),"DTEND:"+fmt(end),"SUMMARY:"+name,"DESCRIPTION:جلسه کلاس — My-Class-Track","END:VEVENT");
     }
   }
@@ -1781,11 +1958,16 @@ function shareClassCode(){
   const o=modal('<h3 style="font-weight:800">📤 اشتراک کلاس</h3><p class="stat-line">کد یا لینک را برای همکار بفرستید</p><div style="text-align:center" id="qrWrap"><div class="skeleton" style="width:160px;height:160px;margin:8px auto"></div></div><textarea id="shareCode" rows="4" readonly style="margin-top:8px;font-size:.85em">'+esc(text)+'</textarea><div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" id="shCopy">📋 کپی</button><button class="btn ghost" style="flex:1" id="shShare">📤 ارسال</button></div>');
   $("#shCopy",o).onclick=()=>copyTxt(text);
   $("#shShare",o).onclick=()=>shareTxt(text);
-  // QR image when online
-  const qrUrl="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data="+encodeURIComponent(text.slice(0,300));
-  const img=new Image();img.alt="QR";img.className="qr-box";img.onload=()=>{const w=$("#qrWrap",o);if(w)w.innerHTML="";if(w)w.appendChild(img);};
-  img.onerror=()=>{const w=$("#qrWrap",o);if(w)w.innerHTML='<p class="stat-line">QR در حالت آفلاین در دسترس نیست — از کپی متن استفاده کنید</p>';};
-  img.src=qrUrl;
+  // QR — تولید کاملاً محلی و آفلاین؛ هیچ داده‌ای به سرور خارجی ارسال نمی‌شود
+  try{
+    if(typeof qrcode==="function"&&qrcode.stringToBytesFuncs&&qrcode.stringToBytesFuncs["UTF-8"])qrcode.stringToBytes=qrcode.stringToBytesFuncs["UTF-8"];
+    const qr=qrcode(0,"M");qr.addData(text.slice(0,300));qr.make();
+    const w=$("#qrWrap",o);
+    if(w)w.innerHTML='<img class="qr-box" alt="QR" src="'+qr.createDataURL(4,8)+'">';
+  }catch(e){
+    const w=$("#qrWrap",o);
+    if(w)w.innerHTML='<p class="stat-line">QR ساخته نشد — از کپی متن استفاده کنید</p>';
+  }
 }
 
 /* ============ v6: بینش کامل (مودال) ============ */
@@ -1810,7 +1992,7 @@ function printAttendReport(key){
   for(const m of d.members){
     const c=s[m.id]||{};
     const p1=ST.lbl[c.p1||"none"], p2=ST.lbl[c.p2||"none"];
-    rows+="<tr><td>"+esc(m.name)+"</td><td>"+p1+(c.time?" ("+Jalali.toFa(c.time)+")":"")+"</td><td>"+p2+(c.time2?" ("+Jalali.toFa(c.time2)+")":"")+"</td><td>"+esc(c.note2||c.note||"")+"</td></tr>";
+    rows+="<tr><td>"+esc(m.name)+"</td><td>"+p1+(c.time?" ("+Jalali.toFa(fmtAttTime(c.time))+")":"")+"</td><td>"+p2+(c.time2?" ("+Jalali.toFa(fmtAttTime(c.time2))+")":"")+"</td><td>"+esc(c.note2||c.note||"")+"</td></tr>";
   }
   const html=`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${esc(title)}</title>
   <style>
@@ -1834,49 +2016,71 @@ function printAttendReport(key){
 }
 
 
-function setClassName(v){const d=Store.get();d.settings.className=(v||"").trim()||"کلاس من";Store.save();
-document.querySelector(".htitle")&&(document.querySelector(".htitle").textContent=d.settings.className);
-toast("✅ نام کلاس ذخیره شد");}
+function setClassName(v){
+  const d=Store.get(),previous=d.settings.className;
+  d.settings.className=(v||"").trim()||"کلاس من";
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){if(previous===undefined)delete d.settings.className;else d.settings.className=previous;toast("⚠️ نام کلاس ذخیره نشد؛ مقدار قبلی حفظ شد");return;}
+  document.querySelector(".htitle")&&(document.querySelector(".htitle").textContent=d.settings.className);
+  toast("✅ نام کلاس ذخیره شد");
+}
 function addGroup(){
   const name=prompt("نام گروه جدید:");
   if(!name||!name.trim())return;
-  const d=Store.get();
-  if(d.groups.includes(name.trim())){toast("این گروه از قبل هست");return;}
-  d.groups.push(name.trim());Store.save();render();toast("✅ گروه اضافه شد");
+  const d=Store.get(),value=name.trim();
+  if(d.groups.includes(value)){toast("این گروه از قبل هست");return;}
+  d.groups.push(value);
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.groups.pop();toast("⚠️ گروه ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
+  render();toast("✅ گروه اضافه شد");
 }
 function delGroup(g){
   if(g==="عمومی"){toast("گروه «عمومی» قابل حذف نیست");return;}
   confirm2("گروه «"+g+"» حذف شود؟ اعضای آن به عمومی منتقل می‌شوند",()=>{
-    const d=Store.get();
+    const d=Store.get(),previousGroups=d.groups.slice();
+    const previousMembers=d.members.filter(m=>m.group===g).map(m=>({id:m.id,group:m.group}));
     d.groups=d.groups.filter(x=>x!==g);
     d.members.forEach(m=>{if(m.group===g)m.group="عمومی";});
-    Store.save();render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){
+      d.groups=previousGroups;
+      previousMembers.forEach(old=>{const m=d.members.find(x=>x.id===old.id);if(m)m.group=old.group;});
+      toast("⚠️ حذف گروه ذخیره نشد؛ گروه و اعضا حفظ شدند");return;
+    }
+    render();
   });
 }
 
 /* ============ روتر ============ */
-const NAV=[["home","خانه",ICONS.home],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["homework","تکالیف","📋"],["members","اعضا",ICONS.users],["more","بیشتر","☰"]];
+const NAV=[["home","خانه",ICONS.home],["members","اعضا",ICONS.users],["attend","حضور",ICONS.check],["fees","شهریه",ICONS.coin],["settings","تنظیمات","⚙"]];
 function decorateHelpHints(root){
   root=root||document;
-  root.querySelectorAll(".role-hint, .hami-tip, .human-msg").forEach(hint=>{
-    if(hint.dataset.helpDecorated==="1")return;
-    hint.dataset.helpDecorated="1";
-    const content=hint.innerHTML;
-    const btn=document.createElement("button");
-    btn.type="button";btn.className="hint-toggle";btn.textContent="?";
-    btn.setAttribute("aria-label","نمایش راهنمای این بخش");btn.setAttribute("aria-haspopup","dialog");
+  const selector=".role-hint, .hami-tip, .human-msg";
+  const decorate=(hint)=>{
+    if(!(hint instanceof Element)||hint.dataset.helpDecorated==="1")return;
+    const content=hint.innerHTML.trim();
+    if(!content)return;
+    hint.dataset.helpDecorated="1";hint.hidden=true;hint.setAttribute("aria-hidden","true");hint.classList.add("help-source-hidden");
+    let btn=hint.previousElementSibling;
+    if(!btn||!btn.classList.contains("hint-toggle")){
+      btn=document.createElement("button");btn.type="button";btn.className="hint-toggle";btn.textContent="?";
+      btn.setAttribute("aria-label","نمایش راهنمای این بخش");btn.setAttribute("aria-haspopup","dialog");btn.setAttribute("aria-expanded","false");
+      hint.parentNode.insertBefore(btn,hint);
+    }
     btn.addEventListener("click",()=>{
-      const safeContent=content;
-      const o=modal('<div class="help-popover" role="dialog" aria-modal="true" aria-label="راهنمای این بخش"><div class="help-popover-head"><b>راهنمای این بخش</b><button type="button" class="help-close" aria-label="بستن" onclick="this.closest(\'.overlay\').remove()">×</button></div><div class="help-popover-content">'+safeContent+'</div><button type="button" class="btn p help-done" onclick="this.closest(\'.overlay\').remove()">متوجه شدم</button></div>');
-      o.classList.add("help-overlay");
-      const close=o.querySelector(".help-close");if(close)close.focus();
+      document.querySelectorAll(".help-overlay").forEach(old=>old.remove());
+      const overlay=modal('<section class="help-popover" role="dialog" aria-modal="true" aria-label="راهنمای این بخش"><header class="help-popover-head"><button type="button" class="help-back" aria-label="بازگشت">←</button><b>راهنمای این بخش</b><button type="button" class="help-close" aria-label="بستن و خروج">×</button></header><div class="help-popover-content">'+content+'</div><footer class="help-popover-actions"><button type="button" class="btn p help-done">متوجه شدم</button></footer></section>');
+      overlay.classList.add("help-overlay");btn.setAttribute("aria-expanded","true");
+      const close=()=>{overlay.remove();btn.setAttribute("aria-expanded","false");btn.focus({preventScroll:true});};
+      overlay.querySelectorAll(".help-close,.help-back,.help-done").forEach(control=>control.addEventListener("click",close));
+      overlay.addEventListener("keydown",event=>{if(event.key==="Escape"){event.preventDefault();close();}});
+      const closeButton=overlay.querySelector(".help-close");if(closeButton)closeButton.focus();
     });
-    hint.hidden=true;
-    hint.setAttribute("aria-hidden","true");
-    hint.classList.add("help-source-hidden");
-    hint.parentNode.insertBefore(btn,hint);
-  });
+  };
+  if(root.matches&&root.matches(selector))decorate(root);
+  root.querySelectorAll(selector).forEach(decorate);
 }
+
 function fitEntryHeader(){
   if(route!=="entry")return;
   const head=document.querySelector("#app .entry-head");
@@ -1906,8 +2110,9 @@ const ht=document.querySelector(".htitle");if(ht)ht.textContent=(Store.get().set
 const hs=document.querySelector(".hsub");if(hs)hs.textContent=(typeof pageTitleFor==="function"?pageTitleFor(route):"گروه درمانی");
 let fab=document.getElementById("fabAi");
 if(route==="entry"){if(fab)fab.remove();}
-else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="بینش هوشمند";fab.innerHTML="✨";fab.onclick=showInsights;document.body.appendChild(fab);}
+else if(!fab){fab=document.createElement("button");fab.id="fabAi";fab.className="fab-ai";fab.title="تقویم و مناسبت‌ها";fab.setAttribute("aria-label","تقویم و مناسبت‌ها");fab.innerHTML="✨";fab.onclick=()=>window.openCalendarSettings?.();document.querySelector("#hdr .hwrap")?.appendChild(fab);}
 try{scheduleClassNotif();}catch(e){}
+try{updateAppBadge();}catch(e){}
 document.getElementById("hdr").style.display=route==="entry"?"none":"";
 document.getElementById("nav").style.display=route==="entry"?"none":"";
 const bb=document.getElementById("backBtn");if(bb)bb.style.display=(route!=="home"&&route!=="login")?"":"none";
@@ -1919,7 +2124,7 @@ try{decorateHelpHints(el);}catch(e){}
 window.scrollTo(0,0);}
 function exitApp(){if(route!=="home"){go("home");return;}if(typeof toast==="function")toast("شما در صفحه خانه هستید");}
 window.exitApp=exitApp;
-window.classDayModeHTML=classDayModeHTML;window.statusStripHTML=statusStripHTML;window.togglePinMember=togglePinMember;window.render=render;
+window.statusStripHTML=statusStripHTML;window.togglePinMember=togglePinMember;window.render=render;
 window.openEntry=openEntry;window.exitEntry=exitEntry;window.toggleEntryFilter=toggleEntryFilter;
 window.showReport=showReport;window.feeReport=feeReport;
 window.togglePay=togglePay;window.exportCSV=exportCSV;
@@ -1930,14 +2135,14 @@ window.setFS=setFS;window.backup=backup;window.restore=restore;window.wipeAll=wi
 window.copyTxt=copyTxt;window.toggleCallFilter=toggleCallFilter;
 window.setColor=setColor;window.toggleSound=toggleSound;window.shareBackup=shareBackup;
 window.toggleFS=toggleFS;window.goBack=goBack;window.exitApp=exitApp;
-window.printAttendReport=printAttendReport;window.showInsights=showInsights;window.togglePrivacyMode=togglePrivacyMode;window.logoutUser=logoutUser;window.userForm=userForm;window.delUser=delUser;window.reportForSupporters=reportForSupporters;window.reportRoundToHami=reportRoundToHami;window.reportFeesToHami=reportFeesToHami;window.periodForm=periodForm;window.toggleDoorCheck=toggleDoorCheck;window.loginUser=loginUser;window.remindUnpaidWA=remindUnpaidWA;window.attendRemindWA=attendRemindWA;window.shareStoryCard=shareStoryCard;window.humanHamiSummary=humanHamiSummary;window.toggleFocusMode=toggleFocusMode;window.toggleA11y=toggleA11y;window.tgShare=tgShare;window.celebrate=celebrate;window.autoSplitTasks=autoSplitTasks;window.clearSplit=clearSplit;window.openCommandPalette=openCommandPalette;window.weeklyDigest=weeklyDigest;window.copyPrevSession=copyPrevSession;window.transferMyTasks=transferMyTasks;window.toggleOled=toggleOled;window.togglePin=togglePin;window.reassignMember=reassignMember;window.performUndo=performUndo;window.handoffPackage=handoffPackage;window.showMemberTimeline=showMemberTimeline;window.teamBoardHTML=teamBoardHTML;window.setListFilter=setListFilter;window.toggleBatchPick=toggleBatchPick;window.batchSetAtt=batchSetAtt;window.clearBatch=clearBatch;window.openBatchPicker=openBatchPicker;window.communicationHub=communicationHub;window.hubTilesHTML=hubTilesHTML;window.celebrateConfetti=celebrateConfetti;window.compactSyncExport=compactSyncExport;window.editTemplates=editTemplates;window.toggleAutoTheme=toggleAutoTheme;window.logActivity=logActivity;window.careQueue=careQueue;window.startSpeech=startSpeech;window.enableNotifs=enableNotifs;window.exportICS=exportICS;window.shareClassCode=shareClassCode;window.scheduleClassNotif=scheduleClassNotif;window.pruneSessions=pruneSessions;window.storageInfo=storageInfo;
+window.printAttendReport=printAttendReport;window.showInsights=showInsights;window.togglePrivacyMode=togglePrivacyMode;window.logoutUser=logoutUser;window.userForm=userForm;window.delUser=delUser;window.reportForSupporters=reportForSupporters;window.reportRoundToHami=reportRoundToHami;window.reportFeesToHami=reportFeesToHami;window.periodForm=periodForm;window.toggleDoorCheck=toggleDoorCheck;window.loginUser=loginUser;window.remindUnpaidWA=remindUnpaidWA;window.attendRemindWA=attendRemindWA;window.shareStoryCard=shareStoryCard;window.humanHamiSummary=humanHamiSummary;window.toggleFocusMode=toggleFocusMode;window.toggleA11y=toggleA11y;window.tgShare=tgShare;window.celebrate=celebrate;window.autoSplitTasks=autoSplitTasks;window.clearSplit=clearSplit;window.openCommandPalette=openCommandPalette;window.weeklyDigest=weeklyDigest;window.copyPrevSession=copyPrevSession;window.transferMyTasks=transferMyTasks;window.toggleOled=toggleOled;window.togglePin=togglePin;window.reassignMember=reassignMember;window.performUndo=performUndo;window.handoffPackage=handoffPackage;window.showMemberTimeline=showMemberTimeline;window.teamBoardHTML=teamBoardHTML;window.setListFilter=setListFilter;window.toggleBatchPick=toggleBatchPick;window.batchSetAtt=batchSetAtt;window.clearBatch=clearBatch;window.openBatchPicker=openBatchPicker;window.communicationHub=communicationHub;window.celebrateConfetti=celebrateConfetti;window.compactSyncExport=compactSyncExport;window.editTemplates=editTemplates;window.toggleAutoTheme=toggleAutoTheme;window.logActivity=logActivity;window.careQueue=careQueue;window.startSpeech=startSpeech;window.enableNotifs=enableNotifs;window.exportICS=exportICS;window.shareClassCode=shareClassCode;window.scheduleClassNotif=scheduleClassNotif;window.pruneSessions=pruneSessions;window.storageInfo=storageInfo;
 window.setClassName=setClassName;window.addGroup=addGroup;window.delGroup=delGroup;
 
 if(Store.get().settings.requireLogin&&!currentUser())route="login";
 render();
 try{scheduleClassNotif();}catch(e){}
+try{updateAppBadge();}catch(e){}
 
-if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0)
-navigator.serviceWorker.register("sw.js").catch(()=>{});
+/* Service worker registration is centralized in index.html. */
 window.addEventListener("online",()=>{toast("🟢 آنلاین شدید");render();});
 window.addEventListener("offline",()=>{toast("🔴 آفلاین — داده محلی امن است");render();});

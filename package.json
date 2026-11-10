@@ -1,0 +1,15 @@
+{
+  "name": "mct-visual-qa",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Browser-based smoke and responsive visual checks for My-Class-Track",
+  "scripts": {
+    "lint": "eslint js/ sw.js tests/",
+    "test": "playwright test",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.55.0",
+    "eslint": "^9.18.0"
+  }
+}

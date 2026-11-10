@@ -10,19 +10,26 @@ function isPinned(id){
 }
 function togglePinMember(id){
   const d=Store.get();
-  d.pinnedMembers=d.pinnedMembers||[];
-  d.pinned=d.pinned||[];
-  const i=d.pinnedMembers.indexOf(id);
-  if(i>=0){
+  const hadMembers=Object.prototype.hasOwnProperty.call(d,"pinnedMembers");
+  const hadPinned=Object.prototype.hasOwnProperty.call(d,"pinned");
+  const oldMembers=Array.isArray(d.pinnedMembers)?d.pinnedMembers.slice():d.pinnedMembers;
+  const oldPinned=Array.isArray(d.pinned)?d.pinned.slice():d.pinned;
+  d.pinnedMembers=Array.isArray(d.pinnedMembers)?d.pinnedMembers:[];
+  d.pinned=Array.isArray(d.pinned)?d.pinned:[];
+  const i=d.pinnedMembers.indexOf(id),adding=i<0;
+  if(!adding){
     d.pinnedMembers.splice(i,1);
     const j=d.pinned.indexOf(id);if(j>=0)d.pinned.splice(j,1);
-    toast("سنجاق برداشته شد");
   }else{
     d.pinnedMembers.push(id);
     if(d.pinned.indexOf(id)<0)d.pinned.push(id);
-    toast("سنجاق شد 📌");
   }
-  Store.save();
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(hadMembers)d.pinnedMembers=oldMembers;else delete d.pinnedMembers;
+    if(hadPinned)d.pinned=oldPinned;else delete d.pinned;
+    toast("⚠️ تغییر سنجاق ذخیره نشد؛ وضعیت قبلی حفظ شد");
+  }else toast(adding?"سنجاق شد 📌":"سنجاق برداشته شد");
   if(typeof route!=="undefined"&&route==="members"&&typeof renderMembers==="function")
     renderMembers((document.getElementById("mSearch")||{}).value||"");
 }
@@ -34,38 +41,12 @@ function togglePinMember(id){
  * MCT App — روتینگ، دسترسی، قابلیت‌ها، bootstrap (v21)
  * بارگذاری آخر
  */
-"use strict";
 
 
-/* ============ v23: حالت روز کلاس + سنجاق اعضا + نوار وضعیت ============ */
-function isClassDaySoon(){
-  const nc=typeof nextClass==="function"?nextClass():null;
-  if(!nc)return null;
-  const diff=nc.t-Date.now();
-  return {nc,diff,hours:diff/36e5,soon:diff>0&&diff<36e5*36};
-}
-function classDayModeHTML(){
-  const info=isClassDaySoon();
-  if(!info||!info.soon)return"";
-  const h=info.hours;
-  let phase="آماده‌سازی";
-  if(h<=0)phase="کلاس در جریان / نوبت ۲";
-  else if(h<=0.5)phase="نوبت ۲ — پشت در";
-  else if(h<=6)phase="نوبت ۱ — تماس نهایی";
-  else phase="پیگیری شهریه و نوبت ۱";
-  return '<div class="card class-day-mode noprint">'+
-    '<div class="cdm-head"><span class="cdm-badge">🎯 حالت روز کلاس</span><span class="cdm-phase">'+phase+'</span></div>'+
-    '<p class="stat-line" style="margin:6px 0 10px">تا شروع: <b>'+(info.diff>0?(Jalali.toFa(Math.floor(info.hours))+" س و "+Jalali.toFa(Math.floor((info.diff%36e5)/6e4))+" د"):"اکنون")+'</b></p>'+
-    '<div class="cdm-steps">'+
-    '<button type="button" class="cdm-step" onclick="go(\'fees\')"><span>۱</span>شهریه</button>'+
-    '<button type="button" class="cdm-step" onclick="go(\'attend\')"><span>۲</span>نوبت ۱</button>'+
-    '<button type="button" class="cdm-step" onclick="openEntry()"><span>۳</span>نوبت ۲</button>'+
-    '<button type="button" class="cdm-step" onclick="go(\'reports\')"><span>۴</span>گزارش حامی</button>'+
-    '</div></div>';
-}
+/* ============ نوار وضعیت + سنجاق اعضا ============ */
 function statusStripHTML(){
   try{
-    const d=Store.get();const key=typeof curKey==="function"?curKey():null;
+    const d=Store.get();const key=typeof sessionSel==="function"?(sessionSel()||(typeof curKey==="function"?curKey():null)):(typeof curKey==="function"?curKey():null);
     if(!key||!d.members.length)return"";
     const s=d.sessions[key]||{},f=d.fees[key]||{};
     const tot=d.members.length;
@@ -73,9 +54,9 @@ function statusStripHTML(){
     const p2=d.members.filter(m=>(s[m.id]||{}).p2).length;
     const paid=d.members.filter(m=>f[m.id]&&f[m.id].paid).length;
     return '<div class="status-strip noprint" role="status">'+
-      '<span title="نوبت ۱">📞 '+Jalali.toFa(p1)+'/'+Jalali.toFa(tot)+'</span>'+
-      '<span title="نوبت ۲">🚪 '+Jalali.toFa(p2)+'/'+Jalali.toFa(tot)+'</span>'+
-      '<span title="شهریه">💰 '+Jalali.toFa(paid)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد ثبت‌های تماس نوبت ۱">📞 تماس '+Jalali.toFa(p1)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد ثبت‌های ورود نوبت ۲">🚪 ورود '+Jalali.toFa(p2)+'/'+Jalali.toFa(tot)+'</span>'+
+      '<span title="تعداد پرداخت‌شده شهریه">💰 پرداخت '+Jalali.toFa(paid)+'/'+Jalali.toFa(tot)+'</span>'+
       '</div>';
   }catch(e){return"";}
 }
@@ -85,9 +66,13 @@ function statusStripHTML(){
 function go(r){
 if(r==="login"){route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;render();return;}
 if(Store.get().settings.requireLogin&&!currentUser()){route="login";render();return;}
-const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",settings:"settings",help:"help",more:"more",reports:"reports"};
+const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",tasks:"tasks",settings:"settings",help:"help",more:"more",reports:"reports"};
 if(map[r]&&!can(map[r])){toast("⛔ به این بخش دسترسی ندارید");return;}
 route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;
+/* View Transitions API (PWA 2026) — گذار نرم بین صفحات؛ با احترام به prefers-reduced-motion */
+if(document.startViewTransition&&window.matchMedia&&!matchMedia("(prefers-reduced-motion: reduce)").matches){
+  try{document.startViewTransition(()=>render());pushState();return;}catch(e){}
+}
 render();pushState();}
 window.go=go;
 
@@ -98,9 +83,15 @@ const mi=e.target.closest("[data-mic]");
 if(mi){const key=mi.dataset.key,mid=mi.dataset.mid,ph=mi.dataset.ph;
 const d=Store.get();const cur=(d.sessions[key]||{})[mid]||{};
 const af=ph==="p1"?"a1":"a2";
-recordVoice(res=>{d.sessions[key]=d.sessions[key]||{};
+recordVoice(res=>{
+const hadBucket=Object.prototype.hasOwnProperty.call(d.sessions,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.sessions[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
+d.sessions[key]=d.sessions[key]||{};
 const c=d.sessions[key][mid]=d.sessions[key][mid]||{};
-if(res)c[af]=res;else delete c[af];Store.save();render();},cur[af]);return;}
+if(res)c[af]=res;else delete c[af];
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+if(!saved){if(hadRecord)d.sessions[key][mid]=previous;else delete d.sessions[key][mid];if(!hadBucket)delete d.sessions[key];toast("⚠️ یادداشت صوتی ذخیره نشد؛ اطلاعات قبلی حفظ شد");render();return;}
+render();
+},cur[af]);return;}
 const rf=e.target.closest("[data-restorefee]");
 if(rf){restoreFee(rf.dataset.key,rf.dataset.mid);return;}
 const fs=e.target.closest("[data-fst]");
@@ -112,14 +103,22 @@ const pr=e.target.closest(".payrow");
 if(pr&&!e.target.closest("input")&&!e.target.closest("button")&&!e.target.closest("a")){togglePay(pr.dataset.key,pr.dataset.mid);return;}});
 document.getElementById("app").addEventListener("change",e=>{
 const t=e.target;
-if(t.id==="alarmIn"){const d=Store.get();
-const times=t.value.split(",").map(x=>parseInt(x.trim(),10)).filter(x=>x>0&&x<=59).sort((a,b)=>b-a);
-if(times.length){d.settings.alarmTimes=times;Store.save();toast("✅ لحظه‌های یادآوری: "+times.join("، "));}
-else{toast("⚠️ عدد معتبر وارد کنید (مثلاً 15,8,5,3)");t.value=d.settings.alarmTimes.join(",");}return;}
-if(t.classList.contains("ex-input")){const d=Store.get();
-d.sessions[t.dataset.key]=d.sessions[t.dataset.key]||{};
-const cur=d.sessions[t.dataset.key][t.dataset.mid]=d.sessions[t.dataset.key][t.dataset.mid]||{};
-cur[t.dataset.f]=t.value;d._lastSession=t.dataset.key;Store.save();return;}
+if(t.id==="alarmIn"){const d=Store.get(),raw=t.value.split(",").map(x=>x.trim());
+const valid=raw.length>0&&raw.every(x=>/^\d+$/.test(x)&&Number(x)>=1&&Number(x)<=59);
+if(!valid){toast("⚠️ همه مقادیر باید عدد صحیح بین ۱ تا ۵۹ باشند؛ نمونه: 15,8,5,3");t.value=(d.settings.alarmTimes||[]).join(",");return;}
+const times=[...new Set(raw.map(Number))].sort((a,b)=>b-a),had=Object.prototype.hasOwnProperty.call(d.settings,"alarmTimes"),previous=had?JSON.parse(JSON.stringify(d.settings.alarmTimes)):undefined;
+d.settings.alarmTimes=times;
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+if(!saved){if(had)d.settings.alarmTimes=previous;else delete d.settings.alarmTimes;t.value=(d.settings.alarmTimes||[]).join(",");toast("⚠️ یادآوری‌ها ذخیره نشد؛ تنظیم قبلی حفظ شد");}
+else{t.value=times.join(",");toast("لحظه‌های یادآوری ذخیره شد: "+times.join("، "));}return;}
+if(t.classList.contains("ex-input")){const d=Store.get(),key=t.dataset.key,mid=t.dataset.mid,field=t.dataset.f;
+const hadBucket=Object.prototype.hasOwnProperty.call(d.sessions,key),hadRecord=hadBucket&&Object.prototype.hasOwnProperty.call(d.sessions[key],mid),previous=hadRecord?JSON.parse(JSON.stringify(d.sessions[key][mid])):null,previousLast=d._lastSession;
+d.sessions[key]=d.sessions[key]||{};
+const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
+cur[field]=t.value;d._lastSession=key;
+let saved=false;try{saved=Store.save()!==false;}catch(err){saved=false;}
+if(!saved){if(hadRecord)d.sessions[key][mid]=previous;else delete d.sessions[key][mid];if(!hadBucket)delete d.sessions[key];if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;t.value=hadRecord&&previous[field]!=null?previous[field]:"";toast("⚠️ تغییر ذخیره نشد؛ مقدار قبلی حفظ شد");}
+return;}
 if(t.classList.contains("fee-note")){feeNote(t.dataset.key,t.dataset.mid,t.value);return;}});
 
 
