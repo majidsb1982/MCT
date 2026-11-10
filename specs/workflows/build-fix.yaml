@@ -1,0 +1,9 @@
+name: build-fix
+command: /build-fix
+description: Full defect resolution chain from investigation and root cause analysis to TDD fix and validation.
+skills:
+  - investigate-bug
+  - diagnose-root
+  - develop-tdd
+  - validate-fix
+verify: git diff --check

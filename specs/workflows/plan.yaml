@@ -1,0 +1,8 @@
+name: plan
+command: /plan
+description: Survey codebase context, research prior art and libraries, then write detailed implementation plan.
+skills:
+  - survey-context
+  - research-first
+  - plan-work
+verify: ls specs/epics/ 2>/dev/null || true

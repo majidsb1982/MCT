@@ -1,0 +1,7 @@
+name: e2e
+command: /e2e
+description: End-to-end post-build pipeline executing cold smoke tests followed by full multi-phase UAT verification.
+skills:
+  - smoke-test
+  - verify-work
+verify: git status --porcelain

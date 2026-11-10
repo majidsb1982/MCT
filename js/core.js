@@ -3,8 +3,6 @@
  */
 "use strict";
 
-"use strict";
-
 /* ============ تقویم شمسی (jalaali) ============ */
 const Jalali=(()=>{const br=[-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
 const div=(a,b)=>~~(a/b),mod=(a,b)=>a-~~(a/b)*b;
@@ -34,6 +32,7 @@ const fromKey=k=>{const p=k.split("-");return{jy:+p[0],jm:+p[1],jd:+p[2]};};
 const dow=j=>{const g=toG(j.jy,j.jm,j.jd);return(new Date(g.gy,g.gm-1,g.gd).getDay()+1)%7;};
 const toJ=(gy,gm,gd)=>d2j(g2d(gy,gm,gd));
 return{toJ,toG,mLen,today,fmt,toFa,toKey,fromKey,dow,MN,DN};})();
+function fmtClock(ts){if(!ts)return"";try{const d=new Date(ts);return Jalali.toFa(d.getHours())+":"+Jalali.toFa(String(d.getMinutes()).padStart(2,"0"));}catch(e){return"";}}
 
 /* ============ لایه داده (نسخه ۱۹) ============ */
 const Store=(()=>{const KEY="mct:data";
@@ -187,9 +186,9 @@ function toast(m){const t=$("#toast");t.className="toast";t.innerHTML=esc(m);t.c
 function celebrate(m){const t=$("#toast");t.className="toast celebrate";t.innerHTML=m;t.classList.add("show");
 if(navigator.vibrate)navigator.vibrate([200,100,200,100,400]);
 clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove("show"),3200);}
-function toastUndo(m,fn){const t=$("#toast");t.className="toast";t.innerHTML=esc(m)+' <button id="undoBtn">↩️ بازگشت</button>';t.classList.add("show");
+function toastUndo(m,fn){const t=$("#toast");t.className="toast";t.innerHTML=esc(m)+' <button id="toastUndoBtn">↩️ بازگشت</button>';t.classList.add("show");
 clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove("show"),6000);
-document.getElementById("undoBtn").onclick=()=>{fn();t.classList.remove("show");};}
+document.getElementById("toastUndoBtn").onclick=()=>{fn();t.classList.remove("show");};}
 function copyTxt(t){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast("✅ کپی شد")).catch(()=>_cp(t));else _cp(t);}
 function _cp(t){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("✅ کپی شد");}catch(e){toast("کپی ناموفق");}a.remove();}
 function shareTxt(t){if(navigator.share)navigator.share({text:t}).catch(()=>{});else copyTxt(t);}

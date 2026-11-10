@@ -1,0 +1,8 @@
+name: ship
+command: /ship
+description: Audit code quality, generate conventional commit message, and prepare/merge release branch.
+skills:
+  - audit-code
+  - commit-message
+  - release-branch
+verify: git status --porcelain

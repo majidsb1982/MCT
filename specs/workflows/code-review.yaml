@@ -1,0 +1,8 @@
+name: code-review
+command: /code-review
+description: Run code quality audit, dispatch independent reviewer, and systematically address review findings.
+skills:
+  - audit-code
+  - request-review
+  - respond-review
+verify: git diff --check

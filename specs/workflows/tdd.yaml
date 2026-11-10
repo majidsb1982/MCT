@@ -1,0 +1,7 @@
+name: tdd
+command: /tdd
+description: Execute Red-Green-Refactor test-driven development loop and enforce F.I.R.S.T test principles.
+skills:
+  - develop-tdd
+  - enforce-first
+verify: npm test

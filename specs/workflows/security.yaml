@@ -1,0 +1,7 @@
+name: security
+command: /security
+description: Run security analysis, code audit, and dispatch independent security review.
+skills:
+  - audit-code
+  - request-review
+verify: git status --porcelain

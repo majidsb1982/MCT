@@ -1,0 +1,8 @@
+name: check-stack
+command: /check-stack
+description: Bootstrap and verify stack context, dependencies, and blast radius before work begins.
+skills:
+  - survey-context
+  - assess-impact
+  - setup-environment
+verify: node --version && npm --version

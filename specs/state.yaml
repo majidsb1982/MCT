@@ -1,0 +1,19 @@
+active_flow: compose-workflow
+active_epic_id: null
+git:
+  branch: main
+  hash: ea1f47e
+decisions:
+  - id: D-001
+    title: "Standard Recipe Library initialized in specs/workflows/"
+    status: accepted
+    summary: "Initialized 8 standard workflow recipes: check-stack, ship, tdd, code-review, security, plan, build-fix, e2e"
+handoff:
+  last_step_completed: "compose-workflow recipe setup"
+  last_terminal_state: "success"
+  open_decisions:
+    - "Model domain entities and invariants for MCT (Therapy Group Assistant)"
+  required_reading:
+    - specs/workflows/check-stack.yaml
+    - specs/workflows/ship.yaml
+  next_skill: model-domain
