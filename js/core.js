@@ -296,7 +296,10 @@ function pruneSessions(keep,confirmed){
 
 /* ============ ابزارها ============ */
 const $=(s,el=document)=>el.querySelector(s);
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const esc=s=>String(s??\"\").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&quot;","'":"&#39;"}[c]));
+const escAttr=s=>String(s??\"\").replace(/[&<>\"'/]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&quot;","'":"&#39;"}));
+const escJs=s=>String(s??\"\").replace(/[\"\'\`\n\r\t]/g,c=>({"\\":"\\\\","\"":"\\\"","\'":"\\\'","`":"\\\`","\n":"\\n","\r":"\\r","\t":"\\t"}));
+const safeHtml=s=>String(s??\"\").replace(/<(?!\/(b|i|u|br)\b)[^>]*>/g,"");
 /* ساعت محلی به‌صورت "HH:MM" — فیلد time/time2 رکورد حضور باید رشته ساعت باشد نه timestamp */
 const nowHHMM=()=>{const x=new Date();return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");};
 /* نمایش فیلد ساعت — اگر داده قدیمی timestamp ۱۳ رقمی بود، به ساعت محلی تبدیل می‌شود (مهاجرت نرم) */
@@ -479,7 +482,8 @@ const t=new Date(day);t.setHours(+parts[1],+parts[2],0,0);
 const endAt=sessionEndAt(day,start,ex.end);
 if(endAt&&endAt>now&&(!best||t<best.t))best={t,c:{dow:Jalali.dow(j),start,end:ex.end,date:j,extra:true},date:j};}
 return best;}
-function curKey(){const nc=nextClass();return nc?Jalali.toKey(nc.date):null;}
+let _sessionKeyCache={key:null,ts:0};
+function curKey(){const now=Date.now();if(_sessionKeyCache.key&&now-_sessionKeyCache.ts<5000)return _sessionKeyCache.key;const nc=nextClass();const key=nc?Jalali.toKey(nc.date):null;_sessionKeyCache={key,ts:now};return key;}
 const STK=["present","delay","absent","problem","online"],STL=["حاضر","تأخیر","غایب","مشکل","آنلاین"];
 const ST={lbl:{present:"حاضر",delay:"تأخیر",absent:"غایب",problem:"مشکل",online:"آنلاین",none:"ثبت‌نشده"},cls:{present:"b-ok",delay:"b-warn",absent:"b-bad",problem:"b-prob",online:"b-on",none:"b-m"}};
 const ROLES=[["attend","پیگیری حضور"],["fee","شهریه"],["hw","تکالیف"],["support","حامی (عضو قدیمی)"]];

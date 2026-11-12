@@ -1,0 +1,2 @@
+let _sessionKeyCache={key:null,ts:0};
+function curKey(){const now=Date.now();if(_sessionKeyCache.key&&now-_sessionKeyCache.ts<5000)return _sessionKeyCache.key;const nc=nextClass();const key=nc?Jalali.toKey(nc.date):null;_sessionKeyCache={key,ts:now};return key;}
