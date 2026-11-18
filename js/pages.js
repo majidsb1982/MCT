@@ -260,7 +260,7 @@ toast("↩️ "+((d.members.find(m=>m.id===mid)||{}).name||"")+" به لیست �
 /* ---- نوبت ۱: تماس‌های قبلی ---- */
 Pages.attend=function(el){const d=Store.get();
 if(!d.members.length){el.innerHTML='<div class="card"><h3>📞 پیگیری تماس‌های قبل از جلسه</h3></div>'+emptyState("اول از تب «اعضا» اعضا را اضافه کن");return;}
-const nc=nextClass(),key=sessionSel()||"",s=d.sessions[key]||{};
+const key=sessionSel()||"",s=d.sessions[key]||{};
 let done=d.members.filter(m=>(s[m.id]||{}).p1);
 let need=d.members.filter(m=>!(s[m.id]||{}).p1);
 done=smartSortMembers(applyListFilter(filterMembersForMe(done,"attend"),"attend"),"attend");
@@ -360,7 +360,7 @@ window.allPresent=allPresent;
 /* ---- شهریه (سه تب) ---- */
 Pages.fees=function(el){if(!can("fees")){el.innerHTML='<div class="card"><div class="empty">⛔ به بخش شهریه دسترسی ندارید</div></div>';return;}const d=Store.get();const feeInfo=feeDeadlineInfo();
 if(!d.members.length){el.innerHTML=emptyState("اول از تب «اعضا» اعضا را اضافه کن");return;}
-const nc=nextClass(),key=curFeeKey(),f=d.fees[key]||{};
+const key=curFeeKey(),f=d.fees[key]||{};
 const feeDeadlineText=feeInfo.key===key?feeInfo.text:"مهلت خودکار فقط برای جلسهٔ بعد محاسبه می‌شود.";
 const np=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)).length;
 const pct=d.members.length?Math.round((d.members.length-np)/d.members.length*100):0;
@@ -434,7 +434,7 @@ h+='<div class="card"><h3>📚 تکلیف جدید</h3><label>جلسه (تاری
 '<div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" onclick="saveHW()">💾 ذخیره</button></div></div>';
 }else{
 h+=filterBar("جستجوی تکالیف");
-const list=d.homework.filter(w=>!UI.filter||w.text.includes(UI.filter)).sort((a,b)=>b.key<a.key?-1:1);
+const list=d.homework.filter(w=>!UI.filter||String(w&&w.text||"").includes(UI.filter)).sort((a,b)=>b.key<a.key?-1:1);
 h+=list.length?list.map(hwItem).join(""):'<div class="card"><div class="empty">موردی یافت نشد</div></div>';}
 el.innerHTML=h;
 const mic=document.getElementById("hwMic");
@@ -576,7 +576,7 @@ el.innerHTML=
 '<div class="card"><h3>🔔 هوشمندسازی</h3><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm ghost" onclick="enableNotifs()">🔔 اعلان کلاس</button><button class="btn sm ghost" onclick="togglePrivacyMode()">🔒 حریم خصوصی</button><button class="btn sm ghost" onclick="editTemplates()">📝 الگوهای پیام</button><button class="btn sm ghost" onclick="toggleAutoTheme()">🌓 تم خودکار</button><button class="btn sm ghost" onclick="toggleA11y()">♿ دسترسی‌پذیری</button><button class="btn sm ghost" onclick="toggleOled()">⬛ OLED</button><button class="btn sm ghost" onclick="openCommandPalette()">⌘ دستورات</button><button class="btn sm ghost" onclick="performUndo()">↩ بازگشت</button><button class="btn sm ghost" onclick="handoffPackage()">📦 تحویل شیفت</button><button class="btn sm ghost" onclick="compactSyncExport()">🔗 همگام فشرده</button><button class="btn sm ghost" onclick="communicationHub()">📡 ارتباطات</button><button class="btn sm ghost" onclick="copyPrevSession()">📋 کپی جلسه قبل</button><button class="btn sm ghost" onclick="transferMyTasks()">🔄 انتقال وظایف</button><button class="btn sm ghost" onclick="toggleFocusMode()">🎯 تمرکز پشت‌در</button><button class="btn sm ghost" onclick="shareStoryCard()">📸 کارت استوری</button><button class="btn sm ghost" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" onclick="shareClassCode()">📲 اشتراک QR</button><button class="btn sm ghost" onclick="showInsights()">✨ بینش</button></div><p class="stat-line" style="margin-top:8px">اعلان ۱۵ دقیقه قبل از کلاس · تقویم ICS · اشتراک برنامه</p></div>'+
 '<div class="card"><h3>👥 کاربران و دسترسی</h3><p class="role-hint">استفاده مشترک: برای هر نفر کاربر و رمز جدا بسازید.</p><div class="toggle-row"><span>ورود با رمز اجباری</span><button type="button" class="sw '+(st.requireLogin?"on":"")+'" id="swLogin"></button></div><div class="toggle-row"><span>تأیید قبل از کارهای مهم</span><button type="button" class="sw '+(st.quickConfirm!==false?"on":"")+'" id="swConfirm"></button></div><div id="userList" style="margin-top:8px"></div><button class="btn sm p" style="margin-top:8px" id="btnAddUser">＋ کاربر جدید</button> <button class="btn sm ghost" style="margin-top:8px" id="btnLogout">خروج</button></div>'+'<div class="card"><h3>💾 پشتیبان و بازیابی</h3><div class="row"><button class="btn p" style="flex:1" onclick="backup()">⬇️ پشتیبان</button><button class="btn ghost" style="flex:1" onclick="document.getElementById(\'rf\').click()">⬆️ بازیابی</button><input type="file" id="rf" class="sr" accept=".json" onchange="restore(this)"></div>'+
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
-'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۴ — ماژول ES و ناوبری هوشمند<br>کاملاً آفلاین — حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
+'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۵ (رفع اشکال و ارتقای PWA) — کاملاً آفلاین<br>حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
 
 /* Settings are presented as a compact shortcut hub; the original controls remain available in their category. */
@@ -880,7 +880,7 @@ for(const m of d.members){const st=ph===2?((s[m.id]||{}).p2||(s[m.id]||{}).p1):(
 const fm=m=>{const ex=s[m.id]||{};let t=m.name;
 if(ex.time||ex.time2)t+=" (حدود "+Jalali.toFa(fmtAttTime(ex.time2||ex.time))+")";
 else if(ex.note)t+=" ("+ex.note+")";return t;};
-const nc=nextClass(),sessionDate=key?Jalali.fromKey(key):null,icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",online:"💻",none:"—"};
+const sessionDate=key?Jalali.fromKey(key):null,icon={present:"✅",delay:"⏰",absent:"📭",problem:"💬",online:"💻",none:"—"};
 let out="📋 گزارش حضور — "+(sessionDate?Jalali.fmt(sessionDate):"جلسه تنظیم نشده")+" — "+(ph===1?"نوبت ۱ (تماس‌های قبلی)":"نوبت ۲ (ثبت ورود)")+"\n";
 const keys=full?["present","delay","online","absent","problem","none"]:["delay","absent","problem"];
 for(const k of keys)

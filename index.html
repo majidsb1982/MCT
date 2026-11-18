@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; form-action 'self'">
 <meta name="theme-color" content="#f4f7fe">
+<meta name="color-scheme" content="light dark">
 <meta name="description" content="دستیار گروه درمانی — My-Class-Track">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-192.svg">
-<link rel="stylesheet" href="css/fonts.css?v=123">
-<link rel="stylesheet" href="css/app.css?v=123">
+<link rel="apple-touch-icon" href="icons/maskable-512.png">
+<link rel="stylesheet" href="css/fonts.css?v=124">
+<link rel="stylesheet" href="css/app.css?v=124">
 <title>My-Class-Track</title>
 </head>
 <body>
@@ -30,11 +31,11 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div id="offlineBar" class="offline-indicator"></div>
 <nav id="nav" aria-label="ناوبری اصلی"></nav>
-<script src="js/vendor/qrcode.js?v=123"></script>
-<script src="js/core.js?v=123"></script>
-<script src="js/pages.js?v=123"></script>
-<script src="js/features.js?v=123"></script>
-<script src="js/app.js?v=123"></script>
+<script src="js/vendor/qrcode.js?v=124"></script>
+<script src="js/core.js?v=124"></script>
+<script src="js/pages.js?v=124"></script>
+<script src="js/features.js?v=124"></script>
+<script src="js/app.js?v=124"></script>
 <script>
 (function(){
   var deferredPrompt=null,btn=document.getElementById("installBtn");
@@ -58,7 +59,7 @@
 })();
 if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){
   window.addEventListener("load",function(){
-    navigator.serviceWorker.register("./sw.js?v=123").then(function(reg){return reg.update();}).catch(function(){});
+    navigator.serviceWorker.register("./sw.js?v=124").then(function(reg){return reg.update();}).catch(function(){});
   });
 }
 </script>

@@ -48,13 +48,13 @@ function clearAllTimers(){MCT_LIFECYCLE.timers.forEach(clearTimeout);MCT_LIFECYC
 function cleanupAll(){MCT_LIFECYCLE.listeners.forEach(l=>{try{l.target.removeEventListener(l.event,l.handler,l.options);}catch(e){}});MCT_LIFECYCLE.listeners=[];MCT_LIFECYCLE.blobs.forEach(u=>{try{URL.revokeObjectURL(u);}catch(e){}});MCT_LIFECYCLE.blobs=[];clearAllTimers();MCT_LIFECYCLE.abortControllers.forEach(c=>c.abort());MCT_LIFECYCLE.abortControllers=[];}
 window.addEventListener("beforeunload",cleanupAll);
 window.addEventListener("pagehide",cleanupAll);
-// Offline/online indicator
+// Offline/online indicator — از عنصر موجود index.html استفاده می‌کند؛ عنصر تکراری با id یکسان ساخته نمی‌شود
 (function initOfflineIndicator(){
-  const bar=document.createElement("div");bar.id="offlineBar";bar.className="offline-indicator";
-  bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها در دستگاه ذخیره می‌شوند":"🔴 آفلاین — کار می‌کنید، داده‌ها When online دوباره همkinsync خواهند شد";
-  document.body.appendChild(bar);
-  on("online",()=>{bar.className="offline-indicator show online";bar.textContent="🟢 آنلاین — synchronization در حال انجام…";setTimeout(()=>bar.classList.remove("show"),3000);});
-  on("offline",()=>{bar.className="offline-indicator show";bar.textContent="🔴 آفلاین — برنامه ادامه می‌دهد، داده‌ها Placeholder می‌شوند";});
+  let bar=document.getElementById("offlineBar");
+  if(!bar){bar=document.createElement("div");bar.id="offlineBar";bar.className="offline-indicator";document.body.appendChild(bar);}
+  bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها روی همین دستگاه ذخیره می‌شوند":"🔴 آفلاین — برنامه بدون اینترنت هم کار می‌کند؛ داده‌ها امن‌اند";
+  on("online",()=>{bar.className="offline-indicator show online";bar.textContent="🟢 آنلاین شدید — همه‌چیز آماده است";setTimeout(()=>bar.classList.remove("show"),3000);});
+  on("offline",()=>{bar.className="offline-indicator show";bar.textContent="🔴 آفلاین — برنامه ادامه می‌دهد و داده‌ها روی دستگاه ذخیره می‌شوند";});
   if(!navigator.onLine){bar.classList.add("show");}
 })();
 // Keyboard shortcuts
@@ -65,6 +65,9 @@ on("keydown",e=>{
   if(e.key==="Escape"){const ov=document.querySelector(".overlay");if(ov)ov.remove();}
 },true);
 
+/* کش کلید «جلسه بعدی» — با هر ذخیره‌سازی داده باطل می‌شود تا پس از ویرایش کلاس‌ها
+   مقدار کهنه به UI نشود (رجرسی نسخه‌های قبلی: ثبت حضور روی جلسه اشتباه) */
+let _sessionKeyCache={key:null,ts:0};
 /* ============ لایه داده (نسخه ۱۹) ============ */
 const Store=(()=>{const KEY="mct:data";
 const DEF={v:25,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],tasks:[],
@@ -162,6 +165,7 @@ data.settings=Object.assign({},DEF.settings,data.settings||{});
 data.groups=data.groups||["عمومی"];}
 const save=()=>{
   try{
+    _sessionKeyCache={key:null,ts:0}; /* کش جلسه بعدی با تغییر داده باطل می‌شود */
     const raw=JSON.stringify(data);
     const tempKey=KEY+":temp";
     localStorage.setItem(tempKey,raw);
@@ -296,10 +300,12 @@ function pruneSessions(keep,confirmed){
 
 /* ============ ابزارها ============ */
 const $=(s,el=document)=>el.querySelector(s);
-const esc=s=>String(s??\"\").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&quot;","'":"&#39;"}[c]));
-const escAttr=s=>String(s??\"\").replace(/[&<>\"'/]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&quot;","'":"&#39;"}));
-const escJs=s=>String(s??\"\").replace(/[\"\'\`\n\r\t]/g,c=>({"\\":"\\\\","\"":"\\\"","\'":"\\\'","`":"\\\`","\n":"\\n","\r":"\\r","\t":"\\t"}));
-const safeHtml=s=>String(s??\"\").replace(/<(?!\/(b|i|u|br)\b)[^>]*>/g,"");
+/* توجه: نقشه esc باید کلید «"» را داشته باشد؛ نسخه خراب‌شده دو کلید «'» داشت
+   و در نتیجه کوتیشن دوتایی به رشته "undefined" تبدیل می‌شد و HTML را می‌شکست. */
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const escAttr=s=>String(s??"").replace(/[&<>"'\/]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const escJs=s=>String(s??"").replace(/[\\"'`\n\r\t]/g,c=>({"\\":"\\\\",'"':'\\"',"'":"\\'","`":"\\`","\n":"\\n","\r":"\\r","\t":"\\t"}[c]));
+const safeHtml=s=>String(s??"").replace(/<(?!\/(b|i|u|br)\b)[^>]*>/g,"");
 /* ساعت محلی به‌صورت "HH:MM" — فیلد time/time2 رکورد حضور باید رشته ساعت باشد نه timestamp */
 const nowHHMM=()=>{const x=new Date();return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");};
 /* نمایش فیلد ساعت — اگر داده قدیمی timestamp ۱۳ رقمی بود، به ساعت محلی تبدیل می‌شود (مهاجرت نرم) */
@@ -482,7 +488,6 @@ const t=new Date(day);t.setHours(+parts[1],+parts[2],0,0);
 const endAt=sessionEndAt(day,start,ex.end);
 if(endAt&&endAt>now&&(!best||t<best.t))best={t,c:{dow:Jalali.dow(j),start,end:ex.end,date:j,extra:true},date:j};}
 return best;}
-let _sessionKeyCache={key:null,ts:0};
 function curKey(){const now=Date.now();if(_sessionKeyCache.key&&now-_sessionKeyCache.ts<5000)return _sessionKeyCache.key;const nc=nextClass();const key=nc?Jalali.toKey(nc.date):null;_sessionKeyCache={key,ts:now};return key;}
 const STK=["present","delay","absent","problem","online"],STL=["حاضر","تأخیر","غایب","مشکل","آنلاین"];
 const ST={lbl:{present:"حاضر",delay:"تأخیر",absent:"غایب",problem:"مشکل",online:"آنلاین",none:"ثبت‌نشده"},cls:{present:"b-ok",delay:"b-warn",absent:"b-bad",problem:"b-prob",online:"b-on",none:"b-m"}};
