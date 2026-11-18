@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MCT Core — تقویم شمسی، ذخیره، UI پایه
  */
 "use strict";
@@ -32,7 +32,42 @@ const fromKey=k=>{const p=k.split("-");return{jy:+p[0],jm:+p[1],jd:+p[2]};};
 const dow=j=>{const g=toG(j.jy,j.jm,j.jd);return(new Date(g.gy,g.gm-1,g.gd).getDay()+1)%7;};
 const toJ=(gy,gm,gd)=>d2j(g2d(gy,gm,gd));
 return{toJ,toG,mLen,today,fmt,toFa,toKey,fromKey,dow,MN,DN};})();
+function fmtClock(ts){if(!ts)return"";try{const d=new Date(ts);return Jalali.toFa(d.getHours())+":"+Jalali.toFa(String(d.getMinutes()).padStart(2,"0"));}catch(e){return"";}}
+let _toastT=null;
+function toastUx(msg,type,ms){const existing=document.querySelector(".toast.show");if(existing){existing.classList.remove("show");setTimeout(()=>existing.remove(),300);}const t=document.createElement("div");t.className="toast show"+(type?" "+type:"");t.textContent=msg;document.body.appendChild(t);if(_toastT)clearTimeout(_toastT);_toastT=setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300);},ms);return t;}
+// Debounce utility for search/filter
+function debounce(fn,wait){let t;return function(...a){if(t)clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),wait);};}
+// ============ Lifecycle Management ============
+const MCT_LIFECYCLE={listeners:[],blobs:[],timers:[],abortControllers:[]};
+function on(event,handler,options){window.addEventListener(event,handler,options);MCT_LIFECYCLE.listeners.push({target:window,event,handler,options});}
+function onEl(el,event,handler,options){el.addEventListener(event,handler,options);MCT_LIFECYCLE.listeners.push({target:el,event,handler,options});}
+function trackBlob(url){if(url)MCT_LIFECYCLE.blobs.push(url);}
+function untrackBlob(url){const i=MCT_LIFECYCLE.blobs.indexOf(url);if(i>=0){MCT_LIFECYCLE.blobs.splice(i,1);URL.revokeObjectURL(url);}}
+function trackTimer(id){MCT_LIFECYCLE.timers.push(id);}
+function clearAllTimers(){MCT_LIFECYCLE.timers.forEach(clearTimeout);MCT_LIFECYCLE.timers=[];}
+function cleanupAll(){MCT_LIFECYCLE.listeners.forEach(l=>{try{l.target.removeEventListener(l.event,l.handler,l.options);}catch(e){}});MCT_LIFECYCLE.listeners=[];MCT_LIFECYCLE.blobs.forEach(u=>{try{URL.revokeObjectURL(u);}catch(e){}});MCT_LIFECYCLE.blobs=[];clearAllTimers();MCT_LIFECYCLE.abortControllers.forEach(c=>c.abort());MCT_LIFECYCLE.abortControllers=[];}
+window.addEventListener("beforeunload",cleanupAll);
+window.addEventListener("pagehide",cleanupAll);
+// Offline/online indicator — از عنصر موجود index.html استفاده می‌کند؛ عنصر تکراری با id یکسان ساخته نمی‌شود
+(function initOfflineIndicator(){
+  let bar=document.getElementById("offlineBar");
+  if(!bar){bar=document.createElement("div");bar.id="offlineBar";bar.className="offline-indicator";document.body.appendChild(bar);}
+  bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها روی همین دستگاه ذخیره می‌شوند":"🔴 آفلاین — برنامه بدون اینترنت هم کار می‌کند؛ داده‌ها امن‌اند";
+  on("online",()=>{bar.className="offline-indicator show online";bar.textContent="🟢 آنلاین شدید — همه‌چیز آماده است";setTimeout(()=>bar.classList.remove("show"),3000);});
+  on("offline",()=>{bar.className="offline-indicator show";bar.textContent="🔴 آفلاین — برنامه ادامه می‌دهد و داده‌ها روی دستگاه ذخیره می‌شوند";});
+  if(!navigator.onLine){bar.classList.add("show");}
+})();
+// Keyboard shortcuts
+on("keydown",e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==="k"){e.preventDefault();if(typeof openCommandPalette==="function")openCommandPalette();}
+  if((e.ctrlKey||e.metaKey)&&e.key==="b"){e.preventDefault();if(typeof backup==="function")backup();}
+  if((e.ctrlKey||e.metaKey)&&e.key==="/"){e.preventDefault();const s=document.querySelector('input[name="list-filter"]');if(s){s.focus();s.select();}}
+  if(e.key==="Escape"){const ov=document.querySelector(".overlay");if(ov)ov.remove();}
+},true);
 
+/* کش کلید «جلسه بعدی» — با هر ذخیره‌سازی داده باطل می‌شود تا پس از ویرایش کلاس‌ها
+   مقدار کهنه به UI نشود (رجرسی نسخه‌های قبلی: ثبت حضور روی جلسه اشتباه) */
+let _sessionKeyCache={key:null,ts:0};
 /* ============ لایه داده (نسخه ۱۹) ============ */
 const Store=(()=>{const KEY="mct:data";
 const DEF={v:25,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],tasks:[],
@@ -129,15 +164,22 @@ if(data.v<25){data.tasks=data.tasks||[];data.v=25;}
 data.settings=Object.assign({},DEF.settings,data.settings||{});
 data.groups=data.groups||["عمومی"];}
 const save=()=>{
- try{
-   const raw=JSON.stringify(data);
-   localStorage.setItem(KEY,raw);
-   return true;
- }catch(e){
-   console.warn(e);
-   try{toast("⚠️ ذخیره‌سازی انجام نشد؛ فضای ذخیره یا دسترسی مرورگر را بررسی کنید");}catch(_){}
-   return false;
- }
+  try{
+    _sessionKeyCache={key:null,ts:0}; /* کش جلسه بعدی با تغییر داده باطل می‌شود */
+    const raw=JSON.stringify(data);
+    const tempKey=KEY+":temp";
+    localStorage.setItem(tempKey,raw);
+    const verify=localStorage.getItem(tempKey);
+    if(verify!==raw)throw new Error("Verify failed");
+    localStorage.removeItem(KEY);
+    localStorage.setItem(KEY,raw);
+    localStorage.removeItem(tempKey);
+    return true;
+  }catch(e){
+    console.error("MCT: Save failed",e);
+    try{toastUx("⚠️ ذخیره‌سازی انجام نشد؛ فضای ذخیره یا دسترسی مرورگر را بررسی کنید","error");}catch(_){}
+    return false;
+  }
 };
 load();
 return{get:()=>data,save,reset(){const previous=data;data=JSON.parse(JSON.stringify(DEF));let saved=false;try{saved=save()!==false;}catch(e){saved=false;}if(!saved){data=previous;return false;}return true;},
@@ -258,7 +300,12 @@ function pruneSessions(keep,confirmed){
 
 /* ============ ابزارها ============ */
 const $=(s,el=document)=>el.querySelector(s);
+/* توجه: نقشه esc باید کلید «"» را داشته باشد؛ نسخه خراب‌شده دو کلید «'» داشت
+   و در نتیجه کوتیشن دوتایی به رشته "undefined" تبدیل می‌شد و HTML را می‌شکست. */
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const escAttr=s=>String(s??"").replace(/[&<>"'\/]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const escJs=s=>String(s??"").replace(/[\\"'`\n\r\t]/g,c=>({"\\":"\\\\",'"':'\\"',"'":"\\'","`":"\\`","\n":"\\n","\r":"\\r","\t":"\\t"}[c]));
+const safeHtml=s=>String(s??"").replace(/<(?!\/(b|i|u|br)\b)[^>]*>/g,"");
 /* ساعت محلی به‌صورت "HH:MM" — فیلد time/time2 رکورد حضور باید رشته ساعت باشد نه timestamp */
 const nowHHMM=()=>{const x=new Date();return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");};
 /* نمایش فیلد ساعت — اگر داده قدیمی timestamp ۱۳ رقمی بود، به ساعت محلی تبدیل می‌شود (مهاجرت نرم) */
@@ -304,9 +351,11 @@ function toast(m){const t=$("#toast");t.className="toast";t.innerHTML=esc(m);t.c
 function celebrate(m){const t=$("#toast");t.className="toast celebrate";t.innerHTML=m;t.classList.add("show");
 if(navigator.vibrate)navigator.vibrate([200,100,200,100,400]);
 clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove("show"),3200);}
-function toastUndo(m,fn){const t=$("#toast");t.className="toast";t.innerHTML=esc(m)+' <button id="undoBtn">↩️ بازگشت</button>';t.classList.add("show");
+function toastUndo(m,fn){const t=$("#toast");t.className="toast";t.innerHTML=esc(m)+' <button id="toastUndoBtn">↩️ بازگشت</button>';t.classList.add("show");
 clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove("show"),6000);
-document.getElementById("undoBtn").onclick=()=>{fn();t.classList.remove("show");};}
+document.getElementById("toastUndoBtn").onclick=()=>{fn();t.classList.remove("show");};}
+/* بازخورد لمسی هپتیک — تأیید فیزیکی کوتاه برای ثبت‌های تکراری (حضور/شهریه)؛ روی دستگاه‌های بدون لرزش‌گر بی‌اثر */
+function haptic(ms){try{if(navigator.vibrate)navigator.vibrate(ms||10);}catch(e){}}
 function copyTxt(t){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast("✅ کپی شد")).catch(()=>_cp(t));else _cp(t);}
 function _cp(t){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("✅ کپی شد");}catch(e){toast("کپی ناموفق");}a.remove();}
 function shareTxt(t){if(navigator.share)navigator.share({text:t}).catch(()=>{});else copyTxt(t);}
@@ -441,7 +490,7 @@ const t=new Date(day);t.setHours(+parts[1],+parts[2],0,0);
 const endAt=sessionEndAt(day,start,ex.end);
 if(endAt&&endAt>now&&(!best||t<best.t))best={t,c:{dow:Jalali.dow(j),start,end:ex.end,date:j,extra:true},date:j};}
 return best;}
-function curKey(){const nc=nextClass();return nc?Jalali.toKey(nc.date):null;}
+function curKey(){const now=Date.now();if(_sessionKeyCache.key&&now-_sessionKeyCache.ts<5000)return _sessionKeyCache.key;const nc=nextClass();const key=nc?Jalali.toKey(nc.date):null;_sessionKeyCache={key,ts:now};return key;}
 const STK=["present","delay","absent","problem","online"],STL=["حاضر","تأخیر","غایب","مشکل","آنلاین"];
 const ST={lbl:{present:"حاضر",delay:"تأخیر",absent:"غایب",problem:"مشکل",online:"آنلاین",none:"ثبت‌نشده"},cls:{present:"b-ok",delay:"b-warn",absent:"b-bad",problem:"b-prob",online:"b-on",none:"b-m"}};
 const ROLES=[["attend","پیگیری حضور"],["fee","شهریه"],["hw","تکالیف"],["support","حامی (عضو قدیمی)"]];
@@ -456,10 +505,11 @@ function roleIconsHTML(roles){
 }
 
 function validSessionKey(k){if(typeof k!=="string"||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(k))return false;const p=k.split("-").map(Number);return p[0]>=1&&p[1]>=1&&p[1]<=12&&p[2]>=1&&p[2]<=Jalali.mLen(p[0],p[1]);}
-function sessionSel(){const d=Store.get(),k=d._lastSession;if(validSessionKey(k)){const known=k===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},k)||Object.prototype.hasOwnProperty.call(d.fees||{},k)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===k));if(known)return k;}return curKey();}
+function sessionSel(){const d=Store.get();const storedKey=d._lastSession;if(storedKey&&validSessionKey(storedKey)){const known=storedKey===curKey()||Object.prototype.hasOwnProperty.call(d.sessions||{},storedKey)||Object.prototype.hasOwnProperty.call(d.fees||{},storedKey)||(Array.isArray(d.homework)&&d.homework.some(h=>h&&h.key===storedKey));if(known)return storedKey;}const ck=curKey();return ck||null;}
 function curFeeKey(){return sessionSel()||(Store.get()._lastFee||Jalali.toKey(Jalali.today()));}
 const needsCall=st=>st!=="present"&&st!=="online";
-function absCount(id){const s=Store.get().sessions;let a=0;
-for(const k in s){const st=(s[k][id]||{}).p2||(s[k][id]||{}).p1;if(st==="absent")a++;}return a;}
+function absCount(id){const s=Store.get().sessions||{};let a=0;
+for(const k in s){const memberSessions=s[k]||{};const sessionData=memberSessions[id]||{};const st=sessionData.p2||sessionData.p1;if(st==="absent")a++;}return a;}
 
 /* ============ وضعیت UI ============ */
+

@@ -163,7 +163,7 @@ function doorChecklistHTML(){
   h+='<p class="stat-line">در ۴ نوبت زمان باقی‌مانده را اعلام کنید؛ در ۳ دقیقه در را باز کنید.</p><div class="door-check">';
   items.forEach(([min,act])=>{
     const done=!!st[String(min)];
-    h+='<div class="door-item'+(done?" done":"")+'"><span class="min">'+Jalali.toFa(min)+"'</span><span class=\"act\">"+act+'</span>';
+    h+='<div class="door-item'+(done?" done":"")+'"><span class="min">'+Jalali.toFa(min)+'</span><span class="act">'+act+'</span>';
     h+='<button type="button" class="btn sm '+(done?"ghost":"p")+'" data-door-check="'+min+'">'+(done?"✓":"ثبت")+'</button></div>';
   });
   h+='</div></div>';
@@ -200,7 +200,7 @@ function feeDeadlineInfo(){
   const f=d.fees[key]||{};
   const overdue=d.members.filter(m=>!(f[m.id]&&f[m.id].paid));
   const past=now>=deadline;
-  return{ok:!past||!overdue.length,past,deadline,nc,key,overdue,days,text:past?("مهلت واریز گذشته — "+Jalali.toFa(overdue.length)+" نفر هنوز واریز نکرده‌اند"):("مهلت واریز: تا "+Jalali.fmt(Jalali.toJ(deadline.getFullYear(),deadline.getMonth()+1,deadline.getDate()))+" (یک روز قبل از کلاس)")};
+  return{ok:!past||!overdue.length,past,deadline,nc,key,overdue,days,text:past?("مهلت واریز گذشته — "+Jalali.toFa(overdue.length)+" نفر هنوز واریز نکرده‌اند"):("مهلت واریز: تا "+Jalali.fmt(Jalali.toJ(deadline.getFullYear(),deadline.getMonth()+1,deadline.getDate()))+(days===1?" (یک روز قبل از کلاس)":" ("+Jalali.toFa(days)+" روز قبل از کلاس)"))};
 }
 function reportFeesToHami(){
   if(!requirePerm("shareSupport"))return;
@@ -398,11 +398,15 @@ function bindShortcuts(){
   window._mctKeys=true;
   document.addEventListener("keydown",e=>{
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openCommandPalette();return;}
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="b"){e.preventDefault();try{backup();}catch(err){}return;}
+    if((e.ctrlKey||e.metaKey)&&e.key==="/"){e.preventDefault();const f=document.querySelector("#app input[name='list-filter']");if(f)f.focus();return;}
     if(e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="SELECT"))return;
     if(e.altKey||e.ctrlKey||e.metaKey)return;
-    const map={h:"home",a:"attend",f:"fees",m:"members",w:"homework",s:"settings",g:"help",o:"more",r:"reports"};
+    const map={h:"home",a:"attend",f:"fees",m:"members",w:"homework",t:"tasks",s:"settings",g:"help",o:"more",r:"reports"};
     const k=e.key.toLowerCase();
     if(map[k]&&route!=="login"&&route!=="entry"){e.preventDefault();go(map[k]);}
+    if(k==="e"&&route!=="login"&&route!=="entry"&&can("attend")){e.preventDefault();openEntry();}
+    if(k==="n"&&route!=="login"&&route!=="entry"&&can("edit")){e.preventDefault();memberForm();}
     if(k==="?"||k==="/"){e.preventDefault();go("help");}
   });
 }
@@ -976,8 +980,16 @@ function openCommandPalette(){
     {k:"شهریه",fn:()=>go("fees")},
     {k:"اعضا",fn:()=>go("members")},
     {k:"تکالیف",fn:()=>go("homework")},
+    {k:"وظایف جلسه",fn:()=>go("tasks")},
     {k:"تنظیمات",fn:()=>go("settings")},
     {k:"راهنما",fn:()=>go("help")},
+    {k:"عضو جدید",fn:()=>memberForm()},
+    {k:"تغییر تم روشن/تیره",fn:()=>toggleTheme()},
+    {k:"حالت حریم خصوصی",fn:()=>togglePrivacyMode()},
+    {k:"چک‌لیست پشت در",fn:()=>showDoorChecklist()},
+    {k:"انتخاب چندنفره",fn:()=>openBatchPicker()},
+    {k:"خروجی اکسل حضور",fn:()=>exportCSV("attend",sessionSel()||curKey()||"")},
+    {k:"چاپ گزارش حضور",fn:()=>printAttendReport()},
     {k:"تقسیم وظایف حضور",fn:()=>autoSplitTasks("attend")},
     {k:"تقسیم وظایف شهریه",fn:()=>autoSplitTasks("fee")},
     {k:"گزارش نوبت ۱ به حامی",fn:()=>reportRoundToHami(1)},
@@ -991,7 +1003,7 @@ function openCommandPalette(){
   ]);
   const ov=document.createElement("div");
   ov.className="cmd-overlay";
-  ov.innerHTML='<div class="cmd-box"><input id="cmdIn" placeholder="جستجوی دستور… (Ctrl+K)" autocomplete="off"><div id="cmdList"></div></div>';
+  ov.innerHTML='<div class="cmd-box"><input id="cmdIn" placeholder="جستجوی دستور… (Ctrl+K)" autocomplete="off"><div id="cmdList"></div><div class="cmd-foot" aria-hidden="true">↑↓ حرکت · Enter اجرا · Esc بستن</div></div>';
   document.body.appendChild(ov);
   const input=$("#cmdIn",ov), list=$("#cmdList",ov);
   let sel=0, filtered=actions;
@@ -1052,13 +1064,14 @@ function reassignMember(kind, mid){
 
 /* ============ v16: عملیات پیشرفته ============ */
 const _undoUI={timer:null};
-function pushUndo(entry){
+function pushUndo(entry,opts){
   const d=Store.get();
   d.undoStack=d.undoStack||[];
   d.undoStack.push(Object.assign({t:Date.now()},entry));
   if(d.undoStack.length>30)d.undoStack=d.undoStack.slice(-30);
   Store.save();
-  showUndoBar(entry.label||"عملیات");
+  /* ارگونومی: وقتی پیام اختصاصی‌تر toastUndo نمایش داده می‌شود، نوار عمومی بازگشت بی‌صدا می‌ماند تا دو ویجت روی هم نیفتند */
+  if(!(opts&&opts.silent))showUndoBar(entry.label||"عملیات");
 }
 function showUndoBar(label){
   let bar=document.getElementById("undoBar");
@@ -1146,18 +1159,7 @@ function handoffPackage(kind){
   const me=myAssigneeId();
   const map=assignMap(kind);
   const key=sessionSel()||curKey();
-  const pending=d.members.filter(m=>{
-    if(map[m.id]&&map[m.id]!==me)return false;
-    if(!map[m.id]&&d.settings.onlyMine)return isMine(kind,m.id);
-    if(map[m.id]!==me&&Object.keys(map).length)return false;
-    if(kind==="fee"){
-      const f=key?(d.fees[key]||{}):{};
-      return!(f[m.id]&&f[m.id].paid);
-    }
-    const s=key?(d.sessions[key]||{}):{};
-    return!((s[m.id]||{}).p1||(s[m.id]||{}).p2);
-  });
-  // Actually simpler pending list for mine
+  // Pending list limited to the items the current user is responsible for.
   const minePending=d.members.filter(m=>{
     if(!isMine(kind,m.id))return false;
     if(kind==="fee"){const f=key?(d.fees[key]||{}):{};return!(f[m.id]&&f[m.id].paid);}
@@ -1226,7 +1228,7 @@ function batchSetAtt(st){
     const prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
     const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
     cur.p1=st;cur.time=nowHHMM();cur.by=(currentUser()||{}).name||"";
-    pushUndo({type:"att",key,mid,prev,label:"دسته‌ای"});
+    pushUndo({type:"att",key,mid,prev,label:"دسته‌ای"},{silent:true});
   });
   Store.save();
   window._batchSel=new Set();
@@ -1258,7 +1260,6 @@ function applyListFilter(list, kind){
 }
 function openBatchPicker(){
   const d=Store.get();
-  const key=sessionSel()||curKey();
   let list=applyListFilter(filterMembersForMe(d.members.slice(),"attend"),"attend");
   list=smartSortMembers(list,"attend");
   const o=modal('<h3 style="font-weight:800">☑ انتخاب چندنفره</h3><div style="max-height:50vh;overflow:auto" id="bpList">'+
@@ -1401,8 +1402,6 @@ function compactSyncExport(){
 
 /* ============ v18: مرکز ارتباطات + سلامت داده ============ */
 function communicationHub(){
-  const d=Store.get();
-  const key=sessionSel()||curKey();
   const o=modal('<h3 style="font-weight:800">📡 مرکز ارتباطات</h3><p class="role-hint">گزارش‌ها و پیام‌ها با حفظ حریم خصوصی (بدون یادداشت محرمانه).</p>'+
     '<div class="share-grid">'+
     '<button class="btn p" id="c1">📤 نوبت ۱ → حامی</button>'+
@@ -1545,7 +1544,15 @@ function Pages_help(el){
   '<p><b>تبلت/کامپیوتر:</b> منوی کناری؛ صفحه عریض‌تر؛ مناسب ساخت گزارش و اکسل.</p>'+
   '<p>روی گوشی می‌توانید اپ را «Add to Home Screen» کنید تا مثل برنامه نصب شود.</p></div>'+
 
-  '<div class="card help-sec"><h4>۸) نکات ایمنی داده</h4>'+
+  '<div class="card help-sec"><h4>۸) میان‌برهای سرعت (کامپیوتر)</h4>'+
+  '<p>برای کار سریع‌تر با صفحه‌کلید — بدون لمس موس:</p>'+
+  '<ul><li><span class="kbd">Ctrl</span>+<span class="kbd">K</span> — پالت دستورات (جستجوی هر عملیات)</li>'+
+  '<li><span class="kbd">H</span> خانه · <span class="kbd">A</span> حضور · <span class="kbd">F</span> شهریه · <span class="kbd">M</span> اعضا</li>'+
+  '<li><span class="kbd">W</span> تکالیف · <span class="kbd">T</span> وظایف · <span class="kbd">S</span> تنظیمات · <span class="kbd">O</span> بخش‌ها · <span class="kbd">R</span> گزارش‌ها</li>'+
+  '<li><span class="kbd">E</span> شروع نوبت ۲ پشت در · <span class="kbd">N</span> عضو جدید · <span class="kbd">?</span> راهنما</li></ul>'+
+  '<p class="stat-line">روی موبایل: نگه‌داشتن انگشت روی ردیف هر عضو، آن را برای ثبت گروهی انتخاب می‌کند.</p></div>'+
+
+  '<div class="card help-sec"><h4>۹) نکات ایمنی داده</h4>'+
   '<ul><li>داده روی همین مرورگر/دستگاه است — مرتب <b>پشتیبان</b> بگیرید.</li>'+
   '<li>یادداشت محرمانه در گزارش حامی نمی‌آید.</li>'+
   '<li>حالت حریم خصوصی عکس و شماره را محو می‌کند.</li></ul></div>'+
@@ -1768,7 +1775,6 @@ function careQueue(){
 function roleDashboardHTML(){
   const d=Store.get();
   const supporters=d.members.filter(m=>(m.roles||[]).includes("support"));
-  const followers=d.members.filter(m=>(m.roles||[]).includes("attend")||(m.roles||[]).includes("fee"));
   const q=careQueue();
   let h='<div class="card care-card fade-up"><h3>💛 هماهنگی با حامی‌ها</h3>';
   h+='<p class="role-hint">حامی‌ها = اعضای قدیمی پشتیبان مسئولان جدید و رابط با درمانگر. این بخش برای هماهنگی پیگیری‌هاست: اولویت با کرامت فرد است. یادداشت محرمانه هرگز در گزارش عمومی نمی‌آید.</p>';
@@ -1953,7 +1959,6 @@ function exportICS(){
 /* ============ v6: کد اشتراک کلاس (QR via API when online) ============ */
 function shareClassCode(){
   const d=Store.get();
-  const payload={v:1,name:d.settings.className||"کلاس",n:d.members.length,cls:d.classes};
   const text="My-Class-Track\n"+(d.settings.className||"کلاس")+"\nاعضا: "+d.members.length+"\nبرنامه: "+(d.classes.map(c=>Jalali.DN[c.dow]+" "+c.start).join(" | "));
   const o=modal('<h3 style="font-weight:800">📤 اشتراک کلاس</h3><p class="stat-line">کد یا لینک را برای همکار بفرستید</p><div style="text-align:center" id="qrWrap"><div class="skeleton" style="width:160px;height:160px;margin:8px auto"></div></div><textarea id="shareCode" rows="4" readonly style="margin-top:8px;font-size:.85em">'+esc(text)+'</textarea><div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" id="shCopy">📋 کپی</button><button class="btn ghost" style="flex:1" id="shShare">📤 ارسال</button></div>');
   $("#shCopy",o).onclick=()=>copyTxt(text);
@@ -2121,7 +2126,8 @@ if(route==="entry"){try{renderEntry();}catch(e){console.warn(e);}return;}
 const el=$("#app");el.className="page";
 try{(Pages[route]||Pages.home)(el);wireHomeSplit();wireMineToggle(route==="fees"?"fee":"attend");}catch(err){console.warn(err);el.innerHTML='<div class="card"><h3>⚠️ خطا</h3><button class="btn p" onclick="go(\'home\')">خانه</button></div>';}
 try{decorateHelpHints(el);}catch(e){}
-window.scrollTo(0,0);}
+/* ارگونومی دست: فقط در تغییر مسیر به بالا برگرد؛ ثبت وضعیت یا پرداخت، جای اسکرول کاربر را نگه می‌دارد */
+try{if(window._mctLastRoute!==route){window.scrollTo(0,0);window._mctLastRoute=route;}}catch(e){}}
 function exitApp(){if(route!=="home"){go("home");return;}if(typeof toast==="function")toast("شما در صفحه خانه هستید");}
 window.exitApp=exitApp;
 window.statusStripHTML=statusStripHTML;window.togglePinMember=togglePinMember;window.render=render;
@@ -2137,6 +2143,15 @@ window.setColor=setColor;window.toggleSound=toggleSound;window.shareBackup=share
 window.toggleFS=toggleFS;window.goBack=goBack;window.exitApp=exitApp;
 window.printAttendReport=printAttendReport;window.showInsights=showInsights;window.togglePrivacyMode=togglePrivacyMode;window.logoutUser=logoutUser;window.userForm=userForm;window.delUser=delUser;window.reportForSupporters=reportForSupporters;window.reportRoundToHami=reportRoundToHami;window.reportFeesToHami=reportFeesToHami;window.periodForm=periodForm;window.toggleDoorCheck=toggleDoorCheck;window.loginUser=loginUser;window.remindUnpaidWA=remindUnpaidWA;window.attendRemindWA=attendRemindWA;window.shareStoryCard=shareStoryCard;window.humanHamiSummary=humanHamiSummary;window.toggleFocusMode=toggleFocusMode;window.toggleA11y=toggleA11y;window.tgShare=tgShare;window.celebrate=celebrate;window.autoSplitTasks=autoSplitTasks;window.clearSplit=clearSplit;window.openCommandPalette=openCommandPalette;window.weeklyDigest=weeklyDigest;window.copyPrevSession=copyPrevSession;window.transferMyTasks=transferMyTasks;window.toggleOled=toggleOled;window.togglePin=togglePin;window.reassignMember=reassignMember;window.performUndo=performUndo;window.handoffPackage=handoffPackage;window.showMemberTimeline=showMemberTimeline;window.teamBoardHTML=teamBoardHTML;window.setListFilter=setListFilter;window.toggleBatchPick=toggleBatchPick;window.batchSetAtt=batchSetAtt;window.clearBatch=clearBatch;window.openBatchPicker=openBatchPicker;window.communicationHub=communicationHub;window.celebrateConfetti=celebrateConfetti;window.compactSyncExport=compactSyncExport;window.editTemplates=editTemplates;window.toggleAutoTheme=toggleAutoTheme;window.logActivity=logActivity;window.careQueue=careQueue;window.startSpeech=startSpeech;window.enableNotifs=enableNotifs;window.exportICS=exportICS;window.shareClassCode=shareClassCode;window.scheduleClassNotif=scheduleClassNotif;window.pruneSessions=pruneSessions;window.storageInfo=storageInfo;
 window.setClassName=setClassName;window.addGroup=addGroup;window.delGroup=delGroup;
+
+/* PWA 2026: میان‌برهای manifest (?page=attend و …) — انتخاب صفحهٔ آغازین از پارامتر URL */
+(function(){
+  try{
+    const p=new URLSearchParams(location.search).get("page");
+    const valid=["home","attend","fees","members","homework","tasks","settings","help","more","reports"];
+    if(p&&valid.indexOf(p)>=0&&can(p))route=p;
+  }catch(e){}
+})();
 
 if(Store.get().settings.requireLogin&&!currentUser())route="login";
 render();

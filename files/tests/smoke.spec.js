@@ -1124,7 +1124,7 @@ test("storage card shows real browser quota via Storage Quota API", async ({ pag
   await expect(page.locator("#storBody")).toContainText("فضای واقعی مصرفی", { timeout: 7000 });
 });
 
-test("service worker activates with reminder handlers and cache v123", async ({ page }) => {
+test("service worker activates with reminder handlers and cache v125", async ({ page }) => {
   await page.goto("/");
   const info = await page.evaluate(async () => {
     try {

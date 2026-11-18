@@ -6,6 +6,7 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "launch_handler": { "client_mode": "focus-existing" },
   "orientation": "any",
   "dir": "rtl",
   "lang": "fa",
@@ -30,6 +31,37 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "categories": ["productivity", "education", "healthcare"],
+  "shortcuts": [
+    {
+      "name": "ثبت حضور",
+      "short_name": "حضور",
+      "description": "ثبت حضور و تاخیر اعضا در کلاس",
+      "url": "./?page=attend",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "ثبت شهریه",
+      "short_name": "شهریه",
+      "description": "ثبت و پیگیری پرداخت شهریه اعضا",
+      "url": "./?page=fees",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "مدیریت اعضا",
+      "short_name": "اعضا",
+      "description": "افزودن و مدیریت اعضای گروه درمانی",
+      "url": "./?page=members",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "تکالیف",
+      "short_name": "تکالیف",
+      "description": "ثبت و پیگیری تکالیف جلسات",
+      "url": "./?page=homework",
+      "icons": [{ "src": "icon-192.svg", "sizes": "192x192" }]
     }
   ],
   "screenshots": [

@@ -815,13 +815,16 @@ body:has(#app .entry-body) #nav { display:none!important; }
 
 /* ===== UX ENHANCEMENTS — Modern Components ===== */
 
-/* Toast notifications — enhanced */
-.toast{position:fixed;inset-inline:50%;transform:translateX(-50%);top:104px;z-index:200;max-width:90%;text-align:center;padding:12px 18px;border-radius:14px;font-size:.9em;font-weight:700;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;pointer-events:none;transition:opacity .3s ease,transform .3s ease;direction:rtl}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.success{background:linear-gradient(135deg,#10b981,#34d399)}
-.toast.error{background:linear-gradient(135deg,#ef4444,#f87171)}
+/* Toast notifications — enhanced
+   اصلاح v26: نسخهٔ قبلی «inset-inline:50%» بود که در RTL هر دو لبهٔ چپ و راست را
+   روی ۵۰٪ می‌گذاشت و عرض توست به نوار عمودی باریکِ ناخوانا فرو می‌پاشید؛ اکنون فقط
+   لنگرِ راستِ قانون پایه (خط بالای فایل) معتبر است و توست به‌صورت اسنک‌بار پایین نمایش داده می‌شود */
+.toast{top:auto;inset-inline-end:auto;transform:translateX(50%);z-index:200;width:max-content;max-width:calc(100vw - 24px);text-align:center;font-weight:700;color:#fff;background:#1e293b;border:none;border-radius:14px;transition:opacity .25s ease,transform .25s ease;direction:rtl}
+.toast.show{opacity:1;transform:translateX(50%) translateY(0)}
+.toast.success{background:linear-gradient(135deg,#059669,#34d399)}
+.toast.error{background:linear-gradient(135deg,#dc2626,#f87171)}
 .toast.info{background:linear-gradient(135deg,#2563eb,#38bdf8)}
-.toast.warn{background:linear-gradient(135deg,#f59e0b,#fb923c)}
+.toast.warn{background:linear-gradient(135deg,#d97706,#fbbf24)}
 
 /* Empty states — friendly */
 .empty-state{text-align:center;padding:40px 20px;color:var(--tx2)}
@@ -1166,4 +1169,105 @@ button,a,.btn,.chip,.settings-shortcut,.home-shortcut,.hub-tile{
 .mblk{content-visibility:auto;contain-intrinsic-size:auto 92px;}
 @media (prefers-reduced-motion: no-preference){
   ::view-transition-old(root),::view-transition-new(root){animation-duration:.16s;animation-timing-function:ease-out;}
+}
+
+/* ==================== v125 — Modern UX Design System ==================== */
+/* هدف: ارگونومی چشم (سلسله‌مراتب بصری، کنتراست، سایه‌های نرم) + ارگونومی دست (اهداف لمسی، بازخورد فوری) + سرعت عمل */
+:root{
+  --ease2:cubic-bezier(.2,.9,.25,1);
+  --r-sm:12px;--r-md:16px;--r-lg:20px;
+  --t-fast:120ms;--t-med:200ms;
+  /* سایه‌های خنثی و لایه‌ای — مدرن‌تر و آرام‌تر از سایه‌های آبی */
+  --sh:0 1px 2px rgba(15,32,64,.05),0 4px 16px rgba(15,32,64,.06);
+  --sh2:0 2px 4px rgba(15,32,64,.07),0 10px 28px rgba(15,32,64,.10);
+  --ring:0 0 0 3px color-mix(in srgb,var(--p2) 30%,transparent);
+}
+body.dark{
+  --sh:0 1px 2px rgba(0,0,0,.42),0 4px 16px rgba(0,0,0,.28);
+  --sh2:0 2px 4px rgba(0,0,0,.45),0 10px 28px rgba(0,0,0,.42);
+}
+/* جلوگیری از انتخاب تصادفی متن هنگام ضربه‌های سریع + جلوگیری از کشیدن برای نوسازی هنگام ثبت داده */
+nav button,.btn,.chip,.hbtn,.st-btn,.sw,.home-shortcut,.settings-shortcut,.hub-tile,
+.cal-grid button,.filter-chips button,.more-item,.home-reminder,.home-menu,.fab-ai{
+  -webkit-user-select:none;user-select:none;
+}
+html,body{overscroll-behavior-y:contain}
+/* اسکرول‌بار باریک و کم‌رنگ — هم در تیره هم روشن */
+*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--tx2) 42%,transparent) transparent}
+*::-webkit-scrollbar{width:6px;height:6px}
+*::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--tx2) 42%,transparent);border-radius:99px}
+*::-webkit-scrollbar-track{background:transparent}
+
+/* ---- تایپوگرافی: ریتم بصری بهتر برای فارسی ---- */
+h3{font-weight:800;letter-spacing:-.1px}
+.card h3{font-size:1.03em}
+p,.stat-line,.role-hint,.t-sub,.ht-sub,.mi-txt span,.more-footnote{text-wrap:pretty}
+.stat-value,.kpi .n,.timer-sm,.rec-time,.home-countdown,.compare-grid .box .n{font-variant-numeric:tabular-nums}
+.mem b,.mem-name b{font-weight:700}
+.home-greeting{background:linear-gradient(90deg,var(--tx),color-mix(in srgb,var(--p) 80%,var(--tx)));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ---- دکمه‌های وضعیت (فشرده‌سازی سرعت ورود داده) ----
+   تیکِ بصری روی وضعیت فعال: کاربر با یک نگاه می‌فهمد چه ثبت کرده */
+.st-btn{position:relative;border-radius:12px;font-size:.86em;letter-spacing:-.1px}
+.st-btn.on1::after,.st-btn.on2::after,.st-btn.on3::after,.st-btn.on4::after,.st-btn.on5::after{
+  content:"✓";margin-inline-start:4px;font-size:.9em;opacity:.92
+}
+/* پیشنهادِ عملِ پرکاربرد (حاضر در نوبت ۲) — هالهٔ ملایم؛ تصمیم‌گیری با یک نگاه */
+.st-btn.hint1{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ok) 55%,transparent);color:color-mix(in srgb,var(--ok) 75%,var(--tx))}
+@media(pointer:coarse){
+  .st-btn{min-height:48px}
+  .cal-grid button{min-height:44px}
+  .filter-chips button{min-height:40px}
+}
+
+/* ---- ناوبری: قرص فعال با انیمیشن فنری + نبض نشان ---- */
+nav button{transition:background var(--t-med) var(--ease2),color var(--t-fast),transform var(--t-med) var(--ease2)}
+nav button.on{animation:navPop .3s var(--ease2)}
+@keyframes navPop{0%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+.nav-badge{animation:badgePulse 2.2s ease-out infinite}
+@keyframes badgePulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.38)}70%{box-shadow:0 0 0 6px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+
+/* ---- مودال و پوشش: ورود نرم و شتاب‌دار ---- */
+.overlay{animation:ovIn .14s ease-out}
+@keyframes ovIn{from{opacity:0}to{opacity:1}}
+.overlay .modal{animation:mIn .2s var(--ease2)}
+@keyframes mIn{from{opacity:0;transform:translateY(12px) scale(.975)}to{opacity:1;transform:none}}
+@media(max-width:767px){
+  .overlay .modal{animation-name:mInSheet}
+  @keyframes mInSheet{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:none}}
+}
+
+/* ---- کارت‌ها و کاشی‌ها: بازخورد هاور دقیق ---- */
+@media(hover:hover) and (pointer:fine){
+  .more-item:hover,.hub-tile:hover,.home-shortcut:hover,.settings-shortcut:hover,.home-reminder:hover{
+    transform:translateY(-1px);box-shadow:var(--sh2);
+    border-color:color-mix(in srgb,var(--p) 32%,var(--ln));
+  }
+  .st-btn:hover{filter:brightness(1.04)}
+  .cmd-item:hover{padding-inline-start:18px}
+}
+.more-item,.hub-tile,.home-shortcut,.settings-shortcut,.home-reminder{transition:transform var(--t-med) var(--ease2),box-shadow var(--t-med) var(--ease2),border-color var(--t-med) var(--ease2)}
+
+/* ---- توست: عمق بهتر ---- */
+.toast{box-shadow:0 6px 24px rgba(10,25,55,.16),0 1px 3px rgba(10,25,55,.1);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+body.dark .toast{background:color-mix(in srgb,var(--sf) 88%,transparent)}
+
+/* ---- تم تیره: مرز ملایم‌تر و سطوح بالاتر ---- */
+body.dark{--ln:#2a3a58}
+body.dark .card{border-color:#283a5c}
+body.dark .mem{border-color:#263a5c}
+
+/* ---- نوار پیشرفت مسیر: باریک‌تر و سریع‌تر ---- */
+.route-progress{height:2.5px;border-radius:99px}
+
+/* ---- پالت دستورات: پانوشت راهنمای کلیدها ---- */
+.cmd-foot{padding:8px 16px 10px;border-top:1px solid var(--ln);font-size:.72em;color:var(--tx2);background:var(--sf2);text-align:center;letter-spacing:.1px}
+.cmd-item{transition:padding var(--t-fast) var(--ease2),background var(--t-fast)}
+
+/* ---- حریم حرکت: همه انیمیشن‌های جدید ---- */
+@media(prefers-reduced-motion:reduce){
+  .overlay,.overlay .modal{animation:none!important}
+  nav button.on{animation:none!important}
+  .nav-badge{animation:none!important}
+  .st-btn.hint1{box-shadow:none}
 }

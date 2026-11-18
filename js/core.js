@@ -354,6 +354,8 @@ clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove("show"),3200);}
 function toastUndo(m,fn){const t=$("#toast");t.className="toast";t.innerHTML=esc(m)+' <button id="toastUndoBtn">↩️ بازگشت</button>';t.classList.add("show");
 clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove("show"),6000);
 document.getElementById("toastUndoBtn").onclick=()=>{fn();t.classList.remove("show");};}
+/* بازخورد لمسی هپتیک — تأیید فیزیکی کوتاه برای ثبت‌های تکراری (حضور/شهریه)؛ روی دستگاه‌های بدون لرزش‌گر بی‌اثر */
+function haptic(ms){try{if(navigator.vibrate)navigator.vibrate(ms||10);}catch(e){}}
 function copyTxt(t){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(()=>toast("✅ کپی شد")).catch(()=>_cp(t));else _cp(t);}
 function _cp(t){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");toast("✅ کپی شد");}catch(e){toast("کپی ناموفق");}a.remove();}
 function shareTxt(t){if(navigator.share)navigator.share({text:t}).catch(()=>{});else copyTxt(t);}

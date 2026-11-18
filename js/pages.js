@@ -13,7 +13,7 @@ const UI={callOnly:false,doneTab:false,filter:"",repFull:false,feeTab:0};
 function resetUI(){UI.callOnly=false;UI.doneTab=false;UI.filter="";UI.feeTab=0;window._hwA=null;}
 
 function filterBar(placeholder){
-return'<div class="row" style="margin-bottom:8px"><input name="list-filter" aria-label="'+placeholder+'" placeholder="🔍 '+placeholder+'" value="'+esc(UI.filter)+'" oninput="debouncedListFilter(this.value)" style="flex:1"></div>';}
+return'<div class="row" style="margin-bottom:8px"><input type="search" enterkeyhint="search" name="list-filter" aria-label="'+placeholder+'" placeholder="🔍 '+placeholder+'" value="'+esc(UI.filter)+'" oninput="debouncedListFilter(this.value)" style="flex:1"></div>';}
 function listFilter(v){UI.filter=v;
 const items=document.querySelectorAll(".mblk,.member-block,.attend-item");
 items.forEach(b=>{
@@ -194,7 +194,8 @@ Pages.home=function(el){
   const openTasks=typeof pendingTasksCount==="function"?pendingTasksCount():0;
   const count=(n)=>n>99?"۹۹+":Jalali.toFa(n);
 // Stats cards — dashboard overview
-let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="بخش‌های بیشتر" title="بخش‌های بیشتر">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">پیگیری جلسات</div></div></section>';
+const _u=typeof currentUser==="function"?currentUser():null;
+let h='<section class="home-android-head"><button type="button" class="home-menu" onclick="go(\'more\')" aria-label="بخش‌های بیشتر" title="بخش‌های بیشتر">☰</button><div class="home-head-title"><div class="home-date">'+esc(dateLabel)+'</div><div class="home-greeting">'+esc(_u&&_u.name?"سلام، "+_u.name+" 👋":"پیگیری جلسات")+'</div></div></section>';
 h+='<div class="stat-grid"><div class="stat-card primary"><span class="stat-value">'+count(unAttendance)+'</span><span class="stat-label">حضور ثبت‌نشده</span></div><div class="stat-card success"><span class="stat-value">'+count(unP)+'</span><span class="stat-label">شهریه پرداخت‌نشده</span></div><div class="stat-card warn"><span class="stat-value">'+count(hw)+'</span><span class="stat-label">تکالیف در انتظار</span></div><div class="stat-card bad"><span class="stat-value">'+count(openTasks)+'</span><span class="stat-label">وظایف انجام‌نشده</span></div></div>';
   h+='<section class="home-next-card"><div class="home-next-label"><span class="home-live-dot"></span> تا جلسه بعدی</div>';
   if(nc){
@@ -291,6 +292,20 @@ try{
       if(e.shiftKey||window._batchMode){e.preventDefault();toggleBatchPick(el.getAttribute("data-mid"));}
     });
     el.addEventListener("contextmenu",e=>{e.preventDefault();toggleBatchPick(el.getAttribute("data-mid"));});
+    /* ارگونومی لمسی: نگه‌داشتن انگشت روی ردیف عضو = انتخاب چندنفره (هم‌ارز راست‌کلیک دسکتاپ) */
+    if(window.PointerEvent){
+      let lp=null;
+      el.addEventListener("pointerdown",ev=>{
+        if(ev.pointerType==="mouse")return;
+        lp=setTimeout(()=>{
+          lp=null;
+          if(el.closest("button,a,input,select,textarea,label"))return;
+          toggleBatchPick(el.getAttribute("data-mid"));
+          if(navigator.vibrate)navigator.vibrate(20);
+        },550);
+      });
+      ["pointerup","pointercancel","pointerleave"].forEach(t=>el.addEventListener(t,()=>{if(lp){clearTimeout(lp);lp=null;}}));
+    }
   });
 }catch(e){}};
 function setDoneTab(v){UI.doneTab=v;UI.filter="";render();}
@@ -538,7 +553,7 @@ window.addTask=addTask;window.delTask=delTask;window.toggleTaskDone=toggleTaskDo
 /* ---- اعضا ---- */
 Pages.members=function(el){
 el.innerHTML='<div class="card hero members-hero"><div class="members-hero-title"><h3>👥 اعضا</h3><button type="button" class="members-help-btn" onclick="showMembersHelp()" aria-label="راهنمای صفحه اعضا" title="راهنمای صفحه اعضا">?</button></div></div>'+
-'<div class="card"><div class="sec-label">جستجو و افزودن</div><div class="row"><input id="mSearch" name="member-search" aria-label="جستجوی نام عضو" placeholder="🔍 جستجوی نام…" oninput="renderMembers(this.value)" style="flex:1"><button class="btn p" onclick="memberForm()" aria-label="افزودن عضو جدید">＋</button></div>'+
+'<div class="card"><div class="sec-label">جستجو و افزودن</div><div class="row"><input type="search" enterkeyhint="search" id="mSearch" name="member-search" aria-label="جستجوی نام عضو" placeholder="🔍 جستجوی نام…" oninput="renderMembers(this.value)" style="flex:1"><button class="btn p" onclick="memberForm()" aria-label="افزودن عضو جدید">＋</button></div>'+
 '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="exportMembersCSV()">📊 خروجی کامل</button><button class="btn ghost sm" onclick="document.getElementById(\'mimp\').click()">⬆️ ورود</button><input type="file" id="mimp" class="sr" accept=".csv,text/csv" onchange="importMembersCSV(this)">'+sortSelectHTML("مرتب‌سازی اعضا","memberSortMode=this.value;renderMembers(document.getElementById('mSearch').value)")+'</div>'+
 '<div class="role-legend">'+
 '<span class="role-ico" title="پیگیری حضور">📞</span><span class="leg">حضور</span>'+
@@ -576,7 +591,7 @@ el.innerHTML=
 '<div class="card"><h3>🔔 هوشمندسازی</h3><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm ghost" onclick="enableNotifs()">🔔 اعلان کلاس</button><button class="btn sm ghost" onclick="togglePrivacyMode()">🔒 حریم خصوصی</button><button class="btn sm ghost" onclick="editTemplates()">📝 الگوهای پیام</button><button class="btn sm ghost" onclick="toggleAutoTheme()">🌓 تم خودکار</button><button class="btn sm ghost" onclick="toggleA11y()">♿ دسترسی‌پذیری</button><button class="btn sm ghost" onclick="toggleOled()">⬛ OLED</button><button class="btn sm ghost" onclick="openCommandPalette()">⌘ دستورات</button><button class="btn sm ghost" onclick="performUndo()">↩ بازگشت</button><button class="btn sm ghost" onclick="handoffPackage()">📦 تحویل شیفت</button><button class="btn sm ghost" onclick="compactSyncExport()">🔗 همگام فشرده</button><button class="btn sm ghost" onclick="communicationHub()">📡 ارتباطات</button><button class="btn sm ghost" onclick="copyPrevSession()">📋 کپی جلسه قبل</button><button class="btn sm ghost" onclick="transferMyTasks()">🔄 انتقال وظایف</button><button class="btn sm ghost" onclick="toggleFocusMode()">🎯 تمرکز پشت‌در</button><button class="btn sm ghost" onclick="shareStoryCard()">📸 کارت استوری</button><button class="btn sm ghost" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" onclick="shareClassCode()">📲 اشتراک QR</button><button class="btn sm ghost" onclick="showInsights()">✨ بینش</button></div><p class="stat-line" style="margin-top:8px">اعلان ۱۵ دقیقه قبل از کلاس · تقویم ICS · اشتراک برنامه</p></div>'+
 '<div class="card"><h3>👥 کاربران و دسترسی</h3><p class="role-hint">استفاده مشترک: برای هر نفر کاربر و رمز جدا بسازید.</p><div class="toggle-row"><span>ورود با رمز اجباری</span><button type="button" class="sw '+(st.requireLogin?"on":"")+'" id="swLogin"></button></div><div class="toggle-row"><span>تأیید قبل از کارهای مهم</span><button type="button" class="sw '+(st.quickConfirm!==false?"on":"")+'" id="swConfirm"></button></div><div id="userList" style="margin-top:8px"></div><button class="btn sm p" style="margin-top:8px" id="btnAddUser">＋ کاربر جدید</button> <button class="btn sm ghost" style="margin-top:8px" id="btnLogout">خروج</button></div>'+'<div class="card"><h3>💾 پشتیبان و بازیابی</h3><div class="row"><button class="btn p" style="flex:1" onclick="backup()">⬇️ پشتیبان</button><button class="btn ghost" style="flex:1" onclick="document.getElementById(\'rf\').click()">⬆️ بازیابی</button><input type="file" id="rf" class="sr" accept=".json" onchange="restore(this)"></div>'+
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
-'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۵ (رفع اشکال و ارتقای PWA) — کاملاً آفلاین<br>حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
+'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۶ (بازطراحی UI/UX و ارگونومی) — کاملاً آفلاین<br>حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
 
 /* Settings are presented as a compact shortcut hub; the original controls remain available in their category. */
@@ -856,7 +871,7 @@ const tF=ph==="p1"?"time":"time2",nF=ph==="p1"?"note":"note2";cur[tF]=nowHHMM();
 const was=cur[ph],undoBefore=JSON.parse(JSON.stringify(d.undoStack||[]));
 if(cur[ph]===st){cur[ph]=null;delete cur[tF];delete cur[nF];delete cur[ph==="p1"?"a1":"a2"];}
 else cur[ph]=st;
-pushUndo({type:"att",key:key,mid:mid,prev:_prev,label:"ثبت حضور"});
+pushUndo({type:"att",key:key,mid:mid,prev:_prev,label:"ثبت حضور"},{silent:true});
 let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}
 if(!saved){if(_prev)d.sessions[key][mid]=_prev;else delete d.sessions[key][mid];if(!d.sessions[key]||!Object.keys(d.sessions[key]).length)delete d.sessions[key];if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;d.undoStack=undoBefore;render();toast("⚠️ حضور ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 const y=window.scrollY;

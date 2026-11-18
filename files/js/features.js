@@ -64,6 +64,7 @@ function statusStripHTML(){
 
 
 function go(r){
+haptic(8);
 if(r==="login"){route=r;resetUI();window._t&&clearInterval(window._t);window._tick=null;render();return;}
 if(Store.get().settings.requireLogin&&!currentUser()){route="login";render();return;}
 const map={home:"home",attend:"attend",fees:"fees",members:"members",homework:"homework",tasks:"tasks",settings:"settings",help:"help",more:"more",reports:"reports"};
@@ -78,7 +79,7 @@ window.go=go;
 
 /* ============ رویدادهای مشترک ============ */
 document.getElementById("app").addEventListener("click",e=>{
-const ap=e.target.closest("[data-aud]");if(ap){playAud(AUD[ap.dataset.aud]);return;}
+const ap=e.target.closest("[data-aud]");if(ap){const audKey=ap.dataset.aud;if(AUD[audKey]){playAud(AUD[audKey]);}else{toast("⚠️ صدا یافت نشد");}return;}
 const mi=e.target.closest("[data-mic]");
 if(mi){const key=mi.dataset.key,mid=mi.dataset.mid,ph=mi.dataset.ph;
 const d=Store.get();const cur=(d.sessions[key]||{})[mid]||{};
@@ -93,14 +94,14 @@ if(!saved){if(hadRecord)d.sessions[key][mid]=previous;else delete d.sessions[key
 render();
 },cur[af]);return;}
 const rf=e.target.closest("[data-restorefee]");
-if(rf){restoreFee(rf.dataset.key,rf.dataset.mid);return;}
+if(rf){haptic(10);restoreFee(rf.dataset.key,rf.dataset.mid);return;}
 const fs=e.target.closest("[data-fst]");
-if(fs){feeStatus(fs.dataset.key,fs.dataset.mid,fs.dataset.s);return;}
+if(fs){haptic(10);feeStatus(fs.dataset.key,fs.dataset.mid,fs.dataset.s);return;}
 const rb=e.target.closest("[data-restore]");
-if(rb){restoreAtt(rb.dataset.key,rb.dataset.mid,rb.dataset.ph);return;}
-const b=e.target.closest(".st-btn");if(b){setAtt(b.dataset.key,b.dataset.mid,b.dataset.ph,b.dataset.s);return;}
+if(rb){haptic(10);restoreAtt(rb.dataset.key,rb.dataset.mid,rb.dataset.ph);return;}
+const b=e.target.closest(".st-btn");if(b){haptic(10);setAtt(b.dataset.key,b.dataset.mid,b.dataset.ph,b.dataset.s);return;}
 const pr=e.target.closest(".payrow");
-if(pr&&!e.target.closest("input")&&!e.target.closest("button")&&!e.target.closest("a")){togglePay(pr.dataset.key,pr.dataset.mid);return;}});
+if(pr&&!e.target.closest("input")&&!e.target.closest("button")&&!e.target.closest("a")){haptic(12);togglePay(pr.dataset.key,pr.dataset.mid);return;}});
 document.getElementById("app").addEventListener("change",e=>{
 const t=e.target;
 if(t.id==="alarmIn"){const d=Store.get(),raw=t.value.split(",").map(x=>x.trim());
