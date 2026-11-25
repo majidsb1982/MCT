@@ -52,7 +52,7 @@ window.addEventListener("pagehide",cleanupAll);
 (function initOfflineIndicator(){
   let bar=document.getElementById("offlineBar");
   if(!bar){bar=document.createElement("div");bar.id="offlineBar";bar.className="offline-indicator";document.body.appendChild(bar);}
-  bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها روی همین دستگاه ذخیره می‌شوند":"🔴 آفلاین — برنامه بدون اینترنت هم کار می‌کند؛ داده‌ها امن‌اند";
+  bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها روی همین دستگاه ذخیره می‌شوند":"🔴 آفلاین — برنامه بدون اینترنت هم کار می‌کند؛ اطلاعات روی همین دستگاه ذخیره می‌شوند";
   on("online",()=>{bar.className="offline-indicator show online";bar.textContent="🟢 آنلاین شدید — همه‌چیز آماده است";setTimeout(()=>bar.classList.remove("show"),3000);});
   on("offline",()=>{bar.className="offline-indicator show";bar.textContent="🔴 آفلاین — برنامه ادامه می‌دهد و داده‌ها روی دستگاه ذخیره می‌شوند";});
   if(!navigator.onLine){bar.classList.add("show");}
@@ -167,13 +167,9 @@ const save=()=>{
   try{
     _sessionKeyCache={key:null,ts:0}; /* کش جلسه بعدی با تغییر داده باطل می‌شود */
     const raw=JSON.stringify(data);
-    const tempKey=KEY+":temp";
-    localStorage.setItem(tempKey,raw);
-    const verify=localStorage.getItem(tempKey);
-    if(verify!==raw)throw new Error("Verify failed");
-    localStorage.removeItem(KEY);
+    // localStorage.setItem is atomic for one key: if quota/security checks fail,
+    // the previous value remains intact. Do not delete the last good copy first.
     localStorage.setItem(KEY,raw);
-    localStorage.removeItem(tempKey);
     return true;
   }catch(e){
     console.error("MCT: Save failed",e);
@@ -313,15 +309,19 @@ const fmtAttTime=v=>{if(v==null||v==="")return"";const s=String(v);if(/^\d{12,14
 /* امن‌سازی رسانه — فقط data-URL واقعیِ image/audio با محتوای base64 مجاز است (ضد XSS از مسیر import/همگام‌سازی) */
 const safeMedia=(u,kind)=>{if(typeof u!=="string"||!u||u.length>6e6)return"";return new RegExp("^data:"+kind+"\\/[a-z0-9.+-]+(?:;[a-z0-9=.,+_-]+)*;base64,[A-Za-z0-9+/=]+$").test(u)?u:"";};
 /* رمزنگاری PIN — PBKDF2-SHA256 با salt تصادفی؛ هرگز PIN متنی ذخیره نمی‌شود */
-const PIN_ITER=60000;
+const PIN_ITER=600000;
+const LEGACY_PIN_ITER=60000;
 const randSalt=()=>{const a=new Uint8Array(16);(self.crypto||window.crypto).getRandomValues(a);return [...a].map(b=>b.toString(16).padStart(2,"0")).join("");};
 async function hashPin(pin,saltHex,iter){
   try{
     if(!self.crypto||!self.crypto.subtle)return null;
+    const rounds=Number(iter)||PIN_ITER;
+    if(!Number.isInteger(rounds)||rounds<10000||rounds>1000000)return null;
+    if(typeof saltHex!=="string"||!/^[0-9a-f]{32}$/i.test(saltHex))return null;
     const enc=new TextEncoder();
     const key=await self.crypto.subtle.importKey("raw",enc.encode(String(pin)),"PBKDF2",false,["deriveBits"]);
-    const salt=Uint8Array.from(String(saltHex).match(/../g).map(h=>parseInt(h,16)));
-    const bits=await self.crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:salt,iterations:iter||PIN_ITER},key,256);
+    const salt=Uint8Array.from(saltHex.match(/../g).map(h=>parseInt(h,16)));
+    const bits=await self.crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:salt,iterations:rounds},key,256);
     return [...new Uint8Array(bits)].map(b=>b.toString(16).padStart(2,"0")).join("");
   }catch(e){return null;}
 }

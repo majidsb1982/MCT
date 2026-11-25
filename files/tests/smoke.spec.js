@@ -1124,7 +1124,7 @@ test("storage card shows real browser quota via Storage Quota API", async ({ pag
   await expect(page.locator("#storBody")).toContainText("فضای واقعی مصرفی", { timeout: 7000 });
 });
 
-test("service worker activates with reminder handlers and cache v125", async ({ page }) => {
+test("service worker activates with reminder handlers and cache v126", async ({ page }) => {
   await page.goto("/");
   const info = await page.evaluate(async () => {
     try {
@@ -1225,4 +1225,62 @@ test("attendance list offers the shared sorting control", async ({ page }) => {
   await page.locator("#app #memberSort").selectOption("family");
   const first = await page.locator("#app .mblk b").first().textContent();
   expect(first).toBe("رضا احمدی");
+});
+
+
+test("failed storage write preserves the previous saved data", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const before = JSON.stringify(Store.get());
+    localStorage.setItem("mct:data", before);
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === "mct:data") throw new DOMException("Quota exceeded", "QuotaExceededError");
+      return originalSetItem.call(this, key, value);
+    };
+    Store.get().members.push({ id: "quota-test", name: "عضو آزمون فضای ذخیره" });
+    const saved = Store.save();
+    Storage.prototype.setItem = originalSetItem;
+    return {
+      saved,
+      previousDataPreserved: localStorage.getItem("mct:data") === before,
+      temporaryCopyLeftBehind: localStorage.getItem("mct:data:temp") !== null
+    };
+  });
+  expect(result.saved).toBe(false);
+  expect(result.previousDataPreserved).toBe(true);
+  expect(result.temporaryCopyLeftBehind).toBe(false);
+});
+
+
+test("legacy PIN hashes are upgraded to the current PBKDF2 work factor after successful login", async ({ page }) => {
+  await page.goto("/");
+  const seeded = await page.evaluate(async () => {
+    const salt = "00112233445566778899aabbccddeeff";
+    const hash = await hashPin("2468", salt, 60000);
+    const d = Store.get();
+    d.users = [{ id: "legacy-pin-user", name: "کاربر رمز قدیمی", role: "admin", pinHash: { h: hash, s: salt, i: 60000 } }];
+    d.settings.requireLogin = true;
+    d.currentUserId = null;
+    Store.save();
+    return { hashReady: !!hash };
+  });
+  expect(seeded.hashReady).toBe(true);
+  await page.reload();
+  const result = await page.evaluate(() => loginUser("legacy-pin-user", "2468"));
+  expect(result).toBe(true);
+  const upgraded = await page.evaluate(() => Store.get().users[0].pinHash);
+  expect(upgraded.i).toBe(600000);
+  expect(upgraded.h).not.toBe("");
+  expect(upgraded.s).not.toBe("00112233445566778899aabbccddeeff");
+});
+
+test("invalid imported PIN hash work factors are rejected before expensive derivation", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(async () => ({
+    rejectedLow: await hashPin("1234", "00112233445566778899aabbccddeeff", 1),
+    rejectedHigh: await hashPin("1234", "00112233445566778899aabbccddeeff", 999999999),
+    rejectedSalt: await hashPin("1234", "not-a-salt", 60000)
+  }));
+  expect(result).toEqual({ rejectedLow: null, rejectedHigh: null, rejectedSalt: null });
 });
