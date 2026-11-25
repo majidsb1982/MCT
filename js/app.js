@@ -1476,25 +1476,36 @@ async function loginUser(userId,pin){
   const d=Store.get();
   const u=d.users.find(x=>x.id===userId);
   if(!u){toast("کاربر یافت نشد");return false;}
-  // تأیید هش PBKDF2؛ اگر داده قدیمی متنی بود، پس از ورود موفق به هش مهاجرت می‌شود
+  const originalUser=Object.assign({},u);
   let ok=false;
   if(u.pinHash&&u.pinHash.h&&u.pinHash.s){
-    if(self.crypto&&self.crypto.subtle){
-      const h=await hashPin(pin,u.pinHash.s,u.pinHash.i);
-      ok=!!h&&h===u.pinHash.h;
-    }else ok=false;
+    const rounds=Number(u.pinHash.i)||LEGACY_PIN_ITER;
+    const h=await hashPin(pin,u.pinHash.s,rounds);
+    ok=!!h&&h===u.pinHash.h;
+    if(ok&&rounds<PIN_ITER){
+      const salt=randSalt(),upgraded=await hashPin(pin,salt,PIN_ITER);
+      if(upgraded)u.pinHash={h:upgraded,s:salt,i:PIN_ITER};
+    }
   }else{
     ok=String(u.pin||"")===String(pin||"");
     if(ok){
-      const s=randSalt();const h=await hashPin(pin,s,PIN_ITER);
-      if(h){delete u.pin;u.pinHash={h:h,s:s,i:PIN_ITER};}
+      const salt=randSalt(),upgraded=await hashPin(pin,salt,PIN_ITER);
+      if(!upgraded){toast("⚠️ مرورگر امکان ارتقای امن رمز را ندارد؛ از مرورگر به‌روز و امن استفاده کنید");return false;}
+      delete u.pin;
+      u.pinHash={h:upgraded,s:salt,i:PIN_ITER};
     }
   }
   if(!ok){toast("⚠️ رمز نادرست");return false;}
   const previous=d.currentUserId;
   d.currentUserId=u.id;
   let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
-  if(!saved){d.currentUserId=previous;toast("⚠️ ورود ذخیره نشد؛ دوباره تلاش کنید");return false;}
+  if(!saved){
+    Object.keys(u).forEach(k=>delete u[k]);
+    Object.assign(u,originalUser);
+    d.currentUserId=previous;
+    toast("⚠️ ورود ذخیره نشد؛ اطلاعات قبلی حفظ شد");
+    return false;
+  }
   route="home";resetUI();render();
   toast("سلام "+u.name+" 👋");
   return true;
@@ -1622,11 +1633,12 @@ async function saveUserForm(id){
   }
   if(pin){
     const s=randSalt();const h=await hashPin(pin,s,PIN_ITER);
-    if(h){delete rec.pin;rec.pinHash={h:h,s:s,i:PIN_ITER};}
-    else{delete rec.pinHash;rec.pin=pin;} // مرورگر بدون WebCrypto (فقط هم‌مبدأ)
+    if(!h){d.users=previousUsers;toast("⚠️ مرورگر امکان ذخیره امن رمز را ندارد؛ از مرورگر به‌روز و امن استفاده کنید");return false;}
+    delete rec.pin;rec.pinHash={h:h,s:s,i:PIN_ITER};
   }else if(rec.pin){ // مهاجرت خاموش: رمز متنی قدیمی همین‌جا هش می‌شود
     const old=rec.pin;const s=randSalt();const h=await hashPin(old,s,PIN_ITER);
     if(h){delete rec.pin;rec.pinHash={h:h,s:s,i:PIN_ITER};}
+    else{d.users=previousUsers;toast("⚠️ رمز قدیمی قابل ارتقای امن نیست؛ ورود به WebCrypto نیاز دارد");return false;}
   }
   let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
   if(!saved){d.users=previousUsers;toast("⚠️ اطلاعات کاربر ذخیره نشد؛ اطلاعات قبلی حفظ شد");return false;}

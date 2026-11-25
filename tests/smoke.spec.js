@@ -1251,3 +1251,36 @@ test("failed storage write preserves the previous saved data", async ({ page }) 
   expect(result.previousDataPreserved).toBe(true);
   expect(result.temporaryCopyLeftBehind).toBe(false);
 });
+
+
+test("legacy PIN hashes are upgraded to the current PBKDF2 work factor after successful login", async ({ page }) => {
+  await page.goto("/");
+  const seeded = await page.evaluate(async () => {
+    const salt = "00112233445566778899aabbccddeeff";
+    const hash = await hashPin("2468", salt, 60000);
+    const d = Store.get();
+    d.users = [{ id: "legacy-pin-user", name: "کاربر رمز قدیمی", role: "admin", pinHash: { h: hash, s: salt, i: 60000 } }];
+    d.settings.requireLogin = true;
+    d.currentUserId = null;
+    Store.save();
+    return { hashReady: !!hash };
+  });
+  expect(seeded.hashReady).toBe(true);
+  await page.reload();
+  const result = await page.evaluate(() => loginUser("legacy-pin-user", "2468"));
+  expect(result).toBe(true);
+  const upgraded = await page.evaluate(() => Store.get().users[0].pinHash);
+  expect(upgraded.i).toBe(600000);
+  expect(upgraded.h).not.toBe("");
+  expect(upgraded.s).not.toBe("00112233445566778899aabbccddeeff");
+});
+
+test("invalid imported PIN hash work factors are rejected before expensive derivation", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(async () => ({
+    rejectedLow: await hashPin("1234", "00112233445566778899aabbccddeeff", 1),
+    rejectedHigh: await hashPin("1234", "00112233445566778899aabbccddeeff", 999999999),
+    rejectedSalt: await hashPin("1234", "not-a-salt", 60000)
+  }));
+  expect(result).toEqual({ rejectedLow: null, rejectedHigh: null, rejectedSalt: null });
+});
