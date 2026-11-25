@@ -1124,7 +1124,7 @@ test("storage card shows real browser quota via Storage Quota API", async ({ pag
   await expect(page.locator("#storBody")).toContainText("فضای واقعی مصرفی", { timeout: 7000 });
 });
 
-test("service worker activates with reminder handlers and cache v125", async ({ page }) => {
+test("service worker activates with reminder handlers and cache v126", async ({ page }) => {
   await page.goto("/");
   const info = await page.evaluate(async () => {
     try {
@@ -1225,4 +1225,29 @@ test("attendance list offers the shared sorting control", async ({ page }) => {
   await page.locator("#app #memberSort").selectOption("family");
   const first = await page.locator("#app .mblk b").first().textContent();
   expect(first).toBe("رضا احمدی");
+});
+
+
+test("failed storage write preserves the previous saved data", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const before = JSON.stringify(Store.get());
+    localStorage.setItem("mct:data", before);
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === "mct:data") throw new DOMException("Quota exceeded", "QuotaExceededError");
+      return originalSetItem.call(this, key, value);
+    };
+    Store.get().members.push({ id: "quota-test", name: "عضو آزمون فضای ذخیره" });
+    const saved = Store.save();
+    Storage.prototype.setItem = originalSetItem;
+    return {
+      saved,
+      previousDataPreserved: localStorage.getItem("mct:data") === before,
+      temporaryCopyLeftBehind: localStorage.getItem("mct:data:temp") !== null
+    };
+  });
+  expect(result.saved).toBe(false);
+  expect(result.previousDataPreserved).toBe(true);
+  expect(result.temporaryCopyLeftBehind).toBe(false);
 });

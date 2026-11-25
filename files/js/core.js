@@ -52,7 +52,7 @@ window.addEventListener("pagehide",cleanupAll);
 (function initOfflineIndicator(){
   let bar=document.getElementById("offlineBar");
   if(!bar){bar=document.createElement("div");bar.id="offlineBar";bar.className="offline-indicator";document.body.appendChild(bar);}
-  bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها روی همین دستگاه ذخیره می‌شوند":"🔴 آفلاین — برنامه بدون اینترنت هم کار می‌کند؛ داده‌ها امن‌اند";
+  bar.textContent=navigator.onLine?"🟢 آنلاین — داده‌ها روی همین دستگاه ذخیره می‌شوند":"🔴 آفلاین — برنامه بدون اینترنت هم کار می‌کند؛ اطلاعات روی همین دستگاه ذخیره می‌شوند";
   on("online",()=>{bar.className="offline-indicator show online";bar.textContent="🟢 آنلاین شدید — همه‌چیز آماده است";setTimeout(()=>bar.classList.remove("show"),3000);});
   on("offline",()=>{bar.className="offline-indicator show";bar.textContent="🔴 آفلاین — برنامه ادامه می‌دهد و داده‌ها روی دستگاه ذخیره می‌شوند";});
   if(!navigator.onLine){bar.classList.add("show");}
@@ -167,13 +167,9 @@ const save=()=>{
   try{
     _sessionKeyCache={key:null,ts:0}; /* کش جلسه بعدی با تغییر داده باطل می‌شود */
     const raw=JSON.stringify(data);
-    const tempKey=KEY+":temp";
-    localStorage.setItem(tempKey,raw);
-    const verify=localStorage.getItem(tempKey);
-    if(verify!==raw)throw new Error("Verify failed");
-    localStorage.removeItem(KEY);
+    // localStorage.setItem is atomic for one key: if quota/security checks fail,
+    // the previous value remains intact. Do not delete the last good copy first.
     localStorage.setItem(KEY,raw);
-    localStorage.removeItem(tempKey);
     return true;
   }catch(e){
     console.error("MCT: Save failed",e);
