@@ -191,7 +191,7 @@ window.showDoorChecklist=showDoorChecklist;
 
 /* مهلت شهریه: یک روز قبل از کلاس */
 function feeDeadlineInfo(){
-  const d=Store.get();const days=d.settings.feeDeadlineDays!=null?d.settings.feeDeadlineDays:1;
+  const d=Store.get();const raw=d.settings.feeDeadlineDays,parsed=Number(raw);const days=raw!=null&&Number.isFinite(parsed)&&parsed>=0?parsed:1;
   const nc=nextClass();
   if(!nc)return{ok:true,text:"کلاسی تنظیم نشده",overdue:[],days};
   const deadline=new Date(nc.t.getTime()-days*864e5);
@@ -305,16 +305,24 @@ function waMsg(phone,text){
   const full=base+"?text="+encodeURIComponent(text||"");
   window.open(full,"_blank");
 }
+/* ساعت کلاس برای یک جلسه مشخص — متن پیام‌ها باید با همان جلسهٔ انتخاب‌شده بخواند */
+function sessionScheduleFor(key){
+  const d=Store.get();
+  if(!key||!validSessionKey(key))return{time:""};
+  const weekly=(d.classes||[]).find(c=>Number(c.dow)===Jalali.dow(Jalali.fromKey(key)));
+  const extra=(d.extra||[]).find(x=>x&&x.key===key);
+  return{time:(extra&&extra.start)||(weekly&&weekly.start)||""};
+}
 function remindUnpaidWA(){
   if(!requirePerm("fees"))return;
-  const info=feeDeadlineInfo();
   const d=Store.get();
-  const f=info.key?(d.fees[info.key]||{}):{};
+  /* شهریهٔ جلسهٔ انتخاب‌شده، نه همیشه جلسهٔ بعدی — جلوگیری از ارسال یادآوری برای جلسهٔ اشتباه */
+  const key=curFeeKey();
+  const f=key?(d.fees[key]||{}):{};
   const unpaid=d.members.filter(m=>!(f[m.id]&&f[m.id].paid)&&(m.phones||[])[0]);
   if(!unpaid.length){toast("همه پرداخت کرده‌اند یا شماره ندارند");return;}
   const tpl=getTemplates().fee;
-  const nc=nextClass();
-  const vars={class:d.settings.className||"کلاس",date:nc?Jalali.fmt(nc.date):"",time:nc?nc.c.start:""};
+  const vars={class:d.settings.className||"کلاس",date:key?Jalali.fmt(Jalali.fromKey(key)):"",time:sessionScheduleFor(key).time};
   // open first; show list modal for rest
   const o=modal('<h3 style="font-weight:800">📤 یادآوری شهریه واتساپ</h3><p class="role-hint">برای هر نفر پیام آماده با الگوی پیش‌فرض باز می‌شود.</p>'+
     unpaid.map(m=>'<div class="mem"><b>'+esc(m.name)+'</b><button class="btn sm g" style="margin-right:auto" data-wa="'+esc((m.phones||[])[0])+'" data-name="'+esc(m.name)+'">واتساپ</button></div>').join("")+
@@ -339,8 +347,7 @@ function attendRemindWA(){
   });
   if(!need.length){toast("مورد ثبت‌نشده با شماره نیست");return;}
   const tpl=getTemplates().attend;
-  const nc=nextClass();
-  const vars={class:d.settings.className||"کلاس",date:Jalali.fmt(Jalali.fromKey(key)),time:nc?nc.c.start:""};
+  const vars={class:d.settings.className||"کلاس",date:Jalali.fmt(Jalali.fromKey(key)),time:sessionScheduleFor(key).time};
   const o=modal('<h3 style="font-weight:800">📞 پیامک/واتساپ یادآوری حضور</h3>'+
     need.map(m=>'<div class="mem"><b>'+esc(m.name)+'</b><button class="btn sm g" style="margin-right:auto" data-wa="'+esc((m.phones||[])[0])+'" data-name="'+esc(m.name)+'">واتساپ</button></div>').join("")+
     '<button class="btn ghost" style="width:100%;margin-top:8px" id="waCl2">بستن</button>');
@@ -567,8 +574,8 @@ function shareStoryCard(kind){
   cv.getContext("2d").drawImage(canvas,0,0);
   const blobP=new Promise(res=>canvas.toBlob(res,"image/png"));
   $("#stDl",o).onclick=async()=>{
-    const b=await blobP;const a=document.createElement("a");
-    a.href=URL.createObjectURL(b);a.download="mct-story.png";a.click();
+    const b=await blobP;
+    if(!b||!downloadBlob(b,"mct-story.png")){toast("⚠️ ساخت تصویر ناموفق بود");return;}
     logActivity("دانلود کارت استوری");
   };
   $("#stWa",o).onclick=()=>{
@@ -1056,19 +1063,25 @@ function reassignMember(kind, mid){
   $("#raCl",o).onclick=()=>o.remove();
   $("#raOk",o).onclick=()=>{
     const v=$("#raSel",o).value;
+    const had=Object.prototype.hasOwnProperty.call(map,mid),previous=map[mid];
     if(!v)delete map[mid]; else map[mid]=v;
-    Store.save();o.remove();render();
+    let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+    if(!saved){if(had)map[mid]=previous;else delete map[mid];toast("⚠️ تعیین مسئول ذخیره نشد؛ تقسیم قبلی حفظ شد");return;}
+    o.remove();render();
   };
 }
 
 
 /* ============ v16: عملیات پیشرفته ============ */
 const _undoUI={timer:null};
-function pushUndo(entry,opts){
+/* افزودن یک یا چند رکورد بازگشت بدون ذخیره‌سازی — سقف ۳۰ رکورد در یک جا نگهداری می‌شود */
+function addUndoEntries(entries){
   const d=Store.get();
-  d.undoStack=d.undoStack||[];
-  d.undoStack.push(Object.assign({t:Date.now()},entry));
+  d.undoStack=(d.undoStack||[]).concat(entries.map(e=>Object.assign({t:Date.now()},e)));
   if(d.undoStack.length>30)d.undoStack=d.undoStack.slice(-30);
+}
+function pushUndo(entry,opts){
+  addUndoEntries([entry]);
   Store.save();
   /* ارگونومی: وقتی پیام اختصاصی‌تر toastUndo نمایش داده می‌شود، نوار عمومی بازگشت بی‌صدا می‌ماند تا دو ویجت روی هم نیفتند */
   if(!(opts&&opts.silent))showUndoBar(entry.label||"عملیات");
@@ -1218,21 +1231,35 @@ function toggleBatchPick(id){
 function clearBatch(){window._batchSel=new Set();render();}
 function batchSetAtt(st){
   if(!window._batchSel.size){toast("کسی انتخاب نشده");return;}
+  if(!requirePerm("attend","اجازه ثبت حضور ندارید"))return;
+  if(STK.indexOf(st)<0){toast("⚠️ وضعیت نامعتبر است");return;}
   const key=sessionSel()||curKey();
   if(!key){toast("جلسه مشخص نیست");return;}
-  const ids=[...window._batchSel];
+  const d=Store.get(),ids=[...window._batchSel];
+  const hadBucket=Object.prototype.hasOwnProperty.call(d.sessions,key);
+  const beforeBucket=hadBucket?JSON.parse(JSON.stringify(d.sessions[key])):null;
+  const beforeUndo=JSON.parse(JSON.stringify(d.undoStack||[]));
+  const previousLast=d._lastSession;
+  d._lastSession=key;
+  d.sessions[key]=d.sessions[key]||{};
+  const entries=[];
   ids.forEach(mid=>{
-    // use setAtt for each for undo of last only - direct for speed
-    const d=Store.get();
-    d.sessions[key]=d.sessions[key]||{};
     const prev=d.sessions[key][mid]?JSON.parse(JSON.stringify(d.sessions[key][mid])):null;
+    entries.push({t:Date.now(),type:"att",key,mid,prev,label:"دسته‌ای"});
     const cur=d.sessions[key][mid]=d.sessions[key][mid]||{};
     cur.p1=st;cur.time=nowHHMM();cur.by=(currentUser()||{}).name||"";
-    pushUndo({type:"att",key,mid,prev,label:"دسته‌ای"},{silent:true});
   });
-  Store.save();
+  /* یک نوشتن واحد به‌جای یک ذخیره‌سازی برای هر عضو — خطا هم به‌صورت اتمی برگشت می‌خورد */
+  addUndoEntries(entries);
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){
+    if(hadBucket)d.sessions[key]=beforeBucket;else delete d.sessions[key];
+    d.undoStack=beforeUndo;
+    if(previousLast===undefined)delete d._lastSession;else d._lastSession=previousLast;
+    toast("⚠️ ثبت گروهی ذخیره نشد؛ وضعیت قبلی حضور حفظ شد");return;
+  }
   window._batchSel=new Set();
-  toast("✅ "+Jalali.toFa(ids.length)+" نفر: "+st);
+  toast("✅ "+Jalali.toFa(ids.length)+" نفر: "+(ST.lbl[st]||st));
   logActivity("ثبت دسته‌ای "+st);
   render();
 }
@@ -1326,7 +1353,7 @@ function compactSyncExport(){
   const d=Store.get();
   const key=sessionSel()||curKey();
   const payload={
-    v:17,key,className:d.settings.className,
+    v:25,key,className:d.settings.className,
     sessions:key?d.sessions[key]:null,
     fees:key?d.fees[key]:null,
     assignments:d.assignments,
@@ -1472,10 +1499,28 @@ function logoutUser(){
   if(d.settings.requireLogin){route="login";render();}
   else toast("از حساب خارج شدید");
 }
+/* محدودسازی تلاش ورود — رمز ۴ رقمی ذاتاً قابل حدس است؛ پس از ۵ تلاش ناموفق،
+   ورود با تأخیر فزاینده قفل می‌شود (در همین نشست؛ با بازکردن دوباره اپ بازنشانی می‌شود). */
+const PIN_MAX_FAILS=5;
+const _pinFails=Object.create(null);
+function pinLockSeconds(userId){
+  const rec=_pinFails[userId];
+  if(!rec||!rec.until)return 0;
+  return Math.max(0,Math.ceil((rec.until-Date.now())/1000));
+}
+function recordPinFail(userId){
+  const rec=_pinFails[userId]||(_pinFails[userId]={fails:0,until:0});
+  rec.fails++;
+  if(rec.fails>=PIN_MAX_FAILS)rec.until=Date.now()+Math.min(3e5,15e3*Math.pow(2,rec.fails-PIN_MAX_FAILS));
+}
 async function loginUser(userId,pin){
   const d=Store.get();
   const u=d.users.find(x=>x.id===userId);
   if(!u){toast("کاربر یافت نشد");return false;}
+  const wait=pinLockSeconds(userId);
+  if(wait>0){toast("⏳ تلاش بیش از حد؛ "+Jalali.toFa(wait)+" ثانیه دیگر دوباره امتحان کنید");return false;}
+  /* ارقام فارسی/عربی هم پذیرفته می‌شوند — کاربر موبایل فارسی اغلب با کیبورد فارسی رمز می‌زند */
+  pin=toLatinDigits(pin);
   const originalUser=Object.assign({},u);
   let ok=false;
   if(u.pinHash&&u.pinHash.h&&u.pinHash.s){
@@ -1487,7 +1532,7 @@ async function loginUser(userId,pin){
       if(upgraded)u.pinHash={h:upgraded,s:salt,i:PIN_ITER};
     }
   }else{
-    ok=String(u.pin||"")===String(pin||"");
+    ok=toLatinDigits(u.pin)===pin;
     if(ok){
       const salt=randSalt(),upgraded=await hashPin(pin,salt,PIN_ITER);
       if(!upgraded){toast("⚠️ مرورگر امکان ارتقای امن رمز را ندارد؛ از مرورگر به‌روز و امن استفاده کنید");return false;}
@@ -1495,7 +1540,13 @@ async function loginUser(userId,pin){
       u.pinHash={h:upgraded,s:salt,i:PIN_ITER};
     }
   }
-  if(!ok){toast("⚠️ رمز نادرست");return false;}
+  if(!ok){
+    recordPinFail(u.id);
+    const left=pinLockSeconds(u.id);
+    toast(left>0?"⏳ رمز نادرست — ورود برای "+Jalali.toFa(left)+" ثانیه قفل شد":"⚠️ رمز نادرست");
+    return false;
+  }
+  delete _pinFails[u.id];
   const previous=d.currentUserId;
   d.currentUserId=u.id;
   let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
@@ -1568,7 +1619,7 @@ function Pages_help(el){
   '<li>یادداشت محرمانه در گزارش حامی نمی‌آید.</li>'+
   '<li>حالت حریم خصوصی عکس و شماره را محو می‌کند.</li></ul></div>'+
 
-  '<div class="card"><a class="btn p" style="width:100%;display:block;text-align:center;text-decoration:none" href="GUIDE.html" target="_blank">📖 راهنمای تصویری کامل</a><button class="btn ghost" style="width:100%;margin-top:8px" onclick="go(\'home\')">🏠 بازگشت به خانه</button></div>'+
+  '<div class="card"><button class="btn p" style="width:100%;display:block;text-align:center" onclick="openCommandPalette()">⌘ جستجوی سریع دستورات</button><button class="btn ghost" style="width:100%;margin-top:8px" onclick="go(\'home\')">🏠 بازگشت به خانه</button></div>'+
   '</div>';
 }
 Pages.help=Pages_help;
@@ -1617,7 +1668,7 @@ async function saveUserForm(id){
   if(!requirePerm("settings","فقط مدیر می‌تواند کاربر تعریف کند"))return false;
   const d=Store.get();
   const name=($("#uName")&&$("#uName").value||"").trim();
-  const pin=($("#uPin")&&$("#uPin").value||"").trim();
+  const pin=toLatinDigits(($("#uPin")&&$("#uPin").value||"").trim());
   const role=$("#uRole")?$("#uRole").value:"follow";
   if(!name){toast("نام کاربر را وارد کنید");return false;}
   if(pin&&!/^\d{4}$/.test(pin)){toast("رمز باید ۴ رقم باشد");return false;}
@@ -1626,6 +1677,7 @@ async function saveUserForm(id){
   let rec=null;
   if(id){
     const u=d.users.find(x=>x.id===id);if(!u)return false;
+    if(u.role==="admin"&&role!=="admin"&&d.users.filter(x=>x.role==="admin").length<=1){toast("⛔ آخرین مدیر را نمی‌توان از نقش مدیر خارج کرد");return false;}
     rec=u;rec.name=name;rec.role=role;
   }else{
     rec={id:Store.uid(),name:name,role:role};
@@ -1648,6 +1700,8 @@ async function saveUserForm(id){
 function delUser(id){
   if(!requirePerm("settings"))return;
   const d=Store.get();
+  const target=d.users.find(x=>x.id===id);
+  if(target&&target.role==="admin"&&d.users.filter(x=>x.role==="admin").length<=1){toast("⛔ آخرین مدیر قابل حذف نیست");return;}
   if(d.users.length<=1){toast("حداقل یک کاربر لازم است");return;}
   confirm2("این کاربر حذف شود؟",()=>{
     const previousUsers=d.users.map(u=>Object.assign({},u)),previousCurrent=d.currentUserId;
@@ -1768,7 +1822,10 @@ function supporterName(m){
   return s?s.name:"";
 }
 function togglePrivacyMode(){
-  const d=Store.get();d.settings.privacyMode=!d.settings.privacyMode;Store.save();
+  const d=Store.get(),previous=!!d.settings.privacyMode;
+  d.settings.privacyMode=!previous;
+  let saved=false;try{saved=Store.save()!==false;}catch(e){saved=false;}
+  if(!saved){d.settings.privacyMode=previous;applyPrivacy();toast("⚠️ حالت حریم خصوصی ذخیره نشد؛ تنظیم قبلی حفظ شد");return;}
   applyPrivacy();render();
   toast(d.settings.privacyMode?"🔒 حالت حریم خصوصی روشن — عکس و شماره محو شد":"حالت حریم خصوصی خاموش");
 }
@@ -1937,15 +1994,20 @@ function attendHeatmap(){
 }
 
 /* ============ v6: خروجی تقویم ICS ============ */
+/* متن فیلدهای ICS نباید ویرگول/کاما/خط جدید خام داشته باشد (وگرنه فایل در تقویم‌ها خراب می‌شود) */
+function icsText(v){return String(v??"").replace(/\\/g,"\\\\").replace(/\r?\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");}
 function exportICS(){
   const d=Store.get(),lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//MCT//My-Class-Track//FA","CALSCALE:GREGORIAN"];
-  const name=d.settings.className||"کلاس";
+  const name=icsText(d.settings.className||"کلاس");
   // next 8 weeks of regular classes
   const now=new Date();
   for(let i=0;i<56;i++){
     const dt=new Date(now);dt.setDate(now.getDate()+i);const dw=(dt.getDay()+1)%7;
-    for(const c of d.classes){
-      if(c.dow!==dw)continue;
+    const iso=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
+    for(const c of (d.classes||[])){
+      if(Number(c.dow)!==dw)continue;
+      if(c.startDate&&iso<c.startDate)continue;
+      if(c.endDate&&iso>c.endDate)continue;
       const[h,mi]=(c.start||"19:00").split(":").map(Number);
       const[eh,emi]=(c.end||"21:00").split(":").map(Number);
       const start=new Date(dt);start.setHours(h,mi,0,0);
@@ -1955,6 +2017,7 @@ function exportICS(){
     }
   }
   (d.extra||[]).forEach(ex=>{
+    if(!ex||!ex.key||!validSessionKey(ex.key))return;
     const j=Jalali.fromKey(ex.key);const g=Jalali.toG(j.jy,j.jm,j.jd);
     const[h,mi]=(ex.start||"19:00").split(":").map(Number);
     const[eh,emi]=(ex.end||"21:00").split(":").map(Number);
@@ -1964,7 +2027,7 @@ function exportICS(){
   });
   lines.push("END:VCALENDAR");
   const blob=new Blob([lines.join("\r\n")],{type:"text/calendar;charset=utf-8"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="mct-schedule.ics";a.click();
+  if(!downloadBlob(blob,"mct-schedule.ics")){toast("⚠️ ساخت فایل تقویم ناموفق بود");return;}
   toast("✅ تقویم دانلود شد — در تقویم گوشی Import کنید");
 }
 

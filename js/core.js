@@ -70,6 +70,7 @@ on("keydown",e=>{
 let _sessionKeyCache={key:null,ts:0};
 /* ============ لایه داده (نسخه ۱۹) ============ */
 const Store=(()=>{const KEY="mct:data";
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const DEF={v:25,members:[],classes:[{dow:3,start:"19:00",end:"21:00"}],extra:[],sessions:{},fees:{},homework:[],tasks:[],
 groups:["عمومی"],
 users:[{id:"u-admin",name:"مدیر",pin:"0000",role:"admin"}],
@@ -235,12 +236,50 @@ importObj(input){
  o.activityLog=Array.isArray(o.activityLog)?o.activityLog:[];
  o.undoStack=Array.isArray(o.undoStack)?o.undoStack:[];
  o.settings=Object.assign({},DEF.settings,isObj(o.settings)?o.settings:{});
+ /* شناسه اعضای فایل پشتیبان در HTML و کلید رکوردهای حضور استفاده می‌شود؛ شناسه نامعتبر یا
+    ناامن با شناسه تازه جایگزین و همه ارجاع‌ها بازنویسی می‌شوند تا داده از دست نرود. */
+ /* نام‌های ویژه شیء هم شناسه نامعتبرند تا کلید رکوردها آلوده نشود */
+ const reservedIds=["__proto__","prototype","constructor"];
+ const validMemberId=id=>typeof id==="string"&&/^[A-Za-z0-9_-]{1,64}$/.test(id)&&!reservedIds.includes(id);
+ const usedIds=new Set();
+ const idMap=new Map();
+ o.members.forEach(m=>{
+   const original=m.id;
+   if(validMemberId(original)&&!usedIds.has(original)){usedIds.add(original);return;}
+   let id;do{id=newId();}while(usedIds.has(id));
+   usedIds.add(id);
+   m.id=id;
+   if(!validMemberId(original)&&typeof original==="string"&&original&&!idMap.has(original))idMap.set(original,id);
+ });
+ if(idMap.size){
+   const mapId=id=>idMap.get(id)||id;
+   const remapBucket=bucket=>{
+     const next={};
+     Object.keys(isObj(bucket)?bucket:{}).forEach(id=>{next[mapId(id)]=bucket[id];});
+     return next;
+   };
+   Object.keys(o.sessions||{}).forEach(key=>{o.sessions[key]=remapBucket(o.sessions[key]);});
+   Object.keys(o.fees||{}).forEach(key=>{o.fees[key]=remapBucket(o.fees[key]);});
+   ["attend","fee"].forEach(kind=>{if(isObj(o.assignments[kind]))o.assignments[kind]=remapBucket(o.assignments[kind]);});
+   const remapIds=list=>[...new Set((Array.isArray(list)?list:[]).map(mapId))];
+   if(isObj(o.period)){
+     o.period.attendIds=remapIds(o.period.attendIds);
+     o.period.feeIds=remapIds(o.period.feeIds);
+     o.period.hwIds=remapIds(o.period.hwIds);
+   }
+   o.pinned=remapIds(o.pinned);
+   o.pinnedMembers=remapIds(o.pinnedMembers);
+   o.members.forEach(m=>{if(m.supporterId)m.supporterId=mapId(m.supporterId);});
+   (o.tasks||[]).forEach(t=>{if(t&&t.mid)t.mid=mapId(t.mid);});
+   (o.users||[]).forEach(u=>{if(u&&u.memberId)u.memberId=mapId(u.memberId);});
+   (o.undoStack||[]).forEach(u=>{if(u&&u.mid)u.mid=mapId(u.mid);});
+ }
  const previous=data;
  data=o;
  if(!save()){data=previous;throw new Error("فضای ذخیره کافی نیست؛ داده فعلی حفظ شد و بازیابی انجام نشد");}
  return true;
 },
-uid:()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6)};})();
+uid:newId};})();
 
 
 function storageInfo(){
@@ -302,6 +341,27 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const escAttr=s=>String(s??"").replace(/[&<>"'\/]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const escJs=s=>String(s??"").replace(/[\\"'`\n\r\t]/g,c=>({"\\":"\\\\",'"':'\\"',"'":"\\'","`":"\\`","\n":"\\n","\r":"\\r","\t":"\\t"}[c]));
 const safeHtml=s=>String(s??"").replace(/<(?!\/(b|i|u|br)\b)[^>]*>/g,"");
+/* دانلود فایل تولیدشده در مرورگر — لنگر باید به DOM متصل باشد (فایرفاکس) و URL پس از کلیک آزاد شود */
+function downloadBlob(blob,filename){
+  let url="";
+  try{
+    url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=String(filename||"download");
+    a.style.display="none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}},1500);
+    return true;
+  }catch(e){
+    if(url)try{URL.revokeObjectURL(url);}catch(_){}
+    return false;
+  }
+}
+/* یکسان‌سازی ارقام فارسی/عربی به لاتین — رمز و شماره‌ها همیشه با ارقام لاتین بررسی می‌شوند */
+const toLatinDigits=s=>String(s??"").replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));
 /* ساعت محلی به‌صورت "HH:MM" — فیلد time/time2 رکورد حضور باید رشته ساعت باشد نه timestamp */
 const nowHHMM=()=>{const x=new Date();return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");};
 /* نمایش فیلد ساعت — اگر داده قدیمی timestamp ۱۳ رقمی بود، به ساعت محلی تبدیل می‌شود (مهاجرت نرم) */
