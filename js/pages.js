@@ -10,7 +10,9 @@
 const Pages={};let route="home";
 function saveStoreSafe(){try{return Store.save()!==false;}catch(e){return false;}}
 const UI={callOnly:false,doneTab:false,filter:"",repFull:false,feeTab:0};
-function resetUI(){UI.callOnly=false;UI.doneTab=false;UI.filter="";UI.feeTab=0;window._hwA=null;}
+function resetUI(){UI.callOnly=false;UI.doneTab=false;UI.filter="";UI.feeTab=0;window._hwA=null;
+/* تایمر شمارش معکوس خانه باید با تغییر مسیر متوقف شود تا در پس‌زمینه اجرا نماند */
+if(window._cdTimer){clearInterval(window._cdTimer);window._cdTimer=null;}}
 
 function filterBar(placeholder){
 return'<div class="row" style="margin-bottom:8px"><input type="search" enterkeyhint="search" name="list-filter" aria-label="'+placeholder+'" placeholder="🔍 '+placeholder+'" value="'+esc(UI.filter)+'" oninput="debouncedListFilter(this.value)" style="flex:1"></div>';}
@@ -449,14 +451,14 @@ h+='<div class="card"><h3>📚 تکلیف جدید</h3><label>جلسه (تاری
 '<div class="row" style="margin-top:10px"><button class="btn p" style="flex:1" onclick="saveHW()">💾 ذخیره</button></div></div>';
 }else{
 h+=filterBar("جستجوی تکالیف");
-const list=d.homework.filter(w=>!UI.filter||String(w&&w.text||"").includes(UI.filter)).sort((a,b)=>b.key<a.key?-1:1);
+const list=d.homework.filter(w=>!UI.filter||String(w&&w.text||"").includes(UI.filter)).sort((a,b)=>String(b&&b.key||"").localeCompare(String(a&&a.key||"")));
 h+=list.length?list.map(hwItem).join(""):'<div class="card"><div class="empty">موردی یافت نشد</div></div>';}
 el.innerHTML=h;
 const mic=document.getElementById("hwMic");
 if(mic){const upd=()=>{document.getElementById("hwV").innerHTML=audBtn(window._hwA,"پخش");
 const p=document.querySelector("#hwV [data-aud]");if(p)p.onclick=()=>playAud(window._hwA);};
 mic.onclick=()=>recordVoice(res=>{window._hwA=res;upd();},window._hwA);upd();}};
-function hwItem(hw){return'<div class="card"><div class="row" style="justify-content:space-between"><b style="color:var(--p)">'+Jalali.fmt(Jalali.fromKey(hw.key))+'</b><span class="noprint row" style="gap:6px">'+audBtn(hw.audio,"پخش تکلیف")+
+function hwItem(hw){const hasKey=!!(hw&&hw.key&&validSessionKey(hw.key));const dateLabel=hasKey?Jalali.fmt(Jalali.fromKey(hw.key)):"بدون تاریخ جلسه";return'<div class="card"><div class="row" style="justify-content:space-between"><b style="color:var(--p)">'+dateLabel+'</b><span class="noprint row" style="gap:6px">'+audBtn(hw.audio,"پخش تکلیف")+
 '<button class="btn sm ghost" onclick="copyHW(\''+hw.id+'\')" aria-label="ارسال">📤</button>'+
 '<button class="btn sm ghost" onclick="hwEdit(\''+hw.id+'\')" aria-label="ویرایش">✏️</button>'+
 '<button class="btn sm ghost" onclick="delHW(\''+hw.id+'\')" aria-label="حذف">🗑</button></span></div>'+
@@ -955,7 +957,7 @@ function feeNote(key,mid,v){const d=Store.get(),cur=(d.fees[key]||{})[mid];if(!c
 
 /* ---- تکالیف: عملیات ---- */
 function pickHWDate(){datePick(null,j=>{const e=document.getElementById("hwDate");e.value=Jalali.fmt(j);e._j=Jalali.toKey(j);});}
-function saveHW(){const input=document.getElementById("hwText"),de=document.getElementById("hwDate");
+function saveHW(){if(!requirePerm("edit","اجازه ثبت تکلیف ندارید"))return;const input=document.getElementById("hwText"),de=document.getElementById("hwDate");
 if(!input||!de){toast("⚠️ فرم تکلیف آماده نیست؛ صفحه را دوباره باز کنید");return;}
 const t=input.value.trim();
 if(!t){toast("⚠️ متن تکلیف را بنویسید");input.focus();return;}
@@ -968,11 +970,13 @@ const item={id:Store.uid(),key,text:t,audio:window._hwA||null};list.push(item);
 let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}
 if(!saved){const i=list.findIndex(h=>h.id===item.id);if(i>=0)list.splice(i,1);render();toast("⚠️ تکلیف ذخیره نشد؛ اطلاعات قبلی حفظ شد");return;}
 window._hwA=null;render();toast("تکلیف این جلسه ذخیره شد");}
-function delHW(id){const d=Store.get();const i=d.homework.findIndex(h=>h.id===id);if(i<0)return;
+function delHW(id){if(!requirePerm("delete","اجازه حذف تکلیف ندارید"))return;const d=Store.get();const i=d.homework.findIndex(h=>h.id===id);if(i<0)return;
 const hw=d.homework.splice(i,1)[0];let saved=false;try{saved=saveStoreSafe();}catch(err){saved=false;}if(!saved){d.homework.splice(i,0,hw);render();toast("⚠️ حذف تکلیف ذخیره نشد؛ تکلیف حفظ شد");return;}render();
 toastUndo("🗑 حذف شد",()=>{d.homework.splice(Math.min(i,d.homework.length),0,hw);let restored=false;try{restored=saveStoreSafe();}catch(err){restored=false;}if(!restored){const at=d.homework.findIndex(x=>x.id===hw.id);if(at>=0)d.homework.splice(at,1);render();toast("⚠️ بازگردانی ذخیره نشد؛ وضعیت قبلی حفظ شد");return;}render();});}
 function copyHW(id){const hw=Store.get().homework.find(h=>h.id===id);
-if(hw)shareTxt("📚 تکلیف جلسه "+Jalali.fmt(Jalali.fromKey(hw.key))+":\n\n"+hw.text);}
+if(!hw)return;
+const when=hw.key&&validSessionKey(hw.key)?" جلسه "+Jalali.fmt(Jalali.fromKey(hw.key))+":\n\n":"\n\n";
+shareTxt("📚 تکلیف"+when+hw.text);}
 
 /* ---- تنظیمات: عملیات ---- */
 function addClass(){const d=Store.get();const startDate=$("#cDate")?($("#cDate").dataset.iso||""):"",endDate=$("#cEndDate")?($("#cEndDate").dataset.iso||""):"",start=$("#cS")?$("#cS").value:"",end=$("#cE")?$("#cE").value:"";if(!validClassTimeRange(start,end)){toast("⚠️ ساعت پایان باید بعد از ساعت شروع باشد");return;}if(startDate&&endDate&&endDate<startDate){toast("⚠️ تاریخ پایان باید بعد از شروع باشد");return;}const dow=startDate?Jalali.dow(Jalali.toJ(...startDate.split("-").map(Number))):+$("#cDow").value;
@@ -995,25 +999,16 @@ function setFS(f){const d=Store.get(),previous=d.settings.fs;if(previous===f)ret
 function applyFS(){document.documentElement.style.setProperty("--fs",{s:"13px",m:"15px",l:"17px"}[Store.get().settings.fs||"m"]);}
 function backup(){
  if(!requirePerm("backup","فقط مدیر می‌تواند پشتیبان بگیرد"))return;
- let url="";
  try{
   const snapshot=JSON.stringify(Store.get());
   if(!snapshot||snapshot==="{}")throw new Error("اطلاعات پشتیبان خالی است");
   const t=Jalali.today();
-  const a=document.createElement("a");
-  url=URL.createObjectURL(new Blob([snapshot],{type:"application/json;charset=utf-8"}));
-  a.href=url;
-  a.download="My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+String(t.jd).padStart(2,"0")+".json";
-  a.style.display="none";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}},1500);
+  const ok=downloadBlob(new Blob([snapshot],{type:"application/json;charset=utf-8"}),"My-Class-Track-Backup-"+t.jy+"-"+String(t.jm).padStart(2,"0")+"-"+String(t.jd).padStart(2,"0")+".json");
+  if(!ok)throw new Error("download failed");
   try{markBackupDone();}catch(e){}
   try{logActivity("درخواست تهیه پشتیبان");}catch(e){}
   toast("درخواست دانلود پشتیبان ارسال شد؛ ذخیره‌شدن فایل را در مرورگر بررسی کنید");
  }catch(e){
-  if(url)try{URL.revokeObjectURL(url);}catch(_){}
   toast("⚠️ آماده‌سازی پشتیبان ناموفق بود؛ فایل دانلود نشد");
  }
 }
@@ -1065,17 +1060,14 @@ else cur+=c;}
 if(q)throw new Error("یک نقل‌قول در فایل CSV بسته نشده است");
 if(cur!==""||row.length){row.push(cur);if(row.some(x=>x!==""))rows.push(row);}
 return rows;}
-function dlCSV(rows,name){let url="";
+function dlCSV(rows,name){
 try{
 const q=v=>{let s=String(v??"");if(typeof v==="string"&&/^[\u0000-\u0020]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
 const csv="\ufeff"+rows.map(r=>r.map(q).join(",")).join("\r\n");
-url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
-const a=document.createElement("a");a.href=url;
-a.download=String(name||"MCT-export.csv").replace(/[\\/:*?"<>|\u0000-\u001f]/g,"_");
-a.style.display="none";document.body.appendChild(a);a.click();a.remove();
-setTimeout(()=>{try{URL.revokeObjectURL(url);}catch(e){}},1500);
-toast("درخواست دانلود فایل CSV ارسال شد؛ ذخیره‌شدن فایل را در مرورگر بررسی کنید");
-}catch(e){if(url)try{URL.revokeObjectURL(url);}catch(_){}toast("⚠️ آماده‌سازی خروجی CSV ناموفق بود؛ فایل دانلود نشد");}}
+const ok=downloadBlob(new Blob([csv],{type:"text/csv;charset=utf-8"}),String(name||"MCT-export.csv").replace(/[\\/:*?"<>|\u0000-\u001f]/g,"_"));
+if(!ok)throw new Error("download failed");
+toast("درخواست دانلود فایل CSV ارسال شد؛ ذخیره‌شدن فایل را در سیستم بررسی کنید");
+}catch(e){toast("⚠️ آماده‌سازی خروجی CSV ناموفق بود؛ فایل دانلود نشد");}}
 function exportCSV(kind,key){const d=Store.get();let rows;
 if(kind==="fees"){const f=d.fees[key]||{};
 rows=[["نام","تلفن‌ها","وضعیت","تاریخ پرداخت","پیگیری","یادداشت"]];

@@ -1284,3 +1284,130 @@ test("invalid imported PIN hash work factors are rejected before expensive deriv
   }));
   expect(result).toEqual({ rejectedLow: null, rejectedHigh: null, rejectedSalt: null });
 });
+
+test("backup import neutralizes unsafe member ids and remaps every reference", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const bad = 'bad"><img src=x onerror=alert(1)>';
+    Store.importObj({
+      members: [{ id: bad, name: "عضو ناامن" }, { id: "safe-id_1", name: "عضو سالم" }],
+      sessions: { "1405-01-08": { [bad]: { p1: "present" } } },
+      fees: { "1405-01-08": { "safe-id_1": { paid: true } } },
+      assignments: { attend: { [bad]: "safe-id_1" }, fee: {} },
+      period: { title: "دوره", attendIds: [bad], feeIds: [], hwIds: [], note: "" },
+      pinned: [bad],
+      pinnedMembers: [bad],
+      tasks: [{ id: "task-1", title: "کار", mid: bad, key: "" }]
+    });
+    const d = Store.get();
+    const unsafe = d.members.find(m => m.name === "عضو ناامن");
+    const safe = d.members.find(m => m.name === "عضو سالم");
+    const bucket = d.sessions["1405-01-08"] || {};
+    return {
+      idSafe: /^[A-Za-z0-9_-]{1,64}$/.test(unsafe.id),
+      safeIdKept: safe.id === "safe-id_1",
+      sessionLinked: bucket[unsafe.id] && bucket[unsafe.id].p1 === "present",
+      noInjectedKey: !Object.keys(bucket).some(k => k.includes("<")),
+      feeLinked: !!(d.fees["1405-01-08"]["safe-id_1"] || {}).paid,
+      assignLinked: d.assignments.attend[unsafe.id] === "safe-id_1",
+      periodLinked: (d.period.attendIds || []).includes(unsafe.id),
+      pinnedLinked: (d.pinnedMembers || []).includes(unsafe.id),
+      taskLinked: d.tasks[0].mid === unsafe.id
+    };
+  });
+  expect(result).toEqual({
+    idSafe: true,
+    safeIdKept: true,
+    sessionLinked: true,
+    noInjectedKey: true,
+    feeLinked: true,
+    assignLinked: true,
+    periodLinked: true,
+    pinnedLinked: true,
+    taskLinked: true
+  });
+});
+
+test("login accepts Persian digits for a four-digit PIN", async ({ page }) => {
+  await page.goto("/");
+  const seeded = await page.evaluate(async () => {
+    const salt = "ffeeddccbbaa99887766554433221100";
+    const hash = await hashPin("2468", salt, 600000);
+    const d = Store.get();
+    d.users = [{ id: "fa-pin", name: "کاربر فارسی", role: "admin", pinHash: { h: hash, s: salt, i: 600000 } }];
+    d.settings.requireLogin = true;
+    d.currentUserId = null;
+    Store.save();
+    return !!hash;
+  });
+  expect(seeded).toBe(true);
+  await page.reload();
+  expect(await page.evaluate(() => loginUser("fa-pin", "۲۴۶۸"))).toBe(true);
+});
+
+test("bulk attendance rolls back atomically when storage fails", async ({ page }) => {
+  await page.goto("/");
+  const result = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "bulk-a", name: "عضو یک" }, { id: "bulk-b", name: "عضو دو" }];
+    d.sessions = {};
+    d._lastSession = "1405-01-01";
+    Store.save();
+    const originalSave = Store.save;
+    let fail = false;
+    Store.save = () => !fail;
+    try {
+      window._batchSel = new Set(["bulk-a", "bulk-b"]);
+      batchSetAtt("present");
+      const written = JSON.stringify(Store.get().sessions);
+      const sessionKey = Object.keys(Store.get().sessions)[0];
+      const undoCount = (Store.get().undoStack || []).length;
+      window._batchSel = new Set(["bulk-a", "bulk-b"]);
+      fail = true;
+      batchSetAtt("absent");
+      return {
+        writtenCount: Object.keys(Store.get().sessions[sessionKey] || {}).length,
+        writtenP1: written.includes('"p1":"present"'),
+        rollbackKeptData: JSON.stringify(Store.get().sessions) === written,
+        rollbackUndo: (Store.get().undoStack || []).length === undoCount,
+        selectionKept: window._batchSel.size === 2
+      };
+    } finally {
+      Store.save = originalSave;
+      window._batchSel = new Set();
+    }
+  });
+  expect(result).toEqual({
+    writtenCount: 2,
+    writtenP1: true,
+    rollbackKeptData: true,
+    rollbackUndo: true,
+    selectionKept: true
+  });
+});
+
+test("tuition reminder uses the selected fee session instead of the next class", async ({ page }) => {
+  await page.goto("/");
+  const text = await page.evaluate(() => {
+    const d = Store.get();
+    d.members = [{ id: "fee-pick", name: "عضو بدهکار", phones: ["09120000000"], roles: [], group: "عمومی" }];
+    d.fees = { "1404-05-05": { "fee-pick": { paid: false } }, "1405-01-01": { "fee-pick": { paid: false } } };
+    d.sessions = {};
+    d._lastSession = "1404-05-05";
+    d._lastFee = "1404-05-05";
+    Store.save();
+    const seen = [];
+    const original = waMsg;
+    window.waMsg = (phone, msg) => seen.push(msg || "");
+    try {
+      remindUnpaidWA();
+      const btn = document.querySelector(".overlay [data-wa]");
+      if (btn) btn.click();
+    } finally {
+      window.waMsg = original;
+    }
+    return seen[0] || "";
+  });
+  expect(text).toContain("۱۴۰۴/۰۵/۰۵");
+  expect(text).not.toContain("۱۴۰۵/۰۱/۰۱");
+});
