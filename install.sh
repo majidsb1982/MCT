@@ -1,17 +1,24 @@
 #!/usr/bin/env bash
-# MCT — انتشار بستهٔ files/ روی مخزن + commit + push
+# MCT — انتشار برنامه روی مخزن + commit + push
 # اجرا:  bash install.sh   (یا با مسیر مخزن:  bash install.sh ~/MCT/MCT)
 #
-# منبع یکتای برنامه، ریشهٔ مخزن است؛ پوشهٔ files/ با «node scripts/sync-files.js»
-# ساخته می‌شود و CI هم همگام‌بودن آن را بررسی می‌کند. این اسکریپت پیش از انتشار
-# سنخ نسخه را کنترل می‌کند تا زیپ قدیمی، نسخهٔ جدیدتر مخزن را عقب نبرد.
+# منبع یکتای برنامه، همان پوشه‌ای است که install.sh در آن قرار دارد (ریشهٔ زیپ).
+# اسکریپت فقط فایل‌های اجرایی برنامه را روی مخزن می‌ریزد و پیش از آن نسخهٔ کش (?v=)
+# را کنترل می‌کند تا زیپ قدیمی‌تر از مخزن، نسخهٔ منتشرشده را عقب نبرد.
 set -u
 HERE="$(cd "$(dirname "$0")" && pwd)"
-FILES="$HERE/files"
-[ -d "$FILES" ] || { echo "✗ پوشهٔ files کنار install.sh نیست — زیپ را کامل باز کن."; exit 1; }
+
+# تنها چیزهایی که از پوشهٔ برنامه روی مخزن منتشر می‌شوند.
+# اگر برنامه فایل یا پوشهٔ تازه‌ای در ریشه لازم داشت، همین‌جا اضافه شود.
+APP_ITEMS="index.html sw.js manifest.webmanifest icon.svg icon-192.svg icon-512.svg README.md css fonts icons js screenshots"
 
 cache_version(){
   grep -o '?v=[0-9]\+' "$1" 2>/dev/null | head -1 | tr -dc '0-9'
+}
+
+[ -f "$HERE/index.html" ] || {
+  echo "✗ index.html کنار install.sh نیست — زیپ باید کل ریشهٔ پروژه باشد، نه فقط install.sh."
+  exit 1
 }
 
 # ---- ۱) پیدا کردن مخزن MCT ----
@@ -26,8 +33,9 @@ if [ -z "$REPO" ] || [ ! -f "$REPO/sw.js" ] || [ ! -d "$REPO/.git" ]; then
   echo "  مسیر درست را بده، مثلا:  bash install.sh ~/MCT/MCT"
   exit 1
 fi
-echo "✓ مخزن: $REPO"
 cd "$REPO" || exit 1
+REPO="$(pwd)"
+echo "✓ مخزن: $REPO"
 
 # ---- ۲) همگام‌سازی با گیت‌هاب ----
 echo "→ git pull ..."
@@ -36,7 +44,7 @@ if ! git pull --ff-only 2>&1 | tail -1; then
   exit 1
 fi
 
-# ---- ۳) مخزن باید تمیز باشد تا انتشار فقط همان بسته را داشته باشد ----
+# ---- ۳) مخزن باید تمیز باشد تا انتشار فقط همین بسته را داشته باشد ----
 if [ -n "$(git status --porcelain)" ]; then
   echo "✗ مخزن تغییر commitنشده دارد — انتشار متوقف شد."
   echo "  تغییرات را commit یا stash کن و دوباره اجرا کن:  git status"
@@ -44,7 +52,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # ---- ۴) کنترل نسخهٔ بسته ----
-ZVER="$(cache_version "$FILES/index.html")"
+ZVER="$(cache_version "$HERE/index.html")"
 RVER="$(cache_version "index.html")"
 if [ -z "$ZVER" ] || [ -z "$RVER" ]; then
   echo "✗ نسخهٔ کش (?v=) در index.html پیدا نشد — بستهٔ ناقص است."
@@ -52,34 +60,41 @@ if [ -z "$ZVER" ] || [ -z "$RVER" ]; then
 fi
 if [ "$ZVER" -lt "$RVER" ]; then
   echo "✗ زیپ (v$ZVER) از مخزن (v$RVER) قدیمی‌تر است؛ برای جلوگیری از برگشت نسخه متوقف شد."
-  echo "  زیپ تازه بساز:  node scripts/sync-files.js   سپس بسته را از نو ببند."
+  echo "  زیپ را از ریشهٔ به‌روز پروژه دوباره بساز."
   exit 1
 fi
 echo "✓ نسخهٔ بسته v$ZVER — نسخهٔ مخزن v$RVER"
 
-# ---- ۵) کپی بسته روی مخزن ----
-cp -r "$FILES/." "$REPO/"
+# ---- ۵) کپی فایل‌های برنامه روی مخزن ----
+copy_app(){
+  for item in $APP_ITEMS; do
+    if [ -d "$HERE/$item" ]; then
+      rm -rf "$REPO/$item" || return 1
+      cp -R "$HERE/$item" "$REPO/$item" || return 1
+    elif [ -f "$HERE/$item" ]; then
+      cp "$HERE/$item" "$REPO/$item" || return 1
+    else
+      echo "✗ «$item» در پوشهٔ install.sh نیست — زیپ ناقص است."
+      return 1
+    fi
+  done
+}
+
+if [ "$HERE" = "$REPO" ]; then
+  echo "• install.sh داخل خود مخزن اجرا شد — فایلی برای کپی نبود."
+elif ! copy_app; then
+  git reset --hard -q HEAD
+  git clean -qfd
+  echo "✗ کپی کامل نشد؛ تغییرات نیمه‌کاره برگشت داده شد."
+  exit 1
+fi
+
 git add -A
 echo "---- فایل‌های stage شده ----"
 git status --short
 echo "----------------------------"
 
-# ---- ۶) بازسازی کپی files/ و بررسی همگام‌بودن ----
-# فایل‌های files/ در مخزن هم نگهداری می‌شوند؛ پس در همان commit از ریشه بازسازی می‌شوند
-# تا هیچ‌وقت دو نسخه از برنامه در مخزن نماند.
-if command -v node >/dev/null 2>&1 && [ -f scripts/sync-files.js ]; then
-  node scripts/sync-files.js || { git reset --hard -q HEAD; git clean -qfd; exit 1; }
-  git add -A
-  if ! node scripts/sync-files.js --check; then
-    echo "✗ بستهٔ files/ با ریشهٔ مخزن همگام نیست — انتشار متوقف شد و تغییرات برگشت داده شد."
-    git reset --hard -q HEAD; git clean -qfd
-    exit 1
-  fi
-else
-  echo "• node یا scripts/sync-files.js در دسترس نیست؛ بازسازی و بررسی files/ انجام نشد."
-fi
-
-# ---- ۷) commit ----
+# ---- ۶) commit ----
 if git config user.email >/dev/null 2>&1 && git config user.name >/dev/null 2>&1; then
   :
 else
@@ -95,7 +110,7 @@ if ! git commit -m "release: publish app shell (cache v$ZVER)"; then
   exit 1
 fi
 
-# ---- ۸) push ----
+# ---- ۷) push ----
 if [ "${MCT_NO_PUSH:-0}" = "1" ]; then
   echo "• MCT_NO_PUSH=1 است — push انجام نشد (فقط تست محلی)."
   exit 0

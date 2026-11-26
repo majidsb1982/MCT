@@ -75,10 +75,6 @@ jobs:
           }
           console.log('Static IDs and cache-busting versions are consistent.');
           NODE
-      - name: Check files/ publish copy is in sync
-        run: |
-          set -e
-          node scripts/sync-files.js --check
       - name: Check local HTML and offline-shell references
         run: |
           node <<'NODE'
