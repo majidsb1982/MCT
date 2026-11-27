@@ -278,7 +278,7 @@ let h='<div class="card"><h3>📞 پیگیری تماس‌های قبل از ج�
 h+='<div class="progress"><i style="width:'+pct+'%"></i></div><p class="stat-line">ثبت‌شده: <b style="color:var(--p)">'+Jalali.toFa(done.length)+"</b> از "+Jalali.toFa(d.members.length)+'</p>'+
 '<div class="row" style="margin:10px 0 6px"><button class="chip'+(!UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(false)">⏳ ثبت‌نشده ('+Jalali.toFa(need.length)+')</button><button class="chip'+(UI.doneTab?" on":"")+'" style="flex:1" onclick="setDoneTab(true)">✓ ثبت‌شده ('+Jalali.toFa(done.length)+')</button></div>'+
 '<div class="row" style="margin-bottom:6px;gap:6px;flex-wrap:wrap">'+filterBar("جستجوی نام در لیست")+sortSelectHTML("مرتب‌سازی لیست حضور")+'</div>'+
-'<button class="btn p sm" onclick="openEntry()">🚪 نوبت ۲ پشت در</button><button class="btn g sm" onclick="reportRoundToHami(1)">📤 گزارش به حامی</button><button class="btn ghost sm" onclick="showReport(1)" aria-label="گزارش">📨</button><button class="btn ghost sm" onclick="printAttendReport()" aria-label="چاپ گزارش">🖨</button><button class="btn ghost sm" onclick="exportCSV(\'attend\',\''+key+'\')" aria-label="خروج اکسل">📊</button></div>';
+'<button class="btn p sm" onclick="openEntry()">🚪 نوبت ۲ پشت در</button><button class="btn g sm" onclick="reportRoundToHami(1)">📤 گزارش به حامی</button><button class="btn ghost sm" onclick="showReport(1)" aria-label="گزارش">📨</button><button class="btn ghost sm" onclick="printAttendReport()" aria-label="چاپ گزارش">🖨</button><button class="btn ghost sm" onclick="exportCSV(\'attend\',\''+key+'\')" aria-label="خروج اکسل">📊</button><button class="btn ghost sm" onclick="memberForm()" aria-label="افزودن عضو جدید">＋ عضو</button><button class="btn ghost sm" onclick="openBatchPicker()" aria-label="انتخاب چندنفره">☑</button></div>';
 const fl=UI.filter;
 if(UI.doneTab){
 const dl=fl?done.filter(m=>m.name.includes(fl)):done;
@@ -396,10 +396,12 @@ if(UI.feeTab===0){
 const list=pick(d.members);
 h+='<div class="card">';
 for(const m of list){const st=f[m.id];
-h+='<div class="mem payrow" data-key="'+key+'" data-mid="'+m.id+'" role="button" aria-label="تغییر وضعیت پرداخت '+esc(m.name)+'">'+avatar(m)+"<b>"+esc(m.name)+"</b>";
+/* mblk: جستجوی نام در تب پرداخت‌ها هم کار می‌کند (v129) */
+h+='<div class="mblk" data-mid="'+m.id+'"><div class="mem payrow" data-key="'+key+'" data-mid="'+m.id+'" role="button" aria-label="تغییر وضعیت پرداخت '+esc(m.name)+'">'+avatar(m)+"<b>"+esc(m.name)+"</b>";
 h+=st&&st.paid?'<span class="badge b-ok" style="margin-right:auto">پرداخت شد ✅</span>':'<span class="badge b-bad" style="margin-right:auto">پرداخت نشده</span>';
 h+="</div>";
-if(st&&st.paid)h+='<input name="fee-note-'+m.id+'" aria-label="یادداشت فیش '+esc(m.name)+'" class="fee-note" data-key="'+key+'" data-mid="'+m.id+'" placeholder="یادداشت فیش (مثلاً: عکس در واتساپ)" value="'+esc(st.note||"")+'" style="margin:-4px 0 8px;font-size:.9em">';}
+if(st&&st.paid)h+='<input name="fee-note-'+m.id+'" aria-label="یادداشت فیش '+esc(m.name)+'" class="fee-note" data-key="'+key+'" data-mid="'+m.id+'" placeholder="یادداشت فیش (مثلاً: عکس در واتساپ)" value="'+esc(st.note||"")+'" style="margin:-4px 0 8px;font-size:.9em">';
+h+="</div>";}
 h+="</div>";
 }else if(UI.feeTab===1){
 const list=pick(follow);
@@ -490,14 +492,34 @@ const mm=t.mid?d.members.find(x=>x.id===t.mid):null;
 return '<div class="mblk" data-tid="'+t.id+'"><div class="mem'+(t.done?" done":"")+'">'+
 '<input type="checkbox" name="task-done-'+t.id+'" '+(t.done?"checked":"")+' onchange="toggleTaskDone(\''+t.id+'\')" aria-label="انجام شد: '+esc(t.title)+'" style="width:auto;min-height:0;flex:none">'+
 '<b style="flex:1;'+(t.done?"text-decoration:line-through;opacity:.6":"")+'">'+esc(t.title)+'</b>'+
-(t.key?'<span class="mem-muted">📅 '+Jalali.toFa(Jalali.fmt(Jalali.fromKey(t.key)))+'</span>':'<span class="mem-muted">عمومی</span>')+
+(t.key?'<span class="mem-muted">📅 '+Jalali.toFa(Jalali.fmt(Jalali.fromKey(t.key)))+'</span>':'')+
 '<select onchange="setTaskAssignee(\''+t.id+'\',this.value)" aria-label="مسئول وظیفه: '+esc(t.title)+'" style="min-width:110px"><option value="">— مسئول —</option>'+
 d.members.map(x=>'<option value="'+x.id+'"'+(t.mid===x.id?" selected":"")+'>'+esc(x.name)+'</option>').join("")+'</select>'+
 '<button class="btn sm ghost ico-btn" onclick="delTask(\''+t.id+'\')" aria-label="حذف وظیفه">🗑</button></div>'+
 (mm?'<div class="row" style="margin-top:4px;gap:4px">'+callBtns(mm)+'</div>':'')+'</div>';
 };
-h+='<div class="sec-label">وظایف این جلسه ('+Jalali.toFa(sessionTasks.length)+')</div><div class="card">'+(sessionTasks.length?sessionTasks.map(row).join(""):'<div class="empty">برای این جلسه وظیفه‌ای نیست</div>')+'</div>';
-h+='<div class="sec-label">وظایف عمومی ('+Jalali.toFa(generalTasks.length)+')</div><div class="card">'+(generalTasks.length?generalTasks.map(row).join(""):'<div class="empty">وظیفه عمومی ثبت نشده</div>')+'</div>';
+/* v129: وظایف به‌تفکیک مسئول — هر نفر با آواتار و شمار باز/کل؛ بدون مسئول بخش خودش را دارد */
+const taskGroupHTML=(tasks,emptyMsg)=>{
+if(!tasks.length)return'<div class="empty">'+emptyMsg+'</div>';
+const byMember=new Map();const none=[];
+tasks.forEach(t=>{if(t.mid)byMember.set(t.mid,(byMember.get(t.mid)||[]).concat([t]));else none.push(t);});
+let out="";
+d.members.forEach(m=>{
+const list=byMember.get(m.id);if(!list)return;byMember.delete(m.id);
+const openN=list.filter(t=>!t.done).length;
+out+='<div class="task-person">'+avatar(m)+'<b style="flex:1;min-width:0">'+esc(m.name)+'</b>'+
+'<span class="tp-count'+(openN?" tp-open":"")+'">'+(openN?Jalali.toFa(openN)+" باز از "+Jalali.toFa(list.length):"انجام شد ✓")+'</span></div>'+
+list.map(row).join("");
+});
+byMember.forEach(list=>{none.push.apply(none,list);}); /* مسئول حذف‌شده → بدون مسئول */
+if(none.length){
+out+='<div class="task-person"><span class="tp-avatar" aria-hidden="true">؟</span><b style="flex:1;min-width:0">بدون مسئول</b><span class="tp-count tp-open">'+Jalali.toFa(none.filter(t=>!t.done).length)+" باز از "+Jalali.toFa(none.length)+'</span></div>'+
+none.map(row).join("");
+}
+return out;
+};
+h+='<div class="sec-label">وظایف این جلسه ('+Jalali.toFa(sessionTasks.length)+')</div><div class="card">'+taskGroupHTML(sessionTasks,'برای این جلسه وظیفه‌ای نیست')+'</div>';
+h+='<div class="sec-label">وظایف عمومی ('+Jalali.toFa(generalTasks.length)+')</div><div class="card">'+taskGroupHTML(generalTasks,'وظیفه عمومی ثبت نشده')+'</div>';
 el.innerHTML=h;}
 function addTask(){
 if(!requirePerm("edit","اجازه افزودن وظیفه ندارید"))return;
@@ -593,7 +615,7 @@ el.innerHTML=
 '<div class="card"><h3>🔔 هوشمندسازی</h3><div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sm ghost" onclick="enableNotifs()">🔔 اعلان کلاس</button><button class="btn sm ghost" onclick="togglePrivacyMode()">🔒 حریم خصوصی</button><button class="btn sm ghost" onclick="editTemplates()">📝 الگوهای پیام</button><button class="btn sm ghost" onclick="toggleAutoTheme()">🌓 تم خودکار</button><button class="btn sm ghost" onclick="toggleA11y()">♿ دسترسی‌پذیری</button><button class="btn sm ghost" onclick="toggleOled()">⬛ OLED</button><button class="btn sm ghost" onclick="openCommandPalette()">⌘ دستورات</button><button class="btn sm ghost" onclick="performUndo()">↩ بازگشت</button><button class="btn sm ghost" onclick="handoffPackage()">📦 تحویل شیفت</button><button class="btn sm ghost" onclick="compactSyncExport()">🔗 همگام فشرده</button><button class="btn sm ghost" onclick="communicationHub()">📡 ارتباطات</button><button class="btn sm ghost" onclick="copyPrevSession()">📋 کپی جلسه قبل</button><button class="btn sm ghost" onclick="transferMyTasks()">🔄 انتقال وظایف</button><button class="btn sm ghost" onclick="toggleFocusMode()">🎯 تمرکز پشت‌در</button><button class="btn sm ghost" onclick="shareStoryCard()">📸 کارت استوری</button><button class="btn sm ghost" onclick="exportICS()">📅 خروجی تقویم</button><button class="btn sm ghost" onclick="shareClassCode()">📲 اشتراک QR</button><button class="btn sm ghost" onclick="showInsights()">✨ بینش</button></div><p class="stat-line" style="margin-top:8px">اعلان ۱۵ دقیقه قبل از کلاس · تقویم ICS · اشتراک برنامه</p></div>'+
 '<div class="card"><h3>👥 کاربران و دسترسی</h3><p class="role-hint">استفاده مشترک: برای هر نفر کاربر و رمز جدا بسازید.</p><div class="toggle-row"><span>ورود با رمز اجباری</span><button type="button" class="sw '+(st.requireLogin?"on":"")+'" id="swLogin"></button></div><div class="toggle-row"><span>تأیید قبل از کارهای مهم</span><button type="button" class="sw '+(st.quickConfirm!==false?"on":"")+'" id="swConfirm"></button></div><div id="userList" style="margin-top:8px"></div><button class="btn sm p" style="margin-top:8px" id="btnAddUser">＋ کاربر جدید</button> <button class="btn sm ghost" style="margin-top:8px" id="btnLogout">خروج</button></div>'+'<div class="card"><h3>💾 پشتیبان و بازیابی</h3><div class="row"><button class="btn p" style="flex:1" onclick="backup()">⬇️ پشتیبان</button><button class="btn ghost" style="flex:1" onclick="document.getElementById(\'rf\').click()">⬆️ بازیابی</button><input type="file" id="rf" class="sr" accept=".json" onchange="restore(this)"></div>'+
 '<button class="btn g" style="width:100%;margin-top:8px" onclick="shareBackup()">📤 ارسال داده برای همگام‌سازی</button></div>'+
-'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۲۶ (بازطراحی UI/UX و ارگونومی) — کاملاً آفلاین<br>حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
+'<div class="card"><h3>ℹ️ درباره</h3><p class="stat-line">My-Class-Track — نسخه ۱۲۹ (بازبینی کامل، رفع اشکال و بهبود کاربردپذیری) — کاملاً آفلاین<br>حجم داده: '+Jalali.toFa(~~sz)+' کیلوبایت از ~۵ مگابایت</p>'+
 '<button class="btn d" style="width:100%" onclick="wipeAll()">🗑 پاک کردن همه داده‌ها</button></div>';
 
 /* Settings are presented as a compact shortcut hub; the original controls remain available in their category. */
@@ -688,6 +710,8 @@ window.showMembersHelp=showMembersHelp;
 let memberSortMode="name";
 /* مرتب‌سازی مشترک برای همه لیست‌ها (اعضا، حضور، شهریه، نوبت ۲) */
 function familyName(m){if(m.lname)return m.lname;const p=String(m.name||"").trim().split(/\s+/);return p.length>1?p[p.length-1]:p[0]||"";}
+/* نام خانوادگی برای فرم ویرایش — نام تک‌واژه‌ای یعنی نام خانوادگی خالی تا در ذخیره تکرار نشود (v129) */
+function lastNameOf(m){if(m.lname)return m.lname;const p=String(m.name||"").trim().split(/\s+/);return p.length>1?p[p.length-1]:"";}
 function firstNameOf(m){if(m.fname)return m.fname;const p=String(m.name||"").trim().split(/\s+/);return p[0]||"";}
 function birthSortKey(m,monthOnly){const b=m.birth;if(!b)return"9999-99-99";const y=String(b.jy).padStart(4,"0"),mo=String(b.jm).padStart(2,"0"),da=String(b.jd).padStart(2,"0");return monthOnly?mo+"-"+da:y+"-"+mo+"-"+da;}
 function phoneKey(m){return (m.phones||[]).filter(Boolean)[0]||"~~~~~~~~";}
@@ -745,7 +769,7 @@ const o=modal("<h3 style='font-weight:800'>"+(m?"✏️ ویرایش عضو":"�
 '<div class="row"><button class="btn sm ghost" onclick="document.getElementById(\'phFile\').click()">📷 عکس</button>'+
 ((m&&safeMedia(m.photo,"image"))?'<button class="btn sm ghost" onclick="delPhoto()">🗑 حذف عکس</button>':"")+"</div></div></div>"+
 "<label>نام *</label><input id='fName' name='m-first' autocomplete='off' value='"+esc(m?(m.fname||firstNameOf(m)):"")+"'>"+
-"<label>نام خانوادگی</label><input id='fLName' name='m-last' autocomplete='off' value='"+esc(m?(m.lname||familyName(m)):"")+"'>"+
+"<label>نام خانوادگی</label><input id='fLName' name='m-last' autocomplete='off' value='"+esc(m?(m.lname||lastNameOf(m)):"")+"'>"+
 "<label>شماره‌های تماس (تا ۳ شماره)</label><div id='phList'></div>"+
 "<button type='button' class='btn sm ghost' id='addPh' style='margin:4px 0'>＋ شماره دیگر</button>"+
 "<label>تاریخ تولد (شمسی)</label><input id='fBirth' name='m-birth' readonly placeholder='انتخاب کنید' value='"+(m&&m.birth?Jalali.fmt(m.birth):"")+"' onclick='pickBirth()' style='cursor:pointer'>"+
@@ -1077,7 +1101,7 @@ else if(kind==="attend"){const s=d.sessions[key]||{};
 rows=[["نام","تلفن‌ها","تماس قبلی","ساعت","یادداشت","ثبت ورود","ساعت","یادداشت"]];
 for(const m of d.members){const c=s[m.id]||{};
 rows.push([m.name,(m.phones||[]).join(" / "),c.p1?ST.lbl[c.p1]:"ثبت‌نشده",fmtAttTime(c.time),c.note||"",c.p2?ST.lbl[c.p2]:"ثبت‌نشده",fmtAttTime(c.time2),c.note2||""]);}}
-else rows=[["نام","تلفن‌ها","تولد","نقش‌ها","گروه","یادداشت عمومی","نیازها"],...d.members.map(m=>[m.name,(m.phones||[]).join(" / "),m.birth?Jalali.fmt(m.birth):"",(m.roles||[]).join("|"),m.group||"عمومی",m.note||"",(m.needs||[]).join("|")])];
+else rows=[["نام","نام خانوادگی","تلفن‌ها","تولد","نقش‌ها","گروه","یادداشت عمومی","نیازها"],...d.members.map(m=>[firstNameOf(m),lastNameOf(m),(m.phones||[]).join(" / "),m.birth?Jalali.fmt(m.birth):"",(m.roles||[]).join("|"),m.group||"عمومی",m.note||"",(m.needs||[]).join("|")])];
 dlCSV(rows,kind+"-"+key+".csv");}
 function exportMembersCSV(){exportCSV("members","members");}
 function importMembersCSV(inp){const f=inp&&inp.files&&inp.files[0];if(!f)return;
@@ -1094,6 +1118,7 @@ const iRole=hasHead?findCol(["نقش‌ها","نقش ها","نقش"]):3;
 const iGroup=hasHead?findCol(["گروه"]):-1;
 const iNote=hasHead?findCol(["یادداشت عمومی","یادداشت","توضیحات"]):4;
 const iNeeds=hasHead?findCol(["نیازها","نیاز"]):-1;
+const iLast=hasHead?findCol(["نام خانوادگی"]):-1;
 if(iName<0){toast("⚠️ ستون «نام» در فایل پیدا نشد");return;}
 const normalizeName=v=>String(v||"").trim().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/\u200c/g,"").replace(/\s+/g," ").toLowerCase();
 const d=Store.get(),existingNames=new Set((d.members||[]).map(m=>normalizeName(m.name)));
@@ -1101,7 +1126,9 @@ const seenNames=new Set(existingNames),candidates=[];let skip=0,sharedPhoneCount
 const phoneOwners=new Map();
 (d.members||[]).forEach(m=>(m.phones||[]).forEach(p=>{const key=canonicalPhone(p);if(key)phoneOwners.set(key,(phoneOwners.get(key)||0)+1);}));
 for(let i=hasHead?1:0;i<rows.length;i++){
- const row=rows[i],name=(row[iName]||"").trim();
+ const row=rows[i];let name=(row[iName]||"").trim();
+ /* ستون «نام خانوادگی» اگر بود به نام کامل اضافه می‌شود (خروجی v129) */
+ if(iLast>=0&&(row[iLast]||"").trim()&&row[iLast].trim()!==name)name=(name+" "+row[iLast].trim()).trim();
  if(!name)continue;
  const nameKey=normalizeName(name);
  if(seenNames.has(nameKey)){skip++;continue;}

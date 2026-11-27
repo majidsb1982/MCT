@@ -429,7 +429,8 @@ function presenceStreak(id){
   let s=0;
   for(const k of keys){
     const st=(d.sessions[k][id]||{}).p2||(d.sessions[k][id]||{}).p1;
-    if(st==="present"||st==="delay")s++;
+    /* حضور آنلاین هم جزو استریک حضور است (v129) */
+    if(st==="present"||st==="delay"||st==="online")s++;
     else break;
   }
   return s;
@@ -827,6 +828,8 @@ function wireHomeSplit(){
 
 /* ============ v15: پیشرفته ============ */
 function togglePin(id){
+  /* v129: یک مسیر واحد سنجاق — همان togglePinMember که هر دو آرایه را هم‌گام نگه می‌دارد */
+  if(typeof togglePinMember==="function"){togglePinMember(id);return;}
   const d=Store.get(),hadPinned=Array.isArray(d.pinned),previous=hadPinned?d.pinned.slice():[];
   d.pinned=previous.slice();
   const i=d.pinned.indexOf(id);
@@ -960,7 +963,7 @@ function weeklyDigest(){
     let p=0,t=d.members.length||1;
     d.members.forEach(m=>{
       const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;
-      if(st==="present"||st==="delay")p++;
+      if(st==="present"||st==="delay"||st==="online")p++;
     });
     lines.push(Jalali.fmt(Jalali.fromKey(k))+" — حضور تقریبی "+Jalali.toFa(Math.round(p/t*100))+"٪ ("+Jalali.toFa(p)+"/"+Jalali.toFa(t)+")");
   });
@@ -1220,8 +1223,16 @@ function showMemberTimeline(id){
 window._batchSel=window._batchSel||new Set();
 window._listFilter=window._listFilter||"all";
 function setListFilter(f){window._listFilter=f;render();}
+/* v129: نوار انتخاب چندنفره فقط وقتی انتخابی وجود دارد ساخته می‌شود */
+function ensureBatchBar(){
+  if(!window._batchSel.size)return;
+  const app=document.getElementById("app");
+  if(!app||document.getElementById("batchBar"))return;
+  app.insertAdjacentHTML("afterbegin",batchBarHTML());
+}
 function toggleBatchPick(id){
   if(window._batchSel.has(id))window._batchSel.delete(id);else window._batchSel.add(id);
+  ensureBatchBar();
   // update UI without full render if possible
   document.querySelectorAll(".mem[data-mid=\""+id+"\"]").forEach(el=>el.classList.toggle("pick",window._batchSel.has(id)));
   const bar=document.getElementById("batchBar");
@@ -1577,7 +1588,9 @@ function Pages_help(el){
   '<div class="card help-sec"><h4>۲) نوبت ۱ — تماس قبلی</h4>'+
   '<p>چند ساعت یا یک روز قبل از کلاس:</p>'+
   '<ol><li>تب <b>حضور</b> را باز کنید.</li>'+
-  '<li>برای هر نفر وضعیت را ثبت کنید (حاضر / تأخیر / بدون حضور / مشکل).</li>'+
+  '<li>برای هر نفر وضعیت را ثبت کنید: <b>حاضر / تأخیر / غایب / مشکل / آنلاین</b> — عضوی که نمی‌تواند حاضر شود را «آنلاین» بزنید تا در همه گزارش‌ها حضور حساب شود.</li>'+
+  '<li>با فهرست «مرتب‌سازی» بالای لیست، اعضا را بر اساس نام، نام خانوادگی، سال یا ماه تولد و شماره تماس بچینید.</li>'+
+  '<li>برای ثبت گروهی، دکمه <b>☑</b> (یا نگه‌داشتن انگشت روی ردیف) را استفاده کنید.</li>'+
   '<li>دکمه <b>گزارش به حامی</b> را بزنید و برای حامی‌ها بفرستید.</li></ol></div>'+
 
   '<div class="card help-sec"><h4>۳) نوبت ۲ — پشت در کلاس</h4>'+
@@ -1586,8 +1599,9 @@ function Pages_help(el){
   '<li>چک‌لیست ۱۵ / ۸ / ۵ / ۳ دقیقه را برای اعلام به درمانگر تیک بزنید؛ در ۳ دقیقه در را باز کنید.</li>'+
   '<li>دوباره <b>گزارش این نوبت به حامی‌ها</b> را ارسال کنید.</li></ol></div>'+
 
-  '<div class="card help-sec"><h4>۴) شهریه</h4>'+
-  '<p>مهلت پیش‌فرض: <b>یک روز قبل از کلاس</b>. اعضا فیش را در واتساپ می‌فرستند؛ شما وضعیت را در اپ ثبت می‌کنید.</p>'+
+  '<div class="card help-sec"><h4>۴) وظایف و شهریه</h4>'+
+  '<p>در تب <b>وظایف</b> کارهای جلسه را بین اعضا تقسیم کنید؛ وظایف هر نفر با نام و عکس او دسته‌بندی می‌شود و «تقسیم خودکار» کارهای باز را بین همه پخش می‌کند.</p>'+
+  '<p>مهلت پیش‌فرض شهریه: <b>یک روز قبل از کلاس</b>. اعضا فیش را در واتساپ می‌فرستند؛ شما وضعیت را در اپ ثبت می‌کنید.</p>'+
   '<ol><li>تب شهریه → پرداخت‌شده را تیک بزنید.</li>'+
   '<li>خروجی اکسل بگیرید.</li>'+
   '<li>گزارش شهریه را برای حامی‌ها بفرستید.</li></ol></div>'+
@@ -1619,7 +1633,7 @@ function Pages_help(el){
   '<li>یادداشت محرمانه در گزارش حامی نمی‌آید.</li>'+
   '<li>حالت حریم خصوصی عکس و شماره را محو می‌کند.</li></ul></div>'+
 
-  '<div class="card"><button class="btn p" style="width:100%;display:block;text-align:center" onclick="openCommandPalette()">⌘ جستجوی سریع دستورات</button><button class="btn ghost" style="width:100%;margin-top:8px" onclick="go(\'home\')">🏠 بازگشت به خانه</button></div>'+
+  '<div class="card"><button class="btn p" style="width:100%;display:block;text-align:center" onclick="openCommandPalette()">⌘ جستجوی سریع دستورات</button><a class="btn ghost" style="width:100%;display:block;text-align:center;text-decoration:none;margin-top:8px" href="docs/GUIDE.md" target="_blank">📖 راهنمای کامل</a><button class="btn ghost" style="width:100%;margin-top:8px" onclick="go(\'home\')">🏠 بازگشت به خانه</button></div>'+
   '</div>';
 }
 Pages.help=Pages_help;
@@ -1868,7 +1882,7 @@ function computeInsights(){
   let presentRate=[],absentLeaders={},payRate=0,paidN=0,feeKeys=Object.keys(d.fees||{});
   keys.slice(-8).forEach(k=>{
     const s=d.sessions[k]||{};let p=0;
-    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay")p++;if(st==="absent")absentLeaders[m.id]=(absentLeaders[m.id]||0)+1;});
+    d.members.forEach(m=>{const st=(s[m.id]||{}).p2||(s[m.id]||{}).p1;if(st==="present"||st==="delay"||st==="online")p++;if(st==="absent")absentLeaders[m.id]=(absentLeaders[m.id]||0)+1;});
     presentRate.push(Math.round(p/total*100));
   });
   const lastFee=feeKeys.sort().reverse()[0];
@@ -2127,6 +2141,8 @@ function delGroup(g){
       previousMembers.forEach(old=>{const m=d.members.find(x=>x.id===old.id);if(m)m.group=old.group;});
       toast("⚠️ حذف گروه ذخیره نشد؛ گروه و اعضا حفظ شدند");return;
     }
+    /* اگر فیلتر فعال روی همین گروه بود پاک می‌شود تا لیست گمراه‌کننده نشود (v129) */
+    if(typeof UI!=="undefined"&&UI.memberGroup===g){UI.memberGroup="";document.querySelectorAll(".grp-chip").forEach(c=>c.classList.toggle("on",!c.dataset.grp));}
     render();
   });
 }

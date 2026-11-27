@@ -1124,7 +1124,7 @@ test("storage card shows real browser quota via Storage Quota API", async ({ pag
   await expect(page.locator("#storBody")).toContainText("فضای واقعی مصرفی", { timeout: 7000 });
 });
 
-test("service worker activates with reminder handlers and cache v126", async ({ page }) => {
+test("service worker activates with reminder handlers and cache v130", async ({ page }) => {
   await page.goto("/");
   const info = await page.evaluate(async () => {
     try {
@@ -1410,4 +1410,179 @@ test("tuition reminder uses the selected fee session instead of the next class",
   });
   expect(text).toContain("۱۴۰۴/۰۵/۰۵");
   expect(text).not.toContain("۱۴۰۵/۰۱/۰۱");
+});
+
+/* ============ v129: بازبینی کامل — تست‌های رفع اشکال ============ */
+
+test("v130: editing a single-word-name member does not duplicate the name", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [{ id: "single-name", name: "علی", phones: [], roles: [], group: "عمومی" }];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="اعضا"]').click();
+  await page.locator('.mem-row', { hasText: "علی" }).first().locator('button[aria-label="ویرایش"]').click();
+  const lname = await page.locator("#fLName").inputValue();
+  expect(lname).toBe("");
+  await page.locator("#fSave").click();
+  await expect.poll(() => page.evaluate(() => {
+    const m = Store.get().members.find(x => x.id === "single-name");
+    return m ? m.name : "";
+  })).toBe("علی");
+});
+
+test("v130: online attendance counts toward insights and streak", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [{ id: "on-m", name: "عضو آنلاین", phones: [], roles: [], group: "عمومی" }];
+    d.sessions = { "1404-01-10": { "on-m": { p1: "online", p2: "online" } } };
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  const stats = await page.evaluate(() => ({
+    rate: computeInsights().presentRate,
+    streak: presenceStreak("on-m")
+  }));
+  expect(stats.rate).toEqual([100]);
+  expect(stats.streak).toBe(1);
+});
+
+test("v130: search filters the payments tab rows too", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [
+      { id: "fee-sara", name: "سارا محمدی", phones: [], roles: [], group: "عمومی" },
+      { id: "fee-reza", name: "رضا احمدی", phones: [], roles: [], group: "عمومی" }
+    ];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="شهریه"]').click();
+  await page.locator("input[name='list-filter']").fill("سارا");
+  /* فیلتر در v128 با تأخیر کوتاه اعمال می‌شود — با poll صبر می‌کنیم */
+  await expect.poll(async () => await page.locator('.mblk[data-mid="fee-reza"]').isHidden(), { timeout: 5000 }).toBe(true);
+  await expect(page.locator('.mblk[data-mid="fee-sara"]')).toBeVisible();
+});
+
+test("v130: a session that only has tasks stays selected", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [{ id: "tk-m", name: "مسئول جلسه", phones: [], roles: [], group: "عمومی" }];
+    d.tasks = [{ id: "t-only", title: "چیدمان صندلی", mid: "", key: "1404-01-15", done: false }];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.evaluate(() => setSel("1404-01-15"));
+  const sel = await page.evaluate(() => sessionSel());
+  expect(sel).toBe("1404-01-15");
+});
+
+test("v130: tasks page groups tasks by assignee with per-person counters", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [
+      { id: "m-a", name: "آذر پارسا", phones: [], roles: [], group: "عمومی" },
+      { id: "m-b", name: "بهنام راد", phones: [], roles: [], group: "عمومی" }
+    ];
+    d.tasks = [
+      { id: "t1", title: "خرید میان‌وعده", mid: "m-a", key: "", done: false },
+      { id: "t2", title: "چیدمان صندلی", mid: "m-a", key: "", done: true },
+      { id: "t3", title: "خوشامدگویی", mid: "", key: "", done: false }
+    ];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.evaluate(() => go("tasks"));
+  const persons = page.locator(".task-person");
+  await expect(persons).toHaveCount(2);
+  await expect(persons.first()).toContainText("آذر پارسا");
+  await expect(persons.first()).toContainText("۱ باز از ۲");
+  await expect(persons.last()).toContainText("بدون مسئول");
+  const titles = await page.locator("#app").innerHTML();
+  expect(titles).toContain("خرید میان‌وعده");
+  expect(titles).toContain("خوشامدگویی");
+});
+
+test("v130: attendance page has a multi-select button that applies statuses to picked members", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [
+      { id: "b1", name: "انتخابی اول", phones: [], roles: [], group: "عمومی" },
+      { id: "b2", name: "انتخابی دوم", phones: [], roles: [], group: "عمومی" }
+    ];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  await page.locator('button[aria-label="انتخاب چندنفره"]').click();
+  const dlg = page.locator(".modal");
+  await expect(dlg).toContainText("انتخاب چندنفره");
+  await dlg.locator('input[data-id="b1"]').check();
+  await dlg.locator("#bpP").click();
+  await expect.poll(() => page.evaluate(() => {
+    const d = Store.get();
+    const s = d.sessions[sessionSel()] || {};
+    return s["b1"] ? s["b1"].p1 : null;
+  })).toBe("present");
+  const b2 = await page.evaluate(() => {
+    const d = Store.get();
+    const s = d.sessions[sessionSel()] || {};
+    return s["b2"] ? s["b2"].p1 || null : null;
+  });
+  expect(b2).toBeNull();
+});
+
+test("v130: CSV with a separate family-name column is imported as the full name", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('#nav button[aria-label="اعضا"]').click();
+  const csv = [
+    "نام,نام خانوادگی,تلفن‌ها",
+    "\"نرگس\",\"مهدوی\",\"۰۹۱۲۰۰۰۰۰۰۰\""
+  ].join("\r\n");
+  await page.locator("#mimp").setInputFiles({
+    name: "members-family-col.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(csv, "utf8")
+  });
+  await expect.poll(() => page.evaluate(() => Store.get().members.some(m => m.name === "نرگس مهدوی"))).toBeTruthy();
+});
+
+test("v130: help page links to a guide document that exists on the server", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => go("help"));
+  const link = page.locator('#app a:has-text("راهنمای کامل")');
+  await expect(link).toBeVisible();
+  const href = await link.getAttribute("href");
+  expect(href).toBe("docs/GUIDE.md");
+  const status = await page.evaluate(async h => (await fetch(h)).status, href);
+  expect(status).toBe(200);
+});
+
+test("v130: attendance page offers a quick add-member button", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    const d = Store.get();
+    d.settings.requireLogin = false;
+    d.members = [{ id: "qa-m", name: "عضو موجود", phones: [], roles: [], group: "عمومی" }];
+    localStorage.setItem("mct:data", JSON.stringify(d));
+  });
+  await page.reload();
+  await page.locator('#nav button[aria-label="حضور"]').click();
+  await page.locator('#app button[aria-label="افزودن عضو جدید"]').click();
+  await expect(page.locator("#fSave")).toBeVisible();
+  await page.locator("#fCancel").click();
+  await expect(page.locator("#fSave")).toHaveCount(0);
 });

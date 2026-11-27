@@ -1271,3 +1271,11 @@ body.dark .mem{border-color:#263a5c}
   .nav-badge{animation:none!important}
   .st-btn.hint1{box-shadow:none}
 }
+
+/* ============ v129: بازبینی کامل — گروه‌بندی وظایف به‌تفکیک مسئول ============ */
+.task-person{display:flex;align-items:center;gap:8px;padding:9px 0 5px;margin-top:6px;border-bottom:1px dashed var(--ln)}
+.task-person:first-child{margin-top:0}
+.tp-avatar{width:30px;height:30px;border-radius:9px;background:var(--pg2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.78em;flex-shrink:0;box-shadow:0 2px 6px rgba(37,99,235,.2)}
+.tp-count{font-size:.72em;font-weight:800;background:var(--sf2);border:1px solid var(--ln);border-radius:99px;padding:3px 10px;color:var(--tx2);white-space:nowrap}
+.tp-count.tp-open{background:#f59e0b18;color:#b45309;border-color:#f59e0b44}
+body.dark .tp-count.tp-open{color:#fbbf24}
